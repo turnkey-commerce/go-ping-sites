@@ -1,0 +1,34 @@
+BEGIN TRANSACTION;
+CREATE TABLE "Sites" (
+	"SiteId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"Name"	TEXT NOT NULL,
+	"IsActive"	INTEGER NOT NULL DEFAULT 1,
+	"URL"	TEXT NOT NULL,
+	"PingIntervalSeconds"	INTEGER NOT NULL DEFAULT 60,
+	"TimeOutSeconds"	INTEGER NOT NULL DEFAULT 30
+);
+CREATE TABLE "SiteContacts" (
+	"ContactId" INTEGER NOT NULL,
+	"SiteId" INTEGER NOT NULL,
+	FOREIGN KEY("ContactId")	REFERENCES "Contacts"("ContactId"),
+	FOREIGN KEY("SiteId")	REFERENCES "Sites"("SiteId")
+	PRIMARY KEY("ContactId","SiteId")
+);
+CREATE TABLE "Pings" (
+	"TimeRequest"	TEXT NOT NULL,
+	"SiteId"	INTEGER NOT NULL,
+	"TimeResponse"	TEXT,
+	"HttpStatusCode"	INTEGER,
+	"TimedOut"	INTEGER NOT NULL DEFAULT 0,
+	PRIMARY KEY("TimeRequest","SiteId")
+	FOREIGN KEY("SiteId") REFERENCES "Sites"("SiteId")
+);
+CREATE TABLE "Contacts" (
+	"ContactId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"Name"	TEXT NOT NULL,
+	"EmailAddress"	TEXT NOT NULL,
+	"SmsNumber"	INTEGER,
+	"SmsActive"	INTEGER NOT NULL DEFAULT 0,
+	"EmailActive"	INTEGER NOT NULL DEFAULT 1
+);
+COMMIT;
