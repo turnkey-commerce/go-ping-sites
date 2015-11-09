@@ -2,10 +2,11 @@ CREATE TABLE "Sites" (
 	"SiteId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"Name"	TEXT NOT NULL UNIQUE,
 	"IsActive"	INTEGER NOT NULL DEFAULT 1,
-	"URL"	TEXT NOT NULL,
+	"URL"	TEXT NOT NULL UNIQUE,
 	"PingIntervalSeconds"	INTEGER NOT NULL DEFAULT 60,
 	"TimeOutSeconds"	INTEGER NOT NULL DEFAULT 30
 );
+
 CREATE TABLE "SiteContacts" (
 	"ContactId" INTEGER NOT NULL,
 	"SiteId" INTEGER NOT NULL,
@@ -13,6 +14,7 @@ CREATE TABLE "SiteContacts" (
 	FOREIGN KEY("SiteId")	REFERENCES "Sites"("SiteId")
 	PRIMARY KEY("ContactId","SiteId")
 );
+
 CREATE TABLE "Pings" (
 	"TimeRequest"	TEXT NOT NULL,
 	"SiteId"	INTEGER NOT NULL,
@@ -22,11 +24,12 @@ CREATE TABLE "Pings" (
 	PRIMARY KEY("TimeRequest","SiteId")
 	FOREIGN KEY("SiteId") REFERENCES "Sites"("SiteId")
 );
+
 CREATE TABLE "Contacts" (
 	"ContactId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"Name"	TEXT NOT NULL,
 	"EmailAddress"	TEXT NOT NULL,
-	"SmsNumber"	INTEGER,
+	"SmsNumber"	TEXT,
 	"SmsActive"	INTEGER NOT NULL DEFAULT 0,
 	"EmailActive"	INTEGER NOT NULL DEFAULT 1
 );

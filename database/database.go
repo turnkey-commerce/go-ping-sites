@@ -19,6 +19,15 @@ type Site struct {
 	TimeoutSeconds      int
 }
 
+//Contact is one of the contacts for a particular site.
+type Contact struct {
+	Name         string
+	EmailAddress string
+	SmsNumber    string
+	SmsActive    bool
+	EmailActive  bool
+}
+
 // InitializeDB creates the DB file and imports the schema.
 func InitializeDB() (*sql.DB, error) {
 	dbPath := "./go-ping-sites.db"
@@ -81,4 +90,45 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 		return err
 	}
 	return nil
+}
+
+//CreateContact inserts a new contact in the DB and associates it with a site.
+func (c Contact) CreateContact(db *sql.DB, siteID int64) (int64, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return 0, err
+	}
+
+	result, err := db.Exec(
+		"INSERT INTO Contacts (Name, EmailAddress, SmsNumber, EmailActive, SmsActive) VALUES ($1, $2, $3, $4, $5)",
+		c.Name,
+		c.EmailAddress,
+		c.SmsNumber,
+		c.EmailActive,
+		c.SmsActive,
+	)
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	contactID, err := result.LastInsertId()
+	if err != nil {
+		tx.Rollback()
+		return 0, err
+	}
+
+	// Insert the contactID and the siteID in the many-to-many table
+	result, errSiteContacts := db.Exec(
+		"INSERT INTO SiteContacts (ContactID, SiteID) VALUES ($1, $2)",
+		siteID,
+		contactID,
+	)
+	if errSiteContacts != nil {
+		tx.Rollback()
+		return 0, errSiteContacts
+	}
+
+	tx.Commit()
+	return contactID, nil
 }
