@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
@@ -46,8 +47,9 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to create database:", err)
 	}
 
-	// First create a site to associate the contact.
-	s := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	// First create a site to associate with the contacts.
+	// Note: SiteID is ignored for create but is used in the test comparison
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
 	siteID, errCreate := s.CreateSite(db)
 	if errCreate != nil {
 		t.Fatal("Failed to create new site:", errCreate)
@@ -135,5 +137,29 @@ func TestCreateUniqueSite(t *testing.T) {
 	_, errCreate3 := s3.CreateSite(db)
 	if errCreate3 == nil {
 		t.Fatal("Should throw uniqueness constraint error for Name.")
+	}
+}
+
+// TestCreateSiteAndContacts tests creating a site and adding a new contacts
+// in the database and then retrieving it.
+func TestCreatePings(t *testing.T) {
+	db, err := initializeTest()
+	defer db.Close()
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+
+	// First create a site to associate with the pings.
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	_, errCreate := s.CreateSite(db)
+	if errCreate != nil {
+		t.Fatal("Failed to create new site:", errCreate)
+	}
+
+	// Create a ping result
+	p := database.Ping{SiteID: 1, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC), HTTPStatusCode: 200, TimedOut: true}
+	errCreate = p.CreatePing(db)
+	if errCreate != nil {
+		t.Fatal("Failed to create new ping:", errCreate)
 	}
 }
