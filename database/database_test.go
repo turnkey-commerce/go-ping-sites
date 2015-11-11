@@ -2,6 +2,7 @@ package database_test
 
 import (
 	"database/sql"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -151,15 +152,30 @@ func TestCreatePings(t *testing.T) {
 
 	// First create a site to associate with the pings.
 	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
-	_, errCreate := s.CreateSite(db)
+	siteID, errCreate := s.CreateSite(db)
 	if errCreate != nil {
 		t.Fatal("Failed to create new site:", errCreate)
 	}
 
 	// Create a ping result
-	p := database.Ping{SiteID: 1, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC), HTTPStatusCode: 200, TimedOut: true}
+	p := database.Ping{SiteID: siteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
 	errCreate = p.CreatePing(db)
 	if errCreate != nil {
 		t.Fatal("Failed to create new ping:", errCreate)
+	}
+
+	//Get the saved Ping
+	var saved database.Site
+	err = saved.GetPings(db, siteID, time.Date(2015, time.November, 10, 23, 00, 00, 00, time.UTC),
+		time.Date(2015, time.November, 10, 23, 59, 00, 00, time.UTC))
+	if err != nil {
+		t.Fatal("Failed to retrieve saved pings:", err)
+	}
+
+	fmt.Println(reflect.TypeOf(p))
+	fmt.Println(reflect.TypeOf(saved.Pings[0]))
+	// Verify the first ping was Loaded the same
+	if !reflect.DeepEqual(p, saved.Pings[0]) {
+		t.Fatal("Saved ping not equal to input:\n", saved.Pings[0], p)
 	}
 }

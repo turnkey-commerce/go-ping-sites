@@ -9,13 +9,14 @@ import (
 
 // Site is the website that will be monitored.
 type Site struct {
-	SiteID              int
+	SiteID              int64
 	Name                string
 	IsActive            bool
 	URL                 string
 	PingIntervalSeconds int
 	TimeoutSeconds      int
 	Contacts            []Contact
+	Pings               []Ping
 }
 
 // Contact is one of the contacts for a particular site.
@@ -29,7 +30,7 @@ type Contact struct {
 
 // Ping contains information about a request to ping a site and details about the result
 type Ping struct {
-	SiteID         int
+	SiteID         int64
 	TimeRequest    time.Time
 	TimeResponse   time.Time
 	HTTPStatusCode int
@@ -68,6 +69,9 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 
 	rows, err := db.Query(`SELECT Name, EmailAddress, SmsNumber, EmailActive, SmsActive
 		FROM Contacts c JOIN  SiteContacts s  ON s.ContactID = c.ContactID WHERE s.siteID = $1`, siteID)
+	if err != nil {
+		return err
+	}
 
 	for rows.Next() {
 		var Name string
@@ -138,6 +142,37 @@ func (p Ping) CreatePing(db *sql.DB) error {
 	)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// GetPings gets the pings for a given site for a given time interval.
+func (s *Site) GetPings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
+	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+		TimeoutSeconds FROM Sites WHERE SiteID = $1`, siteID).
+		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds)
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.Query(`SELECT SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut
+		FROM Pings WHERE SiteID = $1 AND TimeRequest >= $2 AND TimeRequest <=$3`, siteID, startTime, endTime)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		var SiteID int64
+		var TimeRequest time.Time
+		var TimeResponse time.Time
+		var HTTPStatusCode int
+		var TimedOut bool
+		err = rows.Scan(&SiteID, &TimeRequest, &TimeResponse, &HTTPStatusCode, &TimedOut)
+		if err != nil {
+			return err
+		}
+		s.Pings = append(s.Pings, Ping{SiteID: SiteID, TimeRequest: TimeRequest,
+			TimeResponse: TimeResponse, HTTPStatusCode: HTTPStatusCode, TimedOut: TimedOut})
 	}
 
 	return nil

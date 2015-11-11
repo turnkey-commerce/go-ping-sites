@@ -25,9 +25,9 @@ CREATE TABLE "SiteContacts" (
 	PRIMARY KEY("ContactId","SiteId")
 );
 CREATE TABLE "Pings" (
-	"TimeRequest"	TEXT NOT NULL,
+	"TimeRequest"	TIMESTAMP NOT NULL,
 	"SiteId"	INTEGER NOT NULL,
-	"TimeResponse"	TEXT,
+	"TimeResponse"	TIMESTAMP,
 	"HttpStatusCode"	INTEGER,
 	"TimedOut"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY("TimeRequest","SiteId")
