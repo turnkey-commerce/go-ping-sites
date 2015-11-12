@@ -59,14 +59,19 @@ func (s Site) CreateSite(db *sql.DB) (int64, error) {
 	return siteID, nil
 }
 
-// GetSite gets a site and its collection of contacts from the DB by SiteID.
+// GetSite gets the site details for a given site.
 func (s *Site) GetSite(db *sql.DB, siteID int64) error {
-	err := db.QueryRow("SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds FROM Sites WHERE SiteID = $1", siteID).
+	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+		TimeoutSeconds FROM Sites WHERE SiteID = $1`, siteID).
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds)
 	if err != nil {
 		return err
 	}
+	return nil
+}
 
+// GetContacts gets the collection of contacts for a given site.
+func (s *Site) GetContacts(db *sql.DB, siteID int64) error {
 	rows, err := db.Query(`SELECT Name, EmailAddress, SmsNumber, EmailActive, SmsActive
 		FROM Contacts c JOIN  SiteContacts s  ON s.ContactID = c.ContactID WHERE s.siteID = $1`, siteID)
 	if err != nil {
@@ -89,13 +94,8 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	return nil
 }
 
-// CreateContact inserts a new contact in the DB and associates it with a site.
-func (c Contact) CreateContact(db *sql.DB, siteID int64) (int64, error) {
-	tx, err := db.Begin()
-	if err != nil {
-		return 0, err
-	}
-
+// CreateContact inserts a new contact in the DB.
+func (c Contact) CreateContact(db *sql.DB) (int64, error) {
 	result, err := db.Exec(
 		"INSERT INTO Contacts (Name, EmailAddress, SmsNumber, EmailActive, SmsActive) VALUES ($1, $2, $3, $4, $5)",
 		c.Name,
@@ -105,35 +105,37 @@ func (c Contact) CreateContact(db *sql.DB, siteID int64) (int64, error) {
 		c.SmsActive,
 	)
 	if err != nil {
-		tx.Rollback()
 		return 0, err
 	}
 
 	contactID, err := result.LastInsertId()
 	if err != nil {
-		tx.Rollback()
 		return 0, err
 	}
 
+	return contactID, nil
+}
+
+// AddContactToSite associates a contact with a site.
+func (c Contact) AddContactToSite(db *sql.DB, contactID int64, siteID int64) error {
 	// Insert the contactID and the siteID in the many-to-many table
-	result, errSiteContacts := db.Exec(
+	_, err := db.Exec(
 		"INSERT INTO SiteContacts (ContactID, SiteID) VALUES ($1, $2)",
 		contactID,
 		siteID,
 	)
-	if errSiteContacts != nil {
-		tx.Rollback()
-		return 0, errSiteContacts
+	if err != nil {
+		return err
 	}
 
-	tx.Commit()
-	return contactID, nil
+	return nil
 }
 
 //CreatePing inserts a new ping row in the DB.
 func (p Ping) CreatePing(db *sql.DB) error {
 	_, err := db.Exec(
-		"INSERT INTO Pings (SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut) VALUES ($1, $2, $3, $4, $5)",
+		`INSERT INTO Pings (SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut)
+			VALUES ($1, $2, $3, $4, $5)`,
 		p.SiteID,
 		p.TimeRequest,
 		p.TimeResponse,
@@ -149,15 +151,9 @@ func (p Ping) CreatePing(db *sql.DB) error {
 
 // GetPings gets the pings for a given site for a given time interval.
 func (s *Site) GetPings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
-	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds FROM Sites WHERE SiteID = $1`, siteID).
-		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds)
-	if err != nil {
-		return err
-	}
-
 	rows, err := db.Query(`SELECT SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut
-		FROM Pings WHERE SiteID = $1 AND TimeRequest >= $2 AND TimeRequest <=$3`, siteID, startTime, endTime)
+		FROM Pings WHERE SiteID = $1 AND TimeRequest >= $2 AND TimeRequest <=$3
+		ORDER BY TimeRequest`, siteID, startTime, endTime)
 	if err != nil {
 		return err
 	}

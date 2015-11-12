@@ -17,6 +17,7 @@ const createStatements = `CREATE TABLE "Sites" (
 	"PingIntervalSeconds"	INTEGER NOT NULL DEFAULT 60,
 	"TimeoutSeconds"	INTEGER NOT NULL DEFAULT 30
 );
+
 CREATE TABLE "SiteContacts" (
 	"ContactId" INTEGER NOT NULL,
 	"SiteId" INTEGER NOT NULL,
@@ -24,6 +25,7 @@ CREATE TABLE "SiteContacts" (
 	FOREIGN KEY("SiteId")	REFERENCES "Sites"("SiteId")
 	PRIMARY KEY("ContactId","SiteId")
 );
+
 CREATE TABLE "Pings" (
 	"TimeRequest"	TIMESTAMP NOT NULL,
 	"SiteId"	INTEGER NOT NULL,
@@ -33,9 +35,10 @@ CREATE TABLE "Pings" (
 	PRIMARY KEY("TimeRequest","SiteId")
 	FOREIGN KEY("SiteId") REFERENCES "Sites"("SiteId")
 );
+
 CREATE TABLE "Contacts" (
 	"ContactId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	"Name"	TEXT NOT NULL,
+	"Name"	TEXT NOT NULL UNIQUE,
 	"EmailAddress"	TEXT NOT NULL,
 	"SmsNumber"	INTEGER,
 	"SmsActive"	INTEGER NOT NULL DEFAULT 0,
