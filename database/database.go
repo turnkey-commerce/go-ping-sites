@@ -21,12 +21,16 @@ type Site struct {
 
 // Contact is one of the contacts for a particular site.
 type Contact struct {
+	ContactID    int64
 	Name         string
 	EmailAddress string
 	SmsNumber    string
 	SmsActive    bool
 	EmailActive  bool
 }
+
+// Contacts is a lits of contacts that aren't necessarily associated with a given site.
+type Contacts []Contact
 
 // Ping contains information about a request to ping a site and details about the result
 type Ping struct {
@@ -40,7 +44,8 @@ type Ping struct {
 //CreateSite inserts a new site in the DB.
 func (s Site) CreateSite(db *sql.DB) (int64, error) {
 	result, err := db.Exec(
-		"INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds) VALUES ($1, $2, $3, $4, $5)",
+		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds)
+			VALUES ($1, $2, $3, $4, $5)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
@@ -70,32 +75,39 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	return nil
 }
 
-// GetContacts gets the collection of contacts for a given site.
-func (s *Site) GetContacts(db *sql.DB, siteID int64) error {
-	rows, err := db.Query(`SELECT Name, EmailAddress, SmsNumber, EmailActive, SmsActive
-		FROM Contacts c JOIN  SiteContacts s  ON s.ContactID = c.ContactID WHERE s.siteID = $1`, siteID)
+// GetSiteContacts gets the collection of contacts for a given site.
+func (s *Site) GetSiteContacts(db *sql.DB, siteID int64) error {
+	rows, err := db.Query(`SELECT c.ContactID, Name, EmailAddress, SmsNumber, EmailActive, SmsActive
+		FROM Contacts c JOIN  SiteContacts s  ON s.ContactID = c.ContactID WHERE s.siteID = $1
+		ORDER BY Name`, siteID)
 	if err != nil {
 		return err
 	}
 
+	// nil out the slice in case it is rereading it from the DB.
+	s.Contacts = nil
+	defer rows.Close()
 	for rows.Next() {
+		var ContactID int64
 		var Name string
 		var EmailAddress string
 		var SmsNumber string
 		var EmailActive bool
 		var SmsActive bool
-		err = rows.Scan(&Name, &EmailAddress, &SmsNumber, &EmailActive, &SmsActive)
+		err = rows.Scan(&ContactID, &Name, &EmailAddress, &SmsNumber, &EmailActive, &SmsActive)
 		if err != nil {
 			return err
 		}
-		s.Contacts = append(s.Contacts, Contact{Name: Name, EmailAddress: EmailAddress, SmsNumber: SmsNumber, EmailActive: EmailActive, SmsActive: SmsActive})
+		s.Contacts = append(s.Contacts, Contact{ContactID: ContactID, Name: Name,
+			EmailAddress: EmailAddress, SmsNumber: SmsNumber, EmailActive: EmailActive,
+			SmsActive: SmsActive})
 	}
 
 	return nil
 }
 
 // CreateContact inserts a new contact in the DB.
-func (c Contact) CreateContact(db *sql.DB) (int64, error) {
+func (c *Contact) CreateContact(db *sql.DB) error {
 	result, err := db.Exec(
 		"INSERT INTO Contacts (Name, EmailAddress, SmsNumber, EmailActive, SmsActive) VALUES ($1, $2, $3, $4, $5)",
 		c.Name,
@@ -105,27 +117,71 @@ func (c Contact) CreateContact(db *sql.DB) (int64, error) {
 		c.SmsActive,
 	)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	contactID, err := result.LastInsertId()
+	c.ContactID, err = result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return contactID, nil
+	return nil
 }
 
 // AddContactToSite associates a contact with a site.
-func (c Contact) AddContactToSite(db *sql.DB, contactID int64, siteID int64) error {
+func (c Contact) AddContactToSite(db *sql.DB, siteID int64) error {
 	// Insert the contactID and the siteID in the many-to-many table
 	_, err := db.Exec(
 		"INSERT INTO SiteContacts (ContactID, SiteID) VALUES ($1, $2)",
-		contactID,
+		c.ContactID,
 		siteID,
 	)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// RemoveContactFromSite deletes the association of a contact with a site.
+func (c Contact) RemoveContactFromSite(db *sql.DB, siteID int64) error {
+	// Insert the contactID and the siteID in the many-to-many table
+	_, err := db.Exec(
+		"DELETE FROM SiteContacts WHERE ContactID = $1 AND SiteID = $2",
+		c.ContactID,
+		siteID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetContacts gets all contacts
+func (c *Contacts) GetContacts(db *sql.DB) error {
+	rows, err := db.Query(`SELECT ContactID, Name, EmailAddress, SmsNumber, EmailActive, SmsActive
+		FROM Contacts
+	  ORDER BY Name`)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var ContactID int64
+		var Name string
+		var EmailAddress string
+		var SmsNumber string
+		var EmailActive bool
+		var SmsActive bool
+		err = rows.Scan(&ContactID, &Name, &EmailAddress, &SmsNumber, &EmailActive, &SmsActive)
+		if err != nil {
+			return err
+		}
+		*c = append(*c, Contact{ContactID: ContactID, Name: Name,
+			EmailAddress: EmailAddress, SmsNumber: SmsNumber, EmailActive: EmailActive,
+			SmsActive: SmsActive})
 	}
 
 	return nil
@@ -149,14 +205,18 @@ func (p Ping) CreatePing(db *sql.DB) error {
 	return nil
 }
 
-// GetPings gets the pings for a given site for a given time interval.
-func (s *Site) GetPings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
+// GetSitePings gets the pings for a given site for a given time interval.
+func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
 	rows, err := db.Query(`SELECT SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut
 		FROM Pings WHERE SiteID = $1 AND TimeRequest >= $2 AND TimeRequest <=$3
 		ORDER BY TimeRequest`, siteID, startTime, endTime)
 	if err != nil {
 		return err
 	}
+
+	// nil out the slice in case it is rereading it from the DB.
+	s.Pings = nil
+	defer rows.Close()
 	for rows.Next() {
 		var SiteID int64
 		var TimeRequest time.Time

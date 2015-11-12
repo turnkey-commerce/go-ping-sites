@@ -2,6 +2,7 @@ package database_test
 
 import (
 	"database/sql"
+	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -61,25 +62,25 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	}
 
 	//Get the saved site
-	var saved database.Site
-	err = saved.GetSite(db, siteID)
+	var site database.Site
+	err = site.GetSite(db, siteID)
 	if err != nil {
 		t.Fatal("Failed to retrieve new site:", err)
 	}
 	//Verify the saved site is same as the input.
-	if !reflect.DeepEqual(s, saved) {
-		t.Fatal("New site saved not equal to input:\n", saved, s)
+	if !reflect.DeepEqual(s, site) {
+		t.Fatal("New site saved not equal to input:\n", site, s)
 	}
 
 	// Create first contact
 	c := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
 		SmsActive: false, EmailActive: false}
-	contactID, err := c.CreateContact(db)
+	err = c.CreateContact(db)
 	if err != nil {
 		t.Fatal("Failed to create new contact:", errCreate)
 	}
 	// Associate to the site ID
-	err = c.AddContactToSite(db, contactID, siteID)
+	err = c.AddContactToSite(db, siteID)
 	if err != nil {
 		t.Fatal("Failed to associate contact with site:", errCreate)
 	}
@@ -87,30 +88,47 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	// Create second contact with the site ID
 	c2 := database.Contact{Name: "Jill Contact", EmailAddress: "jill@test.com", SmsNumber: "5125551213",
 		SmsActive: false, EmailActive: false}
-	contact2ID, errCreate2 := c2.CreateContact(db)
-	if errCreate2 != nil {
-		t.Fatal("Failed to create new site:", errCreate2)
+	err = c2.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
 	}
 	// Associate to the site ID
-	err = c.AddContactToSite(db, contact2ID, siteID)
+	err = c2.AddContactToSite(db, siteID)
 	if err != nil {
 		t.Fatal("Failed to associate contact2 with site:", errCreate)
 	}
 
 	//Get the saved site
-	err = saved.GetContacts(db, siteID)
+	err = site.GetSiteContacts(db, siteID)
 	if err != nil {
 		t.Fatal("Failed to retrieve site contacts:", err)
 	}
 
-	// Verify the first contact was Loaded the same
-	if !reflect.DeepEqual(c, saved.Contacts[0]) {
-		t.Fatal("New contact saved not equal to input:\n", saved.Contacts[0], c)
+	// Verify the first contact was Loaded as the last in list by sort order
+	if !reflect.DeepEqual(c, site.Contacts[1]) {
+		t.Fatal("New contact saved not equal to input:\n", site.Contacts[1], c)
 	}
-	// Verify the second contact was Loaded the same
-	if !reflect.DeepEqual(c2, saved.Contacts[1]) {
-		t.Fatal("New contact saved not equal to input:\n", saved.Contacts[1], c2)
+	// Verify the second contact was Loaded as the first in list by sort order
+	if !reflect.DeepEqual(c2, site.Contacts[0]) {
+		t.Fatal("New contact saved not equal to input:\n", site.Contacts[0], c2)
 	}
+
+	// Remove second contact from site.
+	err = c2.RemoveContactFromSite(db, siteID)
+	if err != nil {
+		t.Fatal("Failed to remove contact2 from site:", err)
+	}
+
+	//Get the saved site contacts again
+	err = site.GetSiteContacts(db, siteID)
+	if err != nil {
+		t.Fatal("Failed to retrieve site contacts:", err)
+	}
+
+	if len(site.Contacts) != 1 {
+		t.Fatal("Site should have only one contact after removal")
+	}
+
 }
 
 // TestCreateUniqueSite tests that the same URL and Site Name can't be entered twice.
@@ -142,6 +160,55 @@ func TestCreateUniqueSite(t *testing.T) {
 	_, errCreate3 := s3.CreateSite(db)
 	if errCreate3 == nil {
 		t.Fatal("Should throw uniqueness constraint error for Name.")
+	}
+}
+
+func TestCreateAndGetUnattachedContacts(t *testing.T) {
+	db, err := initializeTest()
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+
+	// Create first contact
+	c := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
+		SmsActive: false, EmailActive: false}
+	err = c.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new contact:", err)
+	}
+
+	// Create second contact
+	c2 := database.Contact{Name: "Jack Contact", EmailAddress: "jack@test.com", SmsNumber: "5125551213",
+		SmsActive: false, EmailActive: false}
+	err = c2.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new contact:", err)
+	}
+
+	// Create third contact with name conflict.
+	c3 := database.Contact{Name: "Jack Contact", EmailAddress: "jack@test.com", SmsNumber: "5125551213",
+		SmsActive: false, EmailActive: false}
+	err = c3.CreateContact(db)
+	if err == nil {
+		t.Fatal("Conflicting contact should throw error.")
+	}
+
+	var contacts database.Contacts
+	err = contacts.GetContacts(db)
+	if err != nil {
+		t.Fatal("Failed to get all contacts.", err)
+	}
+
+	fmt.Println(contacts)
+
+	// Verify the first contact was Loaded as the last in list by sort order
+	if !reflect.DeepEqual(c, contacts[1]) {
+		t.Fatal("New contact saved not equal to input:\n", contacts[1], c)
+	}
+	// Verify the second contact was Loaded as the first in list by sort order
+	if !reflect.DeepEqual(c2, contacts[0]) {
+		t.Fatal("New contact saved not equal to input:\n", contacts[0], c2)
 	}
 }
 
@@ -177,7 +244,7 @@ func TestCreatePings(t *testing.T) {
 
 	//Get the saved Ping
 	var saved database.Site
-	err = saved.GetPings(db, siteID, time.Date(2015, time.November, 10, 23, 00, 00, 00, time.UTC),
+	err = saved.GetSitePings(db, siteID, time.Date(2015, time.November, 10, 23, 00, 00, 00, time.UTC),
 		time.Date(2015, time.November, 10, 23, 59, 00, 00, time.UTC))
 	if err != nil {
 		t.Fatal("Failed to retrieve saved pings:", err)
