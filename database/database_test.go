@@ -51,19 +51,19 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	// First create a site to associate with the contacts.
 	// Note: SiteID is ignored for create but is used in the test comparison
 	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
-	siteID, errCreate := s.CreateSite(db)
-	if errCreate != nil {
-		t.Fatal("Failed to create new site:", errCreate)
+	err = s.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
 	}
 
 	// siteID should be 1 on the first create.
-	if siteID != 1 {
-		t.Fatal("Expected 1, got ", siteID)
+	if s.SiteID != 1 {
+		t.Fatal("Expected 1, got ", s.SiteID)
 	}
 
 	//Get the saved site
 	var site database.Site
-	err = site.GetSite(db, siteID)
+	err = site.GetSite(db, s.SiteID)
 	if err != nil {
 		t.Fatal("Failed to retrieve new site:", err)
 	}
@@ -77,15 +77,15 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		SmsActive: false, EmailActive: false}
 	err = c.CreateContact(db)
 	if err != nil {
-		t.Fatal("Failed to create new contact:", errCreate)
+		t.Fatal("Failed to create new contact:", err)
 	}
 	// Associate to the site ID
-	err = c.AddContactToSite(db, siteID)
+	err = c.AddContactToSite(db, site.SiteID)
 	if err != nil {
-		t.Fatal("Failed to associate contact with site:", errCreate)
+		t.Fatal("Failed to associate contact with site:", err)
 	}
 
-	// Create second contact with the site ID
+	// Create second contact
 	c2 := database.Contact{Name: "Jill Contact", EmailAddress: "jill@test.com", SmsNumber: "5125551213",
 		SmsActive: false, EmailActive: false}
 	err = c2.CreateContact(db)
@@ -93,13 +93,13 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to create new site:", err)
 	}
 	// Associate to the site ID
-	err = c2.AddContactToSite(db, siteID)
+	err = c2.AddContactToSite(db, site.SiteID)
 	if err != nil {
-		t.Fatal("Failed to associate contact2 with site:", errCreate)
+		t.Fatal("Failed to associate contact2 with site:", err)
 	}
 
 	//Get the saved site
-	err = site.GetSiteContacts(db, siteID)
+	err = site.GetSiteContacts(db, site.SiteID)
 	if err != nil {
 		t.Fatal("Failed to retrieve site contacts:", err)
 	}
@@ -114,13 +114,13 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	}
 
 	// Remove second contact from site.
-	err = c2.RemoveContactFromSite(db, siteID)
+	err = c2.RemoveContactFromSite(db, site.SiteID)
 	if err != nil {
 		t.Fatal("Failed to remove contact2 from site:", err)
 	}
 
 	//Get the saved site contacts again
-	err = site.GetSiteContacts(db, siteID)
+	err = site.GetSiteContacts(db, site.SiteID)
 	if err != nil {
 		t.Fatal("Failed to retrieve site contacts:", err)
 	}
@@ -133,6 +133,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 
 // TestCreateUniqueSite tests that the same URL and Site Name can't be entered twice.
 func TestCreateUniqueSite(t *testing.T) {
+	var err error
 	db, err := initializeTest()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
@@ -141,28 +142,29 @@ func TestCreateUniqueSite(t *testing.T) {
 
 	s := database.Site{Name: "Test", IsActive: true, URL: "http://www.test.com",
 		PingIntervalSeconds: 60, TimeoutSeconds: 30}
-	_, errCreate := s.CreateSite(db)
-	if errCreate != nil {
-		t.Fatal("Failed to create new site:", errCreate)
+	err = s.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
 	}
 
 	//Test where the URL is the same and the Name is different should fail uniqueness constraint.
 	s2 := database.Site{Name: "Test2", IsActive: true, URL: "http://www.test.com",
 		PingIntervalSeconds: 60, TimeoutSeconds: 30}
-	_, errCreate2 := s2.CreateSite(db)
-	if errCreate2 == nil {
+	err = s2.CreateSite(db)
+	if err == nil {
 		t.Fatal("Should throw uniqueness constraint error for URL.")
 	}
 
 	//Test where the Name is the same and the URL is different should fail with uniqueness constraint.
 	s3 := database.Site{Name: "Test", IsActive: true, URL: "http://www.test.edu",
 		PingIntervalSeconds: 60, TimeoutSeconds: 30}
-	_, errCreate3 := s3.CreateSite(db)
-	if errCreate3 == nil {
+	err = s3.CreateSite(db)
+	if err == nil {
 		t.Fatal("Should throw uniqueness constraint error for Name.")
 	}
 }
 
+// TestCreateAndGetUnattachedContacts tests the creation of contacts not associated with a site.
 func TestCreateAndGetUnattachedContacts(t *testing.T) {
 	db, err := initializeTest()
 	if err != nil {
@@ -200,8 +202,6 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 		t.Fatal("Failed to get all contacts.", err)
 	}
 
-	fmt.Println(contacts)
-
 	// Verify the first contact was Loaded as the last in list by sort order
 	if !reflect.DeepEqual(c, contacts[1]) {
 		t.Fatal("New contact saved not equal to input:\n", contacts[1], c)
@@ -215,6 +215,7 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 // TestCreateSiteAndContacts tests creating a site and adding a new contacts
 // in the database and then retrieving it.
 func TestCreatePings(t *testing.T) {
+	var err error
 	db, err := initializeTest()
 	defer db.Close()
 	if err != nil {
@@ -222,29 +223,32 @@ func TestCreatePings(t *testing.T) {
 	}
 
 	// First create a site to associate with the pings.
-	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
-	siteID, errCreate := s.CreateSite(db)
-	if errCreate != nil {
-		t.Fatal("Failed to create new site:", errCreate)
+	s := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
 	}
 
+	fmt.Println(s)
+
 	// Create a ping result
-	p1 := database.Ping{SiteID: siteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
-	errCreate = p1.CreatePing(db)
-	if errCreate != nil {
-		t.Fatal("Failed to create new ping:", errCreate)
+	p1 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
+	err = p1.CreatePing(db)
+	fmt.Println(p1)
+	if err != nil {
+		t.Fatal("Failed to create new ping:", err)
 	}
 
 	// Create a second ping result
-	p2 := database.Ping{SiteID: siteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
-	errCreate = p2.CreatePing(db)
-	if errCreate != nil {
-		t.Fatal("Failed to create new ping:", errCreate)
+	p2 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
+	err = p2.CreatePing(db)
+	if err != nil {
+		t.Fatal("Failed to create new ping:", err)
 	}
 
 	//Get the saved Ping
 	var saved database.Site
-	err = saved.GetSitePings(db, siteID, time.Date(2015, time.November, 10, 23, 00, 00, 00, time.UTC),
+	err = saved.GetSitePings(db, s.SiteID, time.Date(2015, time.November, 10, 23, 00, 00, 00, time.UTC),
 		time.Date(2015, time.November, 10, 23, 59, 00, 00, time.UTC))
 	if err != nil {
 		t.Fatal("Failed to retrieve saved pings:", err)
@@ -261,9 +265,108 @@ func TestCreatePings(t *testing.T) {
 	}
 
 	// Create a third ping with conflicting times should error.
-	p3 := database.Ping{SiteID: siteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
-	errCreate = p3.CreatePing(db)
-	if errCreate == nil {
+	p3 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
+	err = p3.CreatePing(db)
+	if err == nil {
 		t.Fatal("Conflicting pings should throw error.")
+	}
+}
+
+// TestCreateAndGetMultipleSites tests creating more than one active sites
+// with contacts in the database and then retrieving them.
+func TestCreateAndGetMultipleSites(t *testing.T) {
+	var err error
+	db, err := initializeTest()
+	defer db.Close()
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+
+	// Create the first site.
+	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s1.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create first site:", err)
+	}
+
+	// Create the second site.
+	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.test.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s2.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create second site:", err)
+	}
+
+	// Create a third site that is marked inactive.
+	s3 := database.Site{Name: "Test 3", IsActive: false, URL: "http://www.test3.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s3.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create third site:", err)
+	}
+
+	// Create first contact
+	c1 := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
+		SmsActive: false, EmailActive: false}
+	err = c1.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new contact:", err)
+	}
+	// Associate to the first and second site ID
+	err = c1.AddContactToSite(db, s1.SiteID)
+	if err != nil {
+		t.Fatal("Failed to associate contact 1 with first site:", err)
+	}
+	err = c1.AddContactToSite(db, s2.SiteID)
+	if err != nil {
+		t.Fatal("Failed to associate contact 1 with second site:", err)
+	}
+
+	// Create second contact
+	c2 := database.Contact{Name: "Jack Contact", EmailAddress: "jack@test.com", SmsNumber: "5125551213",
+		SmsActive: false, EmailActive: false}
+	err = c2.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new contact:", err)
+	}
+	// Associate only to the first site
+	err = c2.AddContactToSite(db, s1.SiteID)
+	if err != nil {
+		t.Fatal("Failed to associate contact 1 with first site:", err)
+	}
+
+	var sites database.Sites
+	err = sites.GetActiveSitesWithContacts(db)
+	if err != nil {
+		t.Fatal("Failed to get all the sites.", err)
+	}
+
+	// Verify that there are only two active sites.
+	if len(sites) != 2 {
+		t.Fatal("There should only be two active sites loaded.")
+	}
+
+	// Verify the first site was Loaded with proper attributes.
+	if !reflect.DeepEqual(s1.URL, sites[0].URL) {
+		t.Fatal("First saved site not equal to input:\n", sites[0].URL, s1.URL)
+	}
+
+	// Verify the second site was Loaded with proper attributes.
+	if !reflect.DeepEqual(s2.URL, sites[1].URL) {
+		t.Fatal("Second saved site not equal to input:\n", sites[1].URL, s2.URL)
+	}
+
+	// Verify the first contact was Loaded with proper attributes and sorted last.
+	if !reflect.DeepEqual(c1, sites[0].Contacts[1]) {
+		t.Fatal("Second saved contact not equal to input:\n", sites[0].Contacts[1], c1)
+	}
+	// Verify the second contact was loaded with the proper attributes and sorted first.
+	if !reflect.DeepEqual(c2, sites[0].Contacts[0]) {
+		t.Fatal("First saved contact not equal to input:\n", sites[0].Contacts[0], c2)
+	}
+	// Verify the first contact was loaded to the second site.
+	if !reflect.DeepEqual(c1, sites[1].Contacts[0]) {
+		t.Fatal("Second saved contact not equal to input:\n", sites[1].Contacts[0], c1)
 	}
 }

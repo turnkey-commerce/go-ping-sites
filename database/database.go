@@ -29,7 +29,10 @@ type Contact struct {
 	EmailActive  bool
 }
 
-// Contacts is a lits of contacts that aren't necessarily associated with a given site.
+// Sites is a slice of sites
+type Sites []Site
+
+// Contacts is a slice of contacts that aren't necessarily associated with a given site.
 type Contacts []Contact
 
 // Ping contains information about a request to ping a site and details about the result
@@ -42,7 +45,7 @@ type Ping struct {
 }
 
 //CreateSite inserts a new site in the DB.
-func (s Site) CreateSite(db *sql.DB) (int64, error) {
+func (s *Site) CreateSite(db *sql.DB) error {
 	result, err := db.Exec(
 		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds)
 			VALUES ($1, $2, $3, $4, $5)`,
@@ -53,15 +56,15 @@ func (s Site) CreateSite(db *sql.DB) (int64, error) {
 		s.TimeoutSeconds,
 	)
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	siteID, err := result.LastInsertId()
+	s.SiteID, err = result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return siteID, nil
+	return nil
 }
 
 // GetSite gets the site details for a given site.
@@ -71,6 +74,38 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+// GetActiveSitesWithContacts gets all of the active sites with the contacts.
+func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
+	rows, err := db.Query(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+		TimeoutSeconds FROM Sites WHERE IsActive = $1
+		ORDER BY Name`, true)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var SiteID int64
+		var Name string
+		var IsActive bool
+		var URL string
+		var PingIntervalSeconds int
+		var TimeoutSeconds int
+		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds)
+		if err != nil {
+			return err
+		}
+		site := Site{SiteID: SiteID, Name: Name, URL: URL,
+			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds}
+		err = site.GetSiteContacts(db, site.SiteID)
+		if err != nil {
+			return err
+		}
+		*s = append(*s, site)
 	}
 	return nil
 }
