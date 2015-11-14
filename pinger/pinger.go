@@ -2,7 +2,9 @@ package pinger
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
@@ -24,4 +26,22 @@ func NewPinger(db *sql.DB) *Pinger {
 
 	p := Pinger{Sites: sites, DB: db}
 	return &p
+}
+
+// Start begins the Pinter service to start pinging
+func (p *Pinger) Start() {
+	for _, s := range p.Sites {
+		//log.Println(s)
+		if s.URL != "" {
+			go ping(s)
+		}
+	}
+}
+
+// ping does the actual pinging of the site and calls the notifications
+func ping(s database.Site) {
+	for {
+		fmt.Println(s.Name, time.Now())
+		time.Sleep(time.Duration(s.TimeoutSeconds) * time.Second)
+	}
 }
