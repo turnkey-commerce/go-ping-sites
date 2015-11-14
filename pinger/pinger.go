@@ -58,8 +58,8 @@ func ping(s database.Site, db *sql.DB) {
 			return
 		default:
 			if !s.IsActive {
-				pause(s.TimeoutSeconds)
 				log.Println(s.Name, "Paused")
+				pause(s.TimeoutSeconds)
 				continue
 			}
 			log.Println(s.Name, "Pinged")

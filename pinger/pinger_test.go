@@ -13,7 +13,7 @@ import (
 func TestNewPinger(t *testing.T) {
 	p := pinger.NewPinger(nil, getSites)
 
-	if len(p.Sites) != 2 {
+	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
 	}
 }
@@ -36,6 +36,9 @@ func getSites(db *sql.DB) (database.Sites, error) {
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.github.com",
 		PingIntervalSeconds: 15, TimeoutSeconds: 10}
+	// Create the third site as not active.
+	s3 := database.Site{Name: "Test 3", IsActive: false, URL: "http://www.test.com",
+		PingIntervalSeconds: 15, TimeoutSeconds: 10}
 	// Create first contact
 	c1 := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
 		SmsActive: false, EmailActive: false}
@@ -45,7 +48,8 @@ func getSites(db *sql.DB) (database.Sites, error) {
 	// Add the contacts to the sites
 	s1.Contacts = append(s1.Contacts, c1, c2)
 	s2.Contacts = append(s2.Contacts, c1)
+	s3.Contacts = append(s3.Contacts, c1)
 
-	sites = append(sites, s1, s2)
+	sites = append(sites, s1, s2, s3)
 	return sites, nil
 }
