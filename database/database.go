@@ -44,6 +44,22 @@ type Ping struct {
 	TimedOut       bool
 }
 
+const testDb string = "./test.db"
+
+// InitializeTestDB is for test packages to initalize a DB for integration testing.
+func InitializeTestDB() (*sql.DB, error) {
+	var db *sql.DB
+	err := DeleteDb(testDb)
+	if err != nil {
+		return nil, err
+	}
+	db, err = InitializeDB(testDb)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
 //CreateSite inserts a new site in the DB.
 func (s *Site) CreateSite(db *sql.DB) error {
 	result, err := db.Exec(

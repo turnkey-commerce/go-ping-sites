@@ -1,7 +1,6 @@
 package database_test
 
 import (
-	"database/sql"
 	"fmt"
 	"reflect"
 	"testing"
@@ -10,24 +9,9 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
-const testDb string = "./test.db"
-
-func initializeTest() (*sql.DB, error) {
-	var db *sql.DB
-	err := database.DeleteDb(testDb)
-	if err != nil {
-		return nil, err
-	}
-	db, err = database.InitializeDB(testDb)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
 // TestCreateDb tests the creation of the database.
 func TestCreateDb(t *testing.T) {
-	db, err := initializeTest()
+	db, err := database.InitializeTestDB()
 	if err != nil {
 		t.Fatal("Failed to initialize database:", err)
 	}
@@ -42,7 +26,7 @@ func TestCreateDb(t *testing.T) {
 // TestCreateSiteAndContacts tests creating a site and adding a new contacts
 // in the database and then retrieving it.
 func TestCreateSiteAndContacts(t *testing.T) {
-	db, err := initializeTest()
+	db, err := database.InitializeTestDB()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
 	}
@@ -134,7 +118,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 // TestCreateUniqueSite tests that the same URL and Site Name can't be entered twice.
 func TestCreateUniqueSite(t *testing.T) {
 	var err error
-	db, err := initializeTest()
+	db, err := database.InitializeTestDB()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
 	}
@@ -166,7 +150,7 @@ func TestCreateUniqueSite(t *testing.T) {
 
 // TestCreateAndGetUnattachedContacts tests the creation of contacts not associated with a site.
 func TestCreateAndGetUnattachedContacts(t *testing.T) {
-	db, err := initializeTest()
+	db, err := database.InitializeTestDB()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
 	}
@@ -216,7 +200,7 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 // in the database and then retrieving it.
 func TestCreatePings(t *testing.T) {
 	var err error
-	db, err := initializeTest()
+	db, err := database.InitializeTestDB()
 	defer db.Close()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
@@ -276,7 +260,7 @@ func TestCreatePings(t *testing.T) {
 // with contacts in the database and then retrieving them.
 func TestCreateAndGetMultipleSites(t *testing.T) {
 	var err error
-	db, err := initializeTest()
+	db, err := database.InitializeTestDB()
 	defer db.Close()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
