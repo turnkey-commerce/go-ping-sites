@@ -10,17 +10,21 @@ import (
 
 // Pinger does the HTTP pinging of the sites that are retrieved from the DB.
 type Pinger struct {
-	Sites database.Sites
-	DB    *sql.DB
+	Sites      database.Sites
+	DB         *sql.DB
+	RequestURL URLRequester
 }
 
-// SitesGetter allows to pass a function to get the site from DB or mocks
+// SitesGetter allows to pass a function to get the sites from DB or mock.
 type SitesGetter func(db *sql.DB) (database.Sites, error)
+
+// URLRequester allows to pass a function to get thre response and error from http or mock.
+type URLRequester func(url string, timeout int) (string, int, error)
 
 var stop = make(chan bool)
 
 // NewPinger returns a new Pinger object
-func NewPinger(db *sql.DB, getSites SitesGetter) *Pinger {
+func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester) *Pinger {
 	var sites database.Sites
 	var err error
 	sites, err = getSites(db)
@@ -28,7 +32,7 @@ func NewPinger(db *sql.DB, getSites SitesGetter) *Pinger {
 		log.Fatal("Failed to get the sites. ", err)
 	}
 
-	p := Pinger{Sites: sites, DB: db}
+	p := Pinger{Sites: sites, DB: db, RequestURL: requestURL}
 	return &p
 }
 
@@ -38,7 +42,7 @@ func (p *Pinger) Start() {
 	for _, s := range p.Sites {
 		//log.Println(s)
 		if s.URL != "" {
-			go ping(s, p.DB)
+			go ping(s, p.DB, p.RequestURL)
 		}
 	}
 }
@@ -50,7 +54,7 @@ func (p *Pinger) Stop() {
 }
 
 // ping does the actual pinging of the site and calls the notifications
-func ping(s database.Site, db *sql.DB) {
+func ping(s database.Site, db *sql.DB, requestURL URLRequester) {
 	for {
 		// Check for a quit signal to stop the pinging
 		select {
@@ -59,11 +63,17 @@ func ping(s database.Site, db *sql.DB) {
 		default:
 			if !s.IsActive {
 				log.Println(s.Name, "Paused")
-				pause(s.TimeoutSeconds)
+				pause(s.PingIntervalSeconds)
 				continue
 			}
+			_, statusCode, err := requestURL(s.URL, s.TimeoutSeconds)
 			log.Println(s.Name, "Pinged")
-			pause(s.TimeoutSeconds)
+			if err != nil {
+				log.Println(s.Name, "Error", err)
+			} else if statusCode != 200 {
+				log.Println(s.Name, "Error - HTTP Status Code is", statusCode)
+			}
+			pause(s.PingIntervalSeconds)
 		}
 	}
 }

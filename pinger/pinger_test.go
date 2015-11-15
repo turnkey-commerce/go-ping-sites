@@ -2,6 +2,7 @@ package pinger_test
 
 import (
 	"database/sql"
+	"errors"
 	"testing"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
-	p := pinger.NewPinger(nil, getSites)
+	p := pinger.NewPinger(nil, getSites, requestURL)
 
 	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
@@ -20,25 +21,30 @@ func TestNewPinger(t *testing.T) {
 
 // TestStartPinger starts up the pinger and then stops after a couple of rounds
 func TestStartPinger(t *testing.T) {
-	p := pinger.NewPinger(nil, getSites)
-	t.Log("Starting Pinger...")
+	p := pinger.NewPinger(nil, getSites, requestURL)
 	p.Start()
-	time.Sleep(30 * time.Second)
-	t.Log("Stopping Pinger...")
+	time.Sleep(15 * time.Second)
 	p.Stop()
+}
+
+func requestURL(url string, timeout int) (string, int, error) {
+	if url == "http://www.github.com" {
+		return "", 0, errors.New("(Client.Timeout exceeded while awaiting headers)")
+	}
+	return "Hello", 300, nil
 }
 
 func getSites(db *sql.DB) (database.Sites, error) {
 	var sites database.Sites
 	// Create the first site.
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
-		PingIntervalSeconds: 10, TimeoutSeconds: 5}
+		PingIntervalSeconds: 5, TimeoutSeconds: 2}
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.github.com",
-		PingIntervalSeconds: 15, TimeoutSeconds: 10}
+		PingIntervalSeconds: 10, TimeoutSeconds: 5}
 	// Create the third site as not active.
 	s3 := database.Site{Name: "Test 3", IsActive: false, URL: "http://www.test.com",
-		PingIntervalSeconds: 15, TimeoutSeconds: 10}
+		PingIntervalSeconds: 10, TimeoutSeconds: 5}
 	// Create first contact
 	c1 := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
 		SmsActive: false, EmailActive: false}
