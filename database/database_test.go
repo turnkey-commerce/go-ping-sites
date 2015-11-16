@@ -261,10 +261,10 @@ func TestCreatePings(t *testing.T) {
 func TestCreateAndGetMultipleSites(t *testing.T) {
 	var err error
 	db, err := database.InitializeTestDB()
-	defer db.Close()
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
 	}
+	defer db.Close()
 
 	// Create the first site.
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",

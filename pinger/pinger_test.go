@@ -59,6 +59,23 @@ func TestStartPinger(t *testing.T) {
 	}
 }
 
+// TestStartPinger starts up the pinger and then stops it after 10 seconds
+func TestStartEmptySitesPinger(t *testing.T) {
+	p := pinger.NewPinger(nil, getEmptySites, requestURL)
+	p.Start()
+	time.Sleep(1 * time.Second)
+	p.Stop()
+
+	results, err := getLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "No active sites set up for pinging.") {
+		t.Fatal("Failed to report empty sites.")
+	}
+}
+
 func requestURL(url string, timeout int) (string, int, error) {
 	if url == "http://www.github.com" {
 		return "", 0, errors.New("(Client.Timeout exceeded while awaiting headers)")
@@ -89,6 +106,11 @@ func getSites(db *sql.DB) (database.Sites, error) {
 	s3.Contacts = append(s3.Contacts, c1)
 
 	sites = append(sites, s1, s2, s3)
+	return sites, nil
+}
+
+func getEmptySites(db *sql.DB) (database.Sites, error) {
+	var sites database.Sites
 	return sites, nil
 }
 

@@ -52,11 +52,16 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester) *Pinge
 // Start begins the Pinger service to start pinging
 func (p *Pinger) Start() {
 	log.Println("Requesting start of pinger...")
+	siteCount := 0
 	for _, s := range p.Sites {
 		//log.Println(s)
 		if s.URL != "" {
 			go ping(s, p.DB, p.RequestURL)
+			siteCount++
 		}
+	}
+	if siteCount == 0 {
+		log.Println("No active sites set up for pinging.")
 	}
 }
 

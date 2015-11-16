@@ -115,7 +115,7 @@ func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
 		if err != nil {
 			return err
 		}
-		site := Site{SiteID: SiteID, Name: Name, URL: URL,
+		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds}
 		err = site.GetSiteContacts(db, site.SiteID)
 		if err != nil {
