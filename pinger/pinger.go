@@ -3,6 +3,7 @@ package pinger
 import (
 	"database/sql"
 	"log"
+	"os"
 	"time"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -26,10 +27,22 @@ var stop = make(chan bool)
 // NewPinger returns a new Pinger object
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester) *Pinger {
 	var sites database.Sites
+	var pingerLog *os.File
 	var err error
+	pingerLog, err = os.Create("pinger.log")
+	if err != nil {
+		log.Fatal("Error creating pinger log", err)
+	}
+	log.SetOutput(pingerLog)
+
+	log.Println("Retrieving the initial sites...")
 	sites, err = getSites(db)
 	if err != nil {
 		log.Fatal("Failed to get the sites. ", err)
+	}
+
+	for _, s := range sites {
+		log.Println("SITE:", s.Name+",", s.URL)
 	}
 
 	p := Pinger{Sites: sites, DB: db, RequestURL: requestURL}
