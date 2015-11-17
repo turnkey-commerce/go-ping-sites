@@ -12,6 +12,8 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
+var hitCount int
+
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
 	p := pinger.NewPinger(nil, getSites, requestURL)
@@ -36,6 +38,22 @@ func TestNewPinger(t *testing.T) {
 	}
 }
 
+// TestStartEmptySitesPinger starts up the pinger and then stops it after 1 second
+func TestStartEmptySitesPinger(t *testing.T) {
+	p := pinger.NewPinger(nil, getEmptySites, requestURL)
+	p.Start()
+
+	t.Log("Getting log content")
+	results, err := getLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "No active sites set up for pinging.") {
+		t.Fatal("Failed to report empty sites.")
+	}
+}
+
 // TestStartPinger starts up the pinger and then stops it after 10 seconds
 func TestStartPinger(t *testing.T) {
 	p := pinger.NewPinger(nil, getSites, requestURL)
@@ -57,28 +75,17 @@ func TestStartPinger(t *testing.T) {
 	if !strings.Contains(results, "Error - HTTP Status Code") {
 		t.Fatal("Failed to report bad HTTP Status Code.")
 	}
-}
-
-// TestStartPinger starts up the pinger and then stops it after 10 seconds
-func TestStartEmptySitesPinger(t *testing.T) {
-	p := pinger.NewPinger(nil, getEmptySites, requestURL)
-	p.Start()
-	time.Sleep(1 * time.Second)
-	p.Stop()
-
-	results, err := getLogContent()
-	if err != nil {
-		t.Fatal("Failed to get log results.", err)
-	}
-
-	if !strings.Contains(results, "No active sites set up for pinging.") {
-		t.Fatal("Failed to report empty sites.")
+	if !strings.Contains(results, "Will notify status change for Test 2 Site is now up.") {
+		t.Fatal("Failed to report change in notification.")
 	}
 }
 
 func requestURL(url string, timeout int) (string, int, error) {
-	if url == "http://www.github.com" {
+	hitCount++
+	if url == "http://www.github.com" && hitCount < 4 {
 		return "", 0, errors.New("(Client.Timeout exceeded while awaiting headers)")
+	} else if url == "http://www.github.com" {
+		return "Hello", 200, nil
 	}
 	return "Hello", 300, nil
 }
