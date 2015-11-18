@@ -332,13 +332,19 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	// Verify the first site was Loaded with proper attributes.
-	if !reflect.DeepEqual(s1.URL, sites[0].URL) {
-		t.Fatal("First saved site not equal to input:\n", sites[0].URL, s1.URL)
+	if !reflect.DeepEqual(s1.URL, sites[0].URL) || !reflect.DeepEqual(s1.IsActive, sites[0].IsActive) ||
+		!reflect.DeepEqual(s1.Name, sites[0].Name) || !reflect.DeepEqual(s1.PingIntervalSeconds,
+		sites[0].PingIntervalSeconds) || !reflect.DeepEqual(s1.TimeoutSeconds,
+		sites[0].TimeoutSeconds) || !reflect.DeepEqual(s1.SiteID, sites[0].SiteID) {
+		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes.
-	if !reflect.DeepEqual(s2.URL, sites[1].URL) {
-		t.Fatal("Second saved site not equal to input:\n", sites[1].URL, s2.URL)
+	if !reflect.DeepEqual(s2.URL, sites[1].URL) || !reflect.DeepEqual(s2.IsActive, sites[1].IsActive) ||
+		!reflect.DeepEqual(s2.Name, sites[1].Name) || !reflect.DeepEqual(s2.PingIntervalSeconds,
+		sites[1].PingIntervalSeconds) || !reflect.DeepEqual(s2.TimeoutSeconds,
+		sites[1].TimeoutSeconds) || !reflect.DeepEqual(s2.SiteID, sites[1].SiteID) {
+		t.Fatal("First saved site not equal to input:\n", sites[1], s2)
 	}
 
 	// Verify the first contact was Loaded with proper attributes and sorted last.

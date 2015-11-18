@@ -12,6 +12,7 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
+// hitCount is used to vary the outcome of the mock RequestURL
 var hitCount int
 
 // TestNewPinger tests building the pinger object.
@@ -80,8 +81,10 @@ func TestStartPinger(t *testing.T) {
 	}
 }
 
+// requestURL is a mock of the URL request that pings the site.
 func requestURL(url string, timeout int) (string, int, error) {
 	hitCount++
+	// The hitCount allows to vary the response of the request.
 	if url == "http://www.github.com" && hitCount < 4 {
 		return "", 0, errors.New("(Client.Timeout exceeded while awaiting headers)")
 	} else if url == "http://www.github.com" {
@@ -90,6 +93,7 @@ func requestURL(url string, timeout int) (string, int, error) {
 	return "Hello", 300, nil
 }
 
+// get Sites is a mock of the SQL query to get the sites for pinging
 func getSites(db *sql.DB) (database.Sites, error) {
 	var sites database.Sites
 	// Create the first site.
