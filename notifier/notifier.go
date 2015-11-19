@@ -2,6 +2,7 @@ package notifier
 
 import (
 	"log"
+	"sync"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
@@ -21,13 +22,21 @@ func NewNotifier(site database.Site, message string, subject string) *Notifier {
 
 // Notify starts the notification for each contact for the site.
 func (n *Notifier) Notify() {
+	var wg sync.WaitGroup
 	log.Println("Sending Notification of Site Contacts about", n.Subject+"...")
 	for _, c := range n.Site.Contacts {
 		if c.SmsActive || c.EmailActive {
-			// Notify contacts
-			log.Println("Sending notifications for", c.Name)
+			// Notify contact
+			wg.Add(1)
+			go send(c, n.Message, n.Subject, &wg)
 		} else {
 			log.Println("No active contact methods for", c.Name)
 		}
 	}
+	wg.Wait()
+}
+
+func send(c database.Contact, message string, subject string, wg *sync.WaitGroup) {
+	log.Println("Sending notifications for", c.Name, subject, message)
+	wg.Done()
 }
