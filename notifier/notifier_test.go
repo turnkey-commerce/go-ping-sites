@@ -11,17 +11,17 @@ import (
 // TestNewNotifier tests building the pinger object.
 func TestNewNotifier(t *testing.T) {
 	site := getTestSite()
-	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up")
+	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailMock, notifier.SendSmsMock)
 	// Verify the first contact was Loaded with proper attributes and sorted last.
 	if !reflect.DeepEqual(site.Contacts, n.Site.Contacts) {
 		t.Fatal("Incoming site contacts are not the same as the notifier contacts:\n", site.Contacts, n.Site.Contacts)
 	}
 }
 
-// TestNotify tests building the pinger object.
+// TestNotify tests calling the Notifications.
 func TestNotify(t *testing.T) {
 	site := getTestSite()
-	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up")
+	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailMock, notifier.SendSmsMock)
 	n.Notify()
 }
 

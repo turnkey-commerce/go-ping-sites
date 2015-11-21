@@ -1,6 +1,7 @@
 package notifier
 
 import (
+	"errors"
 	"log"
 	"net/smtp"
 	"sync"
@@ -13,14 +14,23 @@ import (
 
 // Notifier sends the notifications to the recipients on a status change.
 type Notifier struct {
-	Site    database.Site
-	Message string
-	Subject string
+	Site      database.Site
+	Message   string
+	Subject   string
+	SendEmail EmailSender
+	SendSms   SmsSender
 }
 
+// EmailSender defines a function to do the work to send an email.
+type EmailSender func(recipient string, message string, subject string) error
+
+// SmsSender defines a function to do the work to send an SMS text message.
+type SmsSender func(smsNumber string, message string) error
+
 // NewNotifier returns a new Notifier object to perform notifications about status change
-func NewNotifier(site database.Site, message string, subject string) *Notifier {
-	n := Notifier{Site: site, Message: message, Subject: subject}
+func NewNotifier(site database.Site, message string, subject string, sendEmail EmailSender, sendSms SmsSender) *Notifier {
+	n := Notifier{Site: site, Message: message, Subject: subject, SendEmail: sendEmail,
+		SendSms: sendSms}
 	return &n
 }
 
@@ -32,7 +42,7 @@ func (n *Notifier) Notify() {
 		if c.SmsActive || c.EmailActive {
 			// Notify contact
 			wg.Add(1)
-			go send(c, n.Message, n.Subject, &wg)
+			go send(c, n.Message, n.Subject, n.SendEmail, n.SendSms, &wg)
 		} else {
 			log.Println("No active contact methods for", c.Name)
 		}
@@ -40,7 +50,7 @@ func (n *Notifier) Notify() {
 	wg.Wait()
 }
 
-func send(c database.Contact, message string, subject string, wg *sync.WaitGroup) {
+func send(c database.Contact, message string, subject string, sendEmail EmailSender, sendSms SmsSender, wg *sync.WaitGroup) {
 	var err error
 	log.Println("Sending notifications for", c.Name, subject, message)
 	if c.EmailActive && len(c.EmailAddress) > 0 {
@@ -60,7 +70,8 @@ func send(c database.Contact, message string, subject string, wg *sync.WaitGroup
 	wg.Done()
 }
 
-func sendEmail(recipient string, message string, subject string) error {
+// SendEmail provides the implementation of the EmailSender type for runtime usage.
+func SendEmail(recipient string, message string, subject string) error {
 	// Set up authentication information.
 	auth := smtp.PlainAuth("", config.Settings.SMTP.EmailAddress, config.Settings.SMTP.Password,
 		config.Settings.SMTP.Server)
@@ -76,13 +87,16 @@ func sendEmail(recipient string, message string, subject string) error {
 	return nil
 }
 
-func sendSms(smsNumber string, message string) error {
+// SendSms provides the implementation of the SmsSender type for runtime usage.
+func SendSms(smsNumber string, message string) error {
 	twilio := gotwilio.NewTwilioClient(config.Settings.Twilio.AccountSid, config.Settings.Twilio.AuthToken)
 	from := config.Settings.Twilio.Number
 
-	_, _, err := twilio.SendSMS(from, smsNumber, message, "", "")
+	_, exc, err := twilio.SendSMS(from, smsNumber, message, "", "")
 	if err != nil {
 		return err
+	} else if exc != nil {
+		return errors.New(exc.Message)
 	}
 	return nil
 }

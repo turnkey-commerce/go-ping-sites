@@ -1,23 +1,18 @@
 package pinger_test
 
 import (
-	"database/sql"
-	"errors"
 	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/turnkey-commerce/go-ping-sites/database"
+	"github.com/turnkey-commerce/go-ping-sites/notifier"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
-// hitCount is used to vary the outcome of the mock RequestURL
-var hitCount int
-
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
-	p := pinger.NewPinger(nil, getSites, requestURL)
+	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 
 	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
@@ -41,10 +36,9 @@ func TestNewPinger(t *testing.T) {
 
 // TestStartEmptySitesPinger starts up the pinger and then stops it after 1 second
 func TestStartEmptySitesPinger(t *testing.T) {
-	p := pinger.NewPinger(nil, getEmptySites, requestURL)
+	p := pinger.NewPinger(nil, pinger.GetEmptySitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
-	t.Log("Getting log content")
 	results, err := getLogContent()
 	if err != nil {
 		t.Fatal("Failed to get log results.", err)
@@ -57,7 +51,7 @@ func TestStartEmptySitesPinger(t *testing.T) {
 
 // TestStartPinger starts up the pinger and then stops it after 10 seconds
 func TestStartPinger(t *testing.T) {
-	p := pinger.NewPinger(nil, getSites, requestURL)
+	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(10 * time.Second)
 	p.Stop()
@@ -79,50 +73,6 @@ func TestStartPinger(t *testing.T) {
 	if !strings.Contains(results, "Will notify status change for Test 2 Site is now up.") {
 		t.Fatal("Failed to report change in notification.")
 	}
-}
-
-// requestURL is a mock of the URL request that pings the site.
-func requestURL(url string, timeout int) (string, int, error) {
-	hitCount++
-	// The hitCount allows to vary the response of the request.
-	if url == "http://www.github.com" && hitCount < 4 {
-		return "", 0, errors.New("(Client.Timeout exceeded while awaiting headers)")
-	} else if url == "http://www.github.com" {
-		return "Hello", 200, nil
-	}
-	return "Hello", 300, nil
-}
-
-// get Sites is a mock of the SQL query to get the sites for pinging
-func getSites(db *sql.DB) (database.Sites, error) {
-	var sites database.Sites
-	// Create the first site.
-	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
-		PingIntervalSeconds: 2, TimeoutSeconds: 1}
-	// Create the second site.
-	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.github.com",
-		PingIntervalSeconds: 5, TimeoutSeconds: 2}
-	// Create the third site as not active.
-	s3 := database.Site{Name: "Test 3", IsActive: false, URL: "http://www.test.com",
-		PingIntervalSeconds: 5, TimeoutSeconds: 2}
-	// Create first contact
-	c1 := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
-		SmsActive: false, EmailActive: false}
-	// Create second contact
-	c2 := database.Contact{Name: "Jack Contact", EmailAddress: "jack@test.com", SmsNumber: "5125551213",
-		SmsActive: false, EmailActive: false}
-	// Add the contacts to the sites
-	s1.Contacts = append(s1.Contacts, c1, c2)
-	s2.Contacts = append(s2.Contacts, c1)
-	s3.Contacts = append(s3.Contacts, c1)
-
-	sites = append(sites, s1, s2, s3)
-	return sites, nil
-}
-
-func getEmptySites(db *sql.DB) (database.Sites, error) {
-	var sites database.Sites
-	return sites, nil
 }
 
 // getLogContent reads the results of the log file for verification.
