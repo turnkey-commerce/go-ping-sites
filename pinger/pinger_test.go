@@ -1,7 +1,6 @@
 package pinger_test
 
 import (
-	"io/ioutil"
 	"strings"
 	"testing"
 	"time"
@@ -12,13 +11,14 @@ import (
 
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
+	pinger.CreatePingerLog()
 	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 
 	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
 	}
 
-	results, err := getLogContent()
+	results, err := pinger.GetLogContent()
 	if err != nil {
 		t.Fatal("Failed to get log results.", err)
 	}
@@ -36,10 +36,11 @@ func TestNewPinger(t *testing.T) {
 
 // TestStartEmptySitesPinger starts up the pinger and then stops it after 1 second
 func TestStartEmptySitesPinger(t *testing.T) {
+	pinger.CreatePingerLog()
 	p := pinger.NewPinger(nil, pinger.GetEmptySitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
-	results, err := getLogContent()
+	results, err := pinger.GetLogContent()
 	if err != nil {
 		t.Fatal("Failed to get log results.", err)
 	}
@@ -51,12 +52,13 @@ func TestStartEmptySitesPinger(t *testing.T) {
 
 // TestStartPinger starts up the pinger and then stops it after 10 seconds
 func TestStartPinger(t *testing.T) {
+	pinger.CreatePingerLog()
 	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(10 * time.Second)
 	p.Stop()
 
-	results, err := getLogContent()
+	results, err := pinger.GetLogContent()
 	if err != nil {
 		t.Fatal("Failed to get log results.", err)
 	}
@@ -73,14 +75,4 @@ func TestStartPinger(t *testing.T) {
 	if !strings.Contains(results, "Will notify status change for Test 2 Site is now up.") {
 		t.Fatal("Failed to report change in notification.")
 	}
-}
-
-// getLogContent reads the results of the log file for verification.
-func getLogContent() (string, error) {
-	dat, err := ioutil.ReadFile("pinger.log")
-	if err != nil {
-		return "", err
-	}
-	results := string(dat)
-	return results, nil
 }

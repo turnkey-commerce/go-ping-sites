@@ -2,10 +2,12 @@ package notifier_test
 
 import (
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
+	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
 // TestNewNotifier tests building the pinger object.
@@ -18,11 +20,45 @@ func TestNewNotifier(t *testing.T) {
 	}
 }
 
-// TestNotify tests calling the Notifications.
+// TestNotify tests calling the Notifications successfully.
 func TestNotify(t *testing.T) {
+	pinger.CreatePingerLog()
 	site := getTestSite()
 	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailMock, notifier.SendSmsMock)
 	n.Notify()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Sending notifications for Jack Contact Site 1 Up Site 1 responding OK") {
+		t.Fatal("Failed to report successful send to Jack Content.")
+	}
+
+	if !strings.Contains(results, "Sending notifications for Joe Contact Site 1 Up Site 1 responding OK") {
+		t.Fatal("Failed to report successful send to Joe Content.")
+	}
+}
+
+// TestNotifyError tests calling the Notifications with errors on each type.
+func TestNotifyError(t *testing.T) {
+	site := getTestSite()
+	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailErrorMock, notifier.SendSmsErrorMock)
+	n.Notify()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Error sending SMS: Error - no response from server.") {
+		t.Fatal("Failed to report error in SMS send to Jack Content.")
+	}
+
+	if !strings.Contains(results, "Error sending email: Error - no response from server.") {
+		t.Fatal("Failed to report error in email send to Joe Content.")
+	}
 }
 
 func getTestSite() database.Site {

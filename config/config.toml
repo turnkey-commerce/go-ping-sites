@@ -1,0 +1,12 @@
+# SMTP credentials for sending email notifications
+[SMTP]
+	EmailAddress = "yourusername@example.com"
+	Password 	   = "yourpassword"
+	Server 		   = "smtp.gmail.com"
+	Port 		     = "587"
+
+#	Twilio credentials for sending text notifications
+[Twilio]
+	AccountSid 	= "AccountSid"
+	AuthToken  	= "AuthToken"
+	Number 	  	= "+15125551212"

@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -34,13 +33,7 @@ var stop = make(chan bool)
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 	sendEmail notifier.EmailSender, sendSms notifier.SmsSender) *Pinger {
 	var sites database.Sites
-	var pingerLog *os.File
 	var err error
-	pingerLog, err = os.Create("pinger.log")
-	if err != nil {
-		log.Fatal("Error creating pinger log", err)
-	}
-	log.SetOutput(pingerLog)
 
 	log.Println("Retrieving the initial sites...")
 	sites, err = getSites(db)

@@ -31,6 +31,7 @@ type SmsSender func(smsNumber string, message string) error
 func NewNotifier(site database.Site, message string, subject string, sendEmail EmailSender, sendSms SmsSender) *Notifier {
 	n := Notifier{Site: site, Message: message, Subject: subject, SendEmail: sendEmail,
 		SendSms: sendSms}
+
 	return &n
 }
 
