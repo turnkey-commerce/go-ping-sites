@@ -14,7 +14,7 @@ import (
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 
 	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
@@ -39,7 +39,8 @@ func TestNewPinger(t *testing.T) {
 // TestStartEmptySitesPinger verifies that proper reporting is done for the case of no active sites.
 func TestStartEmptySitesPinger(t *testing.T) {
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetEmptySitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p := pinger.NewPinger(nil, pinger.GetEmptySitesMock, pinger.RequestURLMock,
+		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
 	results, err := pinger.GetLogContent()
@@ -47,7 +48,7 @@ func TestStartEmptySitesPinger(t *testing.T) {
 		t.Fatal("Failed to get log results.", err)
 	}
 
-	if !strings.Contains(results, "No active sites set up for pinging.") {
+	if !strings.Contains(results, "No active sites set up for pinging in the database!") {
 		t.Fatal("Failed to report empty sites.")
 	}
 }
@@ -56,7 +57,8 @@ func TestStartEmptySitesPinger(t *testing.T) {
 // an error.
 func TestStartPingerErrorWithGetSites(t *testing.T) {
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetSitesErrorMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p := pinger.NewPinger(nil, pinger.GetSitesErrorMock, pinger.RequestURLMock,
+		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
 	results, err := pinger.GetLogContent()
@@ -72,7 +74,8 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 // TestStartPinger starts up the pinger and then stops it after 10 seconds
 func TestStartPinger(t *testing.T) {
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock,
+		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(10 * time.Second)
 	p.Stop()

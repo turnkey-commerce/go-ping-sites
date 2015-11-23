@@ -2,9 +2,11 @@ package pinger
 
 import (
 	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
@@ -19,6 +21,7 @@ type Pinger struct {
 	RequestURL URLRequester
 	SendEmail  notifier.EmailSender
 	SendSms    notifier.SmsSender
+	Exit       Exiter
 }
 
 // SitesGetter defines a function to get the sites from DB or mock.
@@ -27,11 +30,14 @@ type SitesGetter func(db *sql.DB) (database.Sites, error)
 // URLRequester defines a function to get thre response and error from http or mock.
 type URLRequester func(url string, timeout int) (string, int, error)
 
+// Exiter defines a functio to exit the program to allow exit test scenarios.
+type Exiter func(code int)
+
 var stop = make(chan bool)
 
 // NewPinger returns a new Pinger object
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
-	sendEmail notifier.EmailSender, sendSms notifier.SmsSender) *Pinger {
+	exit Exiter, sendEmail notifier.EmailSender, sendSms notifier.SmsSender) *Pinger {
 	var sites database.Sites
 	var err error
 
@@ -46,7 +52,8 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 		log.Println("SITE:", s.Name+",", s.URL)
 	}
 
-	p := Pinger{Sites: sites, DB: db, RequestURL: requestURL, SendEmail: sendEmail, SendSms: sendSms}
+	p := Pinger{Sites: sites, DB: db, RequestURL: requestURL, SendEmail: sendEmail,
+		SendSms: sendSms, Exit: exit}
 	return &p
 }
 
@@ -62,7 +69,10 @@ func (p *Pinger) Start() {
 		}
 	}
 	if siteCount == 0 {
-		log.Println("No active sites set up for pinging.")
+		var message = "No active sites set up for pinging in the database!"
+		fmt.Println(message)
+		log.Println(message)
+		p.Exit(1)
 	}
 }
 
@@ -156,4 +166,9 @@ func GetSites(db *sql.DB) (database.Sites, error) {
 		return nil, err
 	}
 	return sites, nil
+}
+
+// DoExit provides the implement of the exit function.
+func DoExit(flag int) {
+	os.Exit(flag)
 }

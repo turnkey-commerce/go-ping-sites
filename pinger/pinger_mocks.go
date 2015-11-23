@@ -55,8 +55,11 @@ func GetEmptySitesMock(db *sql.DB) (database.Sites, error) {
 	return sites, nil
 }
 
-// GetEmptySitesErrorMock is a mock of the SQL query to get the sites for pinging
+// GetSitesErrorMock is a mock of the SQL query to get the sites for pinging
 // In this case it returns an error when getting the sites.
 func GetSitesErrorMock(db *sql.DB) (database.Sites, error) {
 	return nil, errors.New("Timeout accessing the SQL database.")
 }
+
+// DoExitMock does nothing in the tests.
+func DoExitMock(flag int) {}
