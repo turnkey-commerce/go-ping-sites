@@ -22,7 +22,7 @@ func TestNewNotifier(t *testing.T) {
 
 // TestNotify tests calling the Notifications successfully.
 func TestNotify(t *testing.T) {
-	pinger.CreatePingerLog()
+	pinger.CreatePingerLog("")
 	site := getTestSite()
 	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailMock, notifier.SendSmsMock)
 	n.Notify()
@@ -41,7 +41,7 @@ func TestNotify(t *testing.T) {
 	}
 }
 
-// TestNotifyError tests calling the Notifications with errors on each type.
+// TestNotifyError tests calling the Notifications with errors on each send method.
 func TestNotifyError(t *testing.T) {
 	site := getTestSite()
 	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailErrorMock, notifier.SendSmsErrorMock)
@@ -61,8 +61,8 @@ func TestNotifyError(t *testing.T) {
 	}
 }
 
+// Create the struct for the Site and its contacts used for testing.
 func getTestSite() database.Site {
-	// Check that the contact got passed properly
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
 		PingIntervalSeconds: 2, TimeoutSeconds: 1}
 

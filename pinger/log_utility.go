@@ -20,10 +20,15 @@ func GetLogContent() (string, error) {
 }
 
 // CreatePingerLog creates the log file used by Pinger and Notifier
-func CreatePingerLog() {
+func CreatePingerLog(logFilePath string) error {
+	if logFilePath != "" {
+		logFile = logFilePath
+	}
 	pingerLog, err := os.Create(logFile)
 	if err != nil {
-		log.Fatal("Error creating pinger log", err)
+		log.Println("Error creating pinger log", err)
+		return err
 	}
 	log.SetOutput(pingerLog)
+	return nil
 }

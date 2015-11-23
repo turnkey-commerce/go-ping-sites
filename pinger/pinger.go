@@ -38,7 +38,8 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 	log.Println("Retrieving the initial sites...")
 	sites, err = getSites(db)
 	if err != nil {
-		log.Fatal("Failed to get the sites. ", err)
+		// TODO - implement a retry here in case of temporary DB unavailability.
+		log.Println("Failed to get the sites. ", err)
 	}
 
 	for _, s := range sites {
@@ -140,7 +141,7 @@ func RequestURL(url string, timeout int) (string, int, error) {
 		return "", 0, err
 	}
 	content, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	defer res.Body.Close()
 	if err != nil {
 		return "", 0, err
 	}

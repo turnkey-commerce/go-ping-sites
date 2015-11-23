@@ -13,7 +13,7 @@ import (
 
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
-	pinger.CreatePingerLog()
+	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 
 	if len(p.Sites) != 3 {
@@ -36,9 +36,9 @@ func TestNewPinger(t *testing.T) {
 	}
 }
 
-// TestStartEmptySitesPinger starts up the pinger and then stops it after 1 second
+// TestStartEmptySitesPinger verifies that proper reporting is done for the case of no active sites.
 func TestStartEmptySitesPinger(t *testing.T) {
-	pinger.CreatePingerLog()
+	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(nil, pinger.GetEmptySitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
@@ -52,9 +52,26 @@ func TestStartEmptySitesPinger(t *testing.T) {
 	}
 }
 
+// TestStartPingerErrorWithGetSites verifies that an error is handled when the get sites returns
+// an error.
+func TestStartPingerErrorWithGetSites(t *testing.T) {
+	pinger.CreatePingerLog("")
+	p := pinger.NewPinger(nil, pinger.GetSitesErrorMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Timeout accessing the SQL database.") {
+		t.Fatal("Failed to report empty sites.")
+	}
+}
+
 // TestStartPinger starts up the pinger and then stops it after 10 seconds
 func TestStartPinger(t *testing.T) {
-	pinger.CreatePingerLog()
+	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(10 * time.Second)
@@ -122,10 +139,15 @@ func TestGetSites(t *testing.T) {
 	}
 }
 
+// TestRequestURL tests the concrete implementation of the RequestURL code by requesting an actual site.
 func TestRequestURL(t *testing.T) {
-	_, responseCode, err := pinger.RequestURL("http://www.google.com", 60)
+	content, responseCode, err := pinger.RequestURL("http://www.example.com", 60)
 	if err != nil {
 		t.Error("Request URL retrieval error", err)
+	}
+
+	if !strings.Contains(content, "<title>Example Domain</title>") {
+		t.Error("Request URL response code error", responseCode)
 	}
 
 	if responseCode != 200 {
@@ -133,9 +155,19 @@ func TestRequestURL(t *testing.T) {
 	}
 }
 
+// TestRequestURLError tests the error handling of the concrete implementation of the RequestURL code
+// by requesting a bogus site that will throw an error.
 func TestRequestURLError(t *testing.T) {
 	_, _, err := pinger.RequestURL("http://www.examplefoobar.com", 5)
 	if err == nil {
 		t.Error("Bad URL should throw error")
+	}
+}
+
+func TestCreatePingerLogError(t *testing.T) {
+	var logFile = "X:\\pinger.log"
+	err := pinger.CreatePingerLog(logFile)
+	if err == nil {
+		t.Error("Creation of pinger log should throw error for bad path.")
 	}
 }

@@ -49,7 +49,14 @@ func GetSitesMock(db *sql.DB) (database.Sites, error) {
 }
 
 // GetEmptySitesMock is a mock of the SQL query to get the sites for pinging
+// In this case the method returns an empty list of sites.
 func GetEmptySitesMock(db *sql.DB) (database.Sites, error) {
 	var sites database.Sites
 	return sites, nil
+}
+
+// GetEmptySitesErrorMock is a mock of the SQL query to get the sites for pinging
+// In this case it returns an error when getting the sites.
+func GetSitesErrorMock(db *sql.DB) (database.Sites, error) {
+	return nil, errors.New("Timeout accessing the SQL database.")
 }
