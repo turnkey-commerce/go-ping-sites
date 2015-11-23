@@ -1,10 +1,12 @@
 package pinger_test
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
@@ -74,5 +76,66 @@ func TestStartPinger(t *testing.T) {
 	}
 	if !strings.Contains(results, "Will notify status change for Test 2 Site is now up.") {
 		t.Fatal("Failed to report change in notification.")
+	}
+}
+
+// TestGetSites tests the retrieval of the list of sites.
+func TestGetSites(t *testing.T) {
+	var sites database.Sites
+
+	db, err := database.InitializeTestDB()
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+
+	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.test.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s1.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
+	}
+
+	// Create the second site.
+	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.example.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s2.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create second site:", err)
+	}
+
+	sites, err = pinger.GetSites(db)
+	// Verify the first site was Loaded with proper attributes.
+	if !reflect.DeepEqual(s1.URL, sites[0].URL) || !reflect.DeepEqual(s1.IsActive, sites[0].IsActive) ||
+		!reflect.DeepEqual(s1.Name, sites[0].Name) || !reflect.DeepEqual(s1.PingIntervalSeconds,
+		sites[0].PingIntervalSeconds) || !reflect.DeepEqual(s1.TimeoutSeconds,
+		sites[0].TimeoutSeconds) || !reflect.DeepEqual(s1.SiteID, sites[0].SiteID) {
+		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
+	}
+
+	// Verify the second site was Loaded with proper attributes.
+	if !reflect.DeepEqual(s2.URL, sites[1].URL) || !reflect.DeepEqual(s2.IsActive, sites[1].IsActive) ||
+		!reflect.DeepEqual(s2.Name, sites[1].Name) || !reflect.DeepEqual(s2.PingIntervalSeconds,
+		sites[1].PingIntervalSeconds) || !reflect.DeepEqual(s2.TimeoutSeconds,
+		sites[1].TimeoutSeconds) || !reflect.DeepEqual(s2.SiteID, sites[1].SiteID) {
+		t.Fatal("First saved site not equal to input:\n", sites[1], s2)
+	}
+}
+
+func TestRequestURL(t *testing.T) {
+	_, responseCode, err := pinger.RequestURL("http://www.google.com", 60)
+	if err != nil {
+		t.Error("Request URL retrieval error", err)
+	}
+
+	if responseCode != 200 {
+		t.Error("Request URL response code error", responseCode)
+	}
+}
+
+func TestRequestURLError(t *testing.T) {
+	_, _, err := pinger.RequestURL("http://www.examplefoobar.com", 5)
+	if err == nil {
+		t.Error("Bad URL should throw error")
 	}
 }
