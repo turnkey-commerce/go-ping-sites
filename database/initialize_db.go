@@ -3,7 +3,10 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
+
+	"github.com/BurntSushi/toml"
 )
 
 // The createStatements is used to initialize the DB with the schema.
@@ -46,7 +49,7 @@ CREATE TABLE "Contacts" (
 );`
 
 // InitializeDB creates the DB file and the schema if the file doesn't exist.
-func InitializeDB(dbPath string) (*sql.DB, error) {
+func InitializeDB(dbPath string, seedFile string) (*sql.DB, error) {
 	newDB := false
 	if _, err := os.Stat(dbPath); os.IsNotExist(err) {
 		newDB = true
@@ -59,9 +62,16 @@ func InitializeDB(dbPath string) (*sql.DB, error) {
 
 	if newDB {
 		fmt.Println("New Database, creating Schema...")
-		err = CreateSchema(db)
+		err = createSchema(db)
 		if err != nil {
 			return nil, err
+		}
+		// If a seed config file exists then use it to seed the initial DB.
+		if _, err := os.Stat(seedFile); err == nil {
+			err = seedInitialSites(db, seedFile)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -73,8 +83,8 @@ func InitializeDB(dbPath string) (*sql.DB, error) {
 	return db, nil
 }
 
-// CreateSchema applies the initial schema creation to the database.
-func CreateSchema(db *sql.DB) error {
+// createSchema applies the initial schema creation to the database.
+func createSchema(db *sql.DB) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -90,8 +100,61 @@ func CreateSchema(db *sql.DB) error {
 	return nil
 }
 
-// DeleteDb removes the DB file, mainly intended for testing
-func DeleteDb(dbPath string) error {
+//Seed represents the initial seed to the DB.~
+var Seed struct {
+	Sites    []Site
+	Contacts []Contact
+}
+
+// seedInitialSites gets some initial sites from a config file
+func seedInitialSites(db *sql.DB, seedFile string) error {
+	fmt.Println("Seeding initial sites with", seedFile, "...")
+	var err error
+	if _, err = toml.DecodeFile(seedFile, &Seed); err != nil {
+		log.Println(err)
+		return err
+	}
+
+	for i, s := range Seed.Sites {
+		err = s.CreateSite(db)
+		Seed.Sites[i].SiteID = s.SiteID
+		if err != nil {
+			return err
+		}
+	}
+	for _, c := range Seed.Contacts {
+		err = c.CreateContact(db)
+		if err != nil {
+			return err
+		}
+		for _, s := range Seed.Sites {
+			err = c.AddContactToSite(db, s.SiteID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+const testDb string = "./test.db"
+
+// InitializeTestDB is for test packages to initalize a DB for integration testing.
+func InitializeTestDB(seedFile string) (*sql.DB, error) {
+	var db *sql.DB
+	err := deleteDb(testDb)
+	if err != nil {
+		return nil, err
+	}
+	db, err = InitializeDB(testDb, seedFile)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
+// deleteDb removes the DB file, mainly intended for testing
+func deleteDb(dbPath string) error {
 	if _, err := os.Stat(dbPath); err == nil {
 		err := os.Remove(dbPath)
 		if err != nil {

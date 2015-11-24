@@ -1,0 +1,29 @@
+# Sites to be initially loaded into the DB
+[[Sites]]
+Name="Example.com"
+IsActive=true
+URL="http://www.example.com"
+PingIntervalSeconds=60
+TimeoutSeconds=30
+
+[[Sites]]
+Name="Example.org"
+IsActive=true
+URL="http://www.example.org"
+PingIntervalSeconds=30
+TimeoutSeconds=15
+
+# All Contacts defined below will be associated with all sites above
+[[Contacts]]
+Name="John Doe"
+EmailAddress="JohnDoe@example.com"
+SmsNumber="15125551212"
+SmsActive=false
+EmailActive=true
+
+[[Contacts]]
+Name="Jane Doe"
+EmailAddress="JaneDoe@example.com"
+SmsNumber="15125551213"
+SmsActive=true
+EmailActive=false

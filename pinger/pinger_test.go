@@ -103,7 +103,7 @@ func TestStartPinger(t *testing.T) {
 func TestGetSites(t *testing.T) {
 	var sites database.Sites
 
-	db, err := database.InitializeTestDB()
+	db, err := database.InitializeTestDB("")
 	if err != nil {
 		t.Fatal("Failed to create database:", err)
 	}

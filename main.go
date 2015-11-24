@@ -14,7 +14,7 @@ func main() {
 	var err error
 	var db *sql.DB
 	pinger.CreatePingerLog("")
-	db, err = database.InitializeDB("go-ping-sites.db")
+	db, err = database.InitializeDB("go-ping-sites.db", "db-seed.toml")
 	if err != nil {
 		log.Fatal("Failed to initialize database:", err)
 	}
