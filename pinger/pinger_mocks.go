@@ -3,6 +3,7 @@ package pinger
 import (
 	"database/sql"
 	"errors"
+	"time"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
@@ -11,15 +12,16 @@ import (
 var hitCount int
 
 // RequestURLMock is a mock of the URL request that pings the site.
-func RequestURLMock(url string, timeout int) (string, int, error) {
+func RequestURLMock(url string, timeout int) (string, int, time.Duration, error) {
+	var responseTime = 300 * time.Millisecond
 	hitCount++
 	// The hitCount allows to vary the response of the request.
 	if url == "http://www.github.com" && hitCount < 4 {
-		return "", 0, errors.New("(Client.Timeout exceeded while awaiting headers)")
+		return "", 0, responseTime, errors.New("(Client.Timeout exceeded while awaiting headers)")
 	} else if url == "http://www.github.com" {
-		return "Hello", 200, nil
+		return "Hello", 200, responseTime, nil
 	}
-	return "Hello", 300, nil
+	return "Hello", 300, responseTime, nil
 }
 
 // GetSitesMock is a mock of the SQL query to get the sites for pinging

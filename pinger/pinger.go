@@ -28,7 +28,7 @@ type Pinger struct {
 type SitesGetter func(db *sql.DB) (database.Sites, error)
 
 // URLRequester defines a function to get thre response and error from http or mock.
-type URLRequester func(url string, timeout int) (string, int, error)
+type URLRequester func(url string, timeout int) (string, int, time.Duration, error)
 
 // Exiter defines a functio to exit the program to allow exit test scenarios.
 type Exiter func(code int)
@@ -90,7 +90,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 	var partialDetails string
 	var partialSubject string
 	for {
-		// initialize notify to false and only notify on change of siteUp status
+		// initialize notify to false and only notify on change of siteWasUp status
 		notify = false
 		// Check for a quit signal to stop the pinging
 		select {
@@ -102,7 +102,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				pause(s.PingIntervalSeconds)
 				continue
 			}
-			_, statusCode, err := requestURL(s.URL, s.TimeoutSeconds)
+			_, statusCode, responseTime, err := requestURL(s.URL, s.TimeoutSeconds)
 			log.Println(s.Name, "Pinged")
 			if err != nil {
 				log.Println(s.Name, "Error", err)
@@ -124,7 +124,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				if !siteWasUp {
 					notify = true
 					partialSubject = "Site is Up"
-					partialDetails = "Site is now up."
+					partialDetails = fmt.Sprintf("Site is now up, response time was %v.", responseTime)
 				}
 				siteWasUp = true
 			}
@@ -147,21 +147,26 @@ func pause(numSeconds int) {
 }
 
 // RequestURL provides the implementation of the URLRequester type for runtime usage.
-func RequestURL(url string, timeout int) (string, int, error) {
+func RequestURL(url string, timeout int) (string, int, time.Duration, error) {
 	to := time.Duration(timeout) * time.Second
 	client := http.Client{
 		Timeout: to,
 	}
+	// Record the timing of the request by diff from the initial time.
+	timeStart := time.Now()
+	// Do the get request.
 	res, err := client.Get(url)
+	elapsedTime := Round(time.Since(timeStart), time.Millisecond)
 	if err != nil {
-		return "", 0, err
+		return "", 0, elapsedTime, err
 	}
-	content, err := ioutil.ReadAll(res.Body)
 	defer res.Body.Close()
+	content, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return "", 0, err
+		return "", 0, elapsedTime, err
 	}
-	return string(content), res.StatusCode, nil
+
+	return string(content), res.StatusCode, elapsedTime, nil
 }
 
 // GetSites provides the implementation of the SitesGetter type for runtime usage.
@@ -174,7 +179,27 @@ func GetSites(db *sql.DB) (database.Sites, error) {
 	return sites, nil
 }
 
-// DoExit provides the implement of the exit function.
+// DoExit provides the implementation of the exit function.
 func DoExit(flag int) {
 	os.Exit(flag)
+}
+
+// Round provides a method to round a time duration.
+func Round(d, r time.Duration) time.Duration {
+	if r <= 0 {
+		return d
+	}
+	neg := d < 0
+	if neg {
+		d = -d
+	}
+	if m := d % r; m+m < r {
+		d = d - m
+	} else {
+		d = d + r - m
+	}
+	if neg {
+		return -d
+	}
+	return d
 }

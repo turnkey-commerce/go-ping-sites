@@ -1,6 +1,7 @@
 package pinger_test
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -94,7 +95,7 @@ func TestStartPinger(t *testing.T) {
 	if !strings.Contains(results, "Error - HTTP Status Code") {
 		t.Fatal("Failed to report bad HTTP Status Code.")
 	}
-	if !strings.Contains(results, "Will notify status change for Test 2: Test 2 at http://www.github.com: Site is now up.") {
+	if !strings.Contains(results, "Will notify status change for Test 2: Test 2 at http://www.github.com: Site is now up, response time was 300ms.") {
 		t.Fatal("Failed to report change in notification.")
 	}
 }
@@ -144,10 +145,11 @@ func TestGetSites(t *testing.T) {
 
 // TestRequestURL tests the concrete implementation of the RequestURL code by requesting an actual site.
 func TestRequestURL(t *testing.T) {
-	content, responseCode, err := pinger.RequestURL("http://www.example.com", 60)
+	content, responseCode, responseTime, err := pinger.RequestURL("http://www.example.com", 60)
 	if err != nil {
 		t.Error("Request URL retrieval error", err)
 	}
+	fmt.Println("Response time:", responseTime)
 
 	if !strings.Contains(content, "<title>Example Domain</title>") {
 		t.Error("Request URL response code error", responseCode)
@@ -161,7 +163,7 @@ func TestRequestURL(t *testing.T) {
 // TestRequestURLError tests the error handling of the concrete implementation of the RequestURL code
 // by requesting a bogus site that will throw an error.
 func TestRequestURLError(t *testing.T) {
-	_, _, err := pinger.RequestURL("http://www.examplefoobar.com", 5)
+	_, _, _, err := pinger.RequestURL("http://www.examplefoobar.com", 5)
 	if err == nil {
 		t.Error("Bad URL should throw error")
 	}
