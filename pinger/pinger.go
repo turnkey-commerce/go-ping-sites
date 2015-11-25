@@ -87,7 +87,8 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 	sendEmail notifier.EmailSender, sendSms notifier.SmsSender) {
 	siteWasUp := true
 	var notify bool
-	var details string
+	var partialDetails string
+	var partialSubject string
 	for {
 		// initialize notify to false and only notify on change of siteUp status
 		notify = false
@@ -107,26 +108,31 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				log.Println(s.Name, "Error", err)
 				if siteWasUp {
 					notify = true
-					details = "Site is down, Error is " + err.Error()
+					partialSubject = "Site is Down"
+					partialDetails = "Site is down, Error is " + err.Error()
 				}
 				siteWasUp = false
 			} else if statusCode != 200 {
 				log.Println(s.Name, "Error - HTTP Status Code is", statusCode)
 				if siteWasUp {
 					notify = true
-					details = "Site is down, HTTP Status Code is " + strconv.Itoa(statusCode) + "."
+					partialSubject = "Site is Down"
+					partialDetails = "Site is down, HTTP Status Code is " + strconv.Itoa(statusCode) + "."
 				}
 				siteWasUp = false
 			} else { // if no errors site is up.
 				if !siteWasUp {
 					notify = true
-					details = "Site is now up."
+					partialSubject = "Site is Up"
+					partialDetails = "Site is now up."
 				}
 				siteWasUp = true
 			}
 			if notify {
-				log.Println("Will notify status change for", s.Name, details)
-				subject := s.Name + " Status Change"
+				subject := s.Name + ": " + partialSubject
+				details := s.Name + " at " + s.URL + ": " + partialDetails
+				log.Println("Will notify status change for", s.Name+":", details)
+
 				n := notifier.NewNotifier(s, details, subject, sendEmail, sendSms)
 				n.Notify()
 			}

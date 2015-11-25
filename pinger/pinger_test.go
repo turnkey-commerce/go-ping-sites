@@ -94,7 +94,7 @@ func TestStartPinger(t *testing.T) {
 	if !strings.Contains(results, "Error - HTTP Status Code") {
 		t.Fatal("Failed to report bad HTTP Status Code.")
 	}
-	if !strings.Contains(results, "Will notify status change for Test 2 Site is now up.") {
+	if !strings.Contains(results, "Will notify status change for Test 2: Test 2 at http://www.github.com: Site is now up.") {
 		t.Fatal("Failed to report change in notification.")
 	}
 }
