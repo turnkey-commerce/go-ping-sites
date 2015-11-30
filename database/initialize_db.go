@@ -32,7 +32,7 @@ CREATE TABLE "SiteContacts" (
 CREATE TABLE "Pings" (
 	"TimeRequest"	TIMESTAMP NOT NULL,
 	"SiteId"	INTEGER NOT NULL,
-	"TimeResponse"	TIMESTAMP,
+	"Duration"	INTEGER,
 	"HttpStatusCode"	INTEGER,
 	"TimedOut"	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY("TimeRequest","SiteId")

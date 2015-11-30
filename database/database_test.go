@@ -227,7 +227,8 @@ func TestCreatePings(t *testing.T) {
 	fmt.Println(s)
 
 	// Create a ping result
-	p1 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
+	p1 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC),
+		Duration: 280, HTTPStatusCode: 200, TimedOut: false}
 	err = p1.CreatePing(db)
 	fmt.Println(p1)
 	if err != nil {
@@ -235,7 +236,8 @@ func TestCreatePings(t *testing.T) {
 	}
 
 	// Create a second ping result
-	p2 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
+	p2 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC),
+		Duration: 290, HTTPStatusCode: 200, TimedOut: false}
 	err = p2.CreatePing(db)
 	if err != nil {
 		t.Fatal("Failed to create new ping:", err)
@@ -260,7 +262,8 @@ func TestCreatePings(t *testing.T) {
 	}
 
 	// Create a third ping with conflicting times should error.
-	p3 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC), TimeResponse: time.Date(2015, time.November, 10, 23, 22, 25, 00, time.UTC), HTTPStatusCode: 200, TimedOut: false}
+	p3 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC),
+		Duration: 300, HTTPStatusCode: 200, TimedOut: false}
 	err = p3.CreatePing(db)
 	if err == nil {
 		t.Fatal("Conflicting pings should throw error.")

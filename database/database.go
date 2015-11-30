@@ -39,7 +39,7 @@ type Contacts []Contact
 type Ping struct {
 	SiteID         int64
 	TimeRequest    time.Time
-	TimeResponse   time.Time
+	Duration       int
 	HTTPStatusCode int
 	TimedOut       bool
 }
@@ -225,11 +225,11 @@ func (c *Contacts) GetContacts(db *sql.DB) error {
 //CreatePing inserts a new ping row in the DB.
 func (p Ping) CreatePing(db *sql.DB) error {
 	_, err := db.Exec(
-		`INSERT INTO Pings (SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut)
+		`INSERT INTO Pings (SiteID, TimeRequest, Duration, HttpStatusCode, TimedOut)
 			VALUES ($1, $2, $3, $4, $5)`,
 		p.SiteID,
 		p.TimeRequest,
-		p.TimeResponse,
+		p.Duration,
 		p.HTTPStatusCode,
 		p.TimedOut,
 	)
@@ -242,7 +242,7 @@ func (p Ping) CreatePing(db *sql.DB) error {
 
 // GetSitePings gets the pings for a given site for a given time interval.
 func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
-	rows, err := db.Query(`SELECT SiteID, TimeRequest, TimeResponse, HttpStatusCode, TimedOut
+	rows, err := db.Query(`SELECT SiteID, TimeRequest, Duration, HttpStatusCode, TimedOut
 		FROM Pings WHERE SiteID = $1 AND TimeRequest >= $2 AND TimeRequest <=$3
 		ORDER BY TimeRequest`, siteID, startTime, endTime)
 	if err != nil {
@@ -255,15 +255,15 @@ func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTi
 	for rows.Next() {
 		var SiteID int64
 		var TimeRequest time.Time
-		var TimeResponse time.Time
+		var Duration int
 		var HTTPStatusCode int
 		var TimedOut bool
-		err = rows.Scan(&SiteID, &TimeRequest, &TimeResponse, &HTTPStatusCode, &TimedOut)
+		err = rows.Scan(&SiteID, &TimeRequest, &Duration, &HTTPStatusCode, &TimedOut)
 		if err != nil {
 			return err
 		}
 		s.Pings = append(s.Pings, Ping{SiteID: SiteID, TimeRequest: TimeRequest,
-			TimeResponse: TimeResponse, HTTPStatusCode: HTTPStatusCode, TimedOut: TimedOut})
+			Duration: Duration, HTTPStatusCode: HTTPStatusCode, TimedOut: TimedOut})
 	}
 
 	return nil

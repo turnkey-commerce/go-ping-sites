@@ -104,6 +104,8 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			}
 			_, statusCode, responseTime, err := requestURL(s.URL, s.TimeoutSeconds)
 			log.Println(s.Name, "Pinged")
+			// Record ping informaton.
+			p := database.Ping{SiteID: s.SiteID, TimeRequest: time.Now()}
 			if err != nil {
 				log.Println(s.Name, "Error", err)
 				if siteWasUp {
@@ -128,6 +130,18 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				}
 				siteWasUp = true
 			}
+			// Save the ping details
+			p.Duration = int(responseTime.Nanoseconds() / 1e6)
+			p.HTTPStatusCode = statusCode
+			p.TimedOut = false
+			// Save to db if not in test mode.
+			if db != nil {
+				err = p.CreatePing(db)
+				if err != nil {
+					log.Println("Error saving to ping to db:", err)
+				}
+			}
+			// Do the notifications if applicable
 			if notify {
 				subject := s.Name + ": " + partialSubject
 				details := s.Name + " at " + s.URL + ": " + partialDetails
