@@ -15,6 +15,8 @@ type Site struct {
 	URL                 string
 	PingIntervalSeconds int
 	TimeoutSeconds      int
+	IsSiteUp            bool
+	LastStatusChange    time.Time
 	Contacts            []Contact
 	Pings               []Ping
 }
@@ -47,13 +49,14 @@ type Ping struct {
 //CreateSite inserts a new site in the DB.
 func (s *Site) CreateSite(db *sql.DB) error {
 	result, err := db.Exec(
-		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds)
-			VALUES ($1, $2, $3, $4, $5)`,
+		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, LastStatusChange)
+			VALUES ($1, $2, $3, $4, $5, $6)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
 		s.PingIntervalSeconds,
 		s.TimeoutSeconds,
+		s.LastStatusChange,
 	)
 	if err != nil {
 		return err
@@ -67,11 +70,28 @@ func (s *Site) CreateSite(db *sql.DB) error {
 	return nil
 }
 
+//UpdateSiteStatus updates the up/down status and last status change of a Site.
+func (s *Site) UpdateSiteStatus(db *sql.DB, isSiteUp bool) error {
+	_, err := db.Exec(
+		`UPDATE Sites SET IsSiteUp = $1, LastStatusChange = $2
+			WHERE SiteId = $3`,
+		isSiteUp,
+		time.Now(),
+		s.SiteID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetSite gets the site details for a given site.
 func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds FROM Sites WHERE SiteID = $1`, siteID).
-		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds)
+		TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE SiteID = $1`, siteID).
+		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds,
+		&s.IsSiteUp, &s.LastStatusChange)
 	if err != nil {
 		return err
 	}
@@ -81,7 +101,7 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 // GetActiveSitesWithContacts gets all of the active sites with the contacts.
 func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
 	rows, err := db.Query(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds FROM Sites WHERE IsActive = $1
+		TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE IsActive = $1
 		ORDER BY Name`, true)
 	if err != nil {
 		return err
@@ -95,7 +115,10 @@ func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
 		var URL string
 		var PingIntervalSeconds int
 		var TimeoutSeconds int
-		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds)
+		var IsSiteUp bool
+		var LastStatusChange time.Time
+		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
+			&IsSiteUp, &LastStatusChange)
 		if err != nil {
 			return err
 		}

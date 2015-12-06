@@ -13,38 +13,40 @@ import (
 // It seems better to put it in the code rather than an external file to
 // prevent accidental changes by the users.
 const createStatements = `CREATE TABLE "Sites" (
-	"SiteId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	"Name"	TEXT NOT NULL UNIQUE,
-	"IsActive"	INTEGER NOT NULL DEFAULT 1,
-	"URL"	TEXT NOT NULL UNIQUE,
-	"PingIntervalSeconds"	INTEGER NOT NULL DEFAULT 60,
-	"TimeoutSeconds"	INTEGER NOT NULL DEFAULT 30
+	"SiteId"	           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"Name"	               TEXT NOT NULL UNIQUE,
+	"IsActive"	           INTEGER NOT NULL DEFAULT 1,
+	"URL"	               TEXT NOT NULL UNIQUE,
+	"PingIntervalSeconds"  INTEGER NOT NULL DEFAULT 60,
+	"TimeoutSeconds"	   INTEGER NOT NULL DEFAULT 30,
+	"IsSiteUp"             INTEGER NOT NULL DEFAULT 1,
+	"LastStatusChange"     TIMESTAMP
 );
 
 CREATE TABLE "SiteContacts" (
-	"ContactId" INTEGER NOT NULL,
-	"SiteId" INTEGER NOT NULL,
-	FOREIGN KEY("ContactId")	REFERENCES "Contacts"("ContactId"),
-	FOREIGN KEY("SiteId")	REFERENCES "Sites"("SiteId")
+	"ContactId"              INTEGER NOT NULL,
+	"SiteId"                 INTEGER NOT NULL,
+	FOREIGN KEY("ContactId") REFERENCES "Contacts"("ContactId"),
+	FOREIGN KEY("SiteId")	 REFERENCES "Sites"("SiteId")
 	PRIMARY KEY("ContactId","SiteId")
 );
 
 CREATE TABLE "Pings" (
-	"TimeRequest"	TIMESTAMP NOT NULL,
-	"SiteId"	INTEGER NOT NULL,
-	"Duration"	INTEGER,
-	"HttpStatusCode"	INTEGER,
-	"TimedOut"	INTEGER NOT NULL DEFAULT 0,
+	"TimeRequest"	  TIMESTAMP NOT NULL,
+	"SiteId"	      INTEGER NOT NULL,
+	"Duration"        INTEGER,
+	"HttpStatusCode"  INTEGER,
+	"TimedOut"	      INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY("TimeRequest","SiteId")
 	FOREIGN KEY("SiteId") REFERENCES "Sites"("SiteId")
 );
 
 CREATE TABLE "Contacts" (
-	"ContactId"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-	"Name"	TEXT NOT NULL UNIQUE,
-	"EmailAddress"	TEXT NOT NULL,
-	"SmsNumber"	INTEGER,
-	"SmsActive"	INTEGER NOT NULL DEFAULT 0,
+	"ContactId"	    INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"Name"	        TEXT NOT NULL UNIQUE,
+	"EmailAddress"  TEXT NOT NULL,
+	"SmsNumber"	    INTEGER,
+	"SmsActive"	    INTEGER NOT NULL DEFAULT 0,
 	"EmailActive"	INTEGER NOT NULL DEFAULT 1
 );`
 

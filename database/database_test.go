@@ -1,7 +1,6 @@
 package database_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 	"time"
@@ -45,7 +44,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 
 	// First create a site to associate with the contacts.
 	// Note: SiteID is ignored for create but is used in the test comparison
-	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true}
 	err = s.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create new site:", err)
@@ -63,8 +62,10 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to retrieve new site:", err)
 	}
 	//Verify the saved site is same as the input.
-	if !reflect.DeepEqual(s, site) {
-		t.Fatal("New site saved not equal to input:\n", site, s)
+	if site.URL != s.URL || site.IsActive != s.IsActive || site.Name != s.Name ||
+		site.TimeoutSeconds != s.TimeoutSeconds || site.PingIntervalSeconds != s.PingIntervalSeconds ||
+		site.SiteID != s.SiteID {
+		t.Error("New site saved not equal to input:\n", site, s)
 	}
 
 	// Create first contact
@@ -159,6 +160,55 @@ func TestCreateUniqueSite(t *testing.T) {
 	}
 }
 
+// TestCreateSiteAndContacts tests creating a site and adding a new contacts
+// in the database and then retrieving it.
+func TestUpdateSiteStatus(t *testing.T) {
+	db, err := database.InitializeTestDB("")
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+
+	// First create a site to update status.
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30}
+	err = s.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
+	}
+
+	// Update the status of the site to down
+	err = s.UpdateSiteStatus(db, false)
+	if err != nil {
+		t.Fatal("Failed to update site status:", err)
+	}
+
+	//Get the saved site
+	var updatedSite database.Site
+	err = updatedSite.GetSite(db, s.SiteID)
+	if err != nil {
+		t.Fatal("Failed to retrieve updated site:", err)
+	}
+
+	if updatedSite.IsSiteUp != false {
+		t.Errorf("Site status should be down.")
+	}
+
+	// Update the status of the site to up
+	err = s.UpdateSiteStatus(db, true)
+	if err != nil {
+		t.Fatal("Failed to update site status:", err)
+	}
+
+	err = updatedSite.GetSite(db, s.SiteID)
+	if err != nil {
+		t.Fatal("Failed to retrieve updated site:", err)
+	}
+
+	if updatedSite.IsSiteUp != true {
+		t.Errorf("Site status should be up.")
+	}
+}
+
 // TestCreateAndGetUnattachedContacts tests the creation of contacts not associated with a site.
 func TestCreateAndGetUnattachedContacts(t *testing.T) {
 	db, err := database.InitializeTestDB("")
@@ -207,8 +257,7 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 	}
 }
 
-// TestCreateSiteAndContacts tests creating a site and adding a new contacts
-// in the database and then retrieving it.
+// TestCreatePings tests creating the ping records for a given site.
 func TestCreatePings(t *testing.T) {
 	var err error
 	db, err := database.InitializeTestDB("")
@@ -224,13 +273,10 @@ func TestCreatePings(t *testing.T) {
 		t.Fatal("Failed to create new site:", err)
 	}
 
-	fmt.Println(s)
-
 	// Create a ping result
 	p1 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC),
 		Duration: 280, HTTPStatusCode: 200, TimedOut: false}
 	err = p1.CreatePing(db)
-	fmt.Println(p1)
 	if err != nil {
 		t.Fatal("Failed to create new ping:", err)
 	}
@@ -346,19 +392,17 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	// Verify the first site was Loaded with proper attributes.
-	if !reflect.DeepEqual(s1.URL, sites[0].URL) || !reflect.DeepEqual(s1.IsActive, sites[0].IsActive) ||
-		!reflect.DeepEqual(s1.Name, sites[0].Name) || !reflect.DeepEqual(s1.PingIntervalSeconds,
-		sites[0].PingIntervalSeconds) || !reflect.DeepEqual(s1.TimeoutSeconds,
-		sites[0].TimeoutSeconds) || !reflect.DeepEqual(s1.SiteID, sites[0].SiteID) {
+	if s1.URL != sites[0].URL || s1.IsActive != sites[0].IsActive ||
+		s1.Name != sites[0].Name || s1.PingIntervalSeconds != sites[0].PingIntervalSeconds ||
+		s1.TimeoutSeconds != sites[0].TimeoutSeconds || s1.SiteID != sites[0].SiteID {
 		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes.
-	if !reflect.DeepEqual(s2.URL, sites[1].URL) || !reflect.DeepEqual(s2.IsActive, sites[1].IsActive) ||
-		!reflect.DeepEqual(s2.Name, sites[1].Name) || !reflect.DeepEqual(s2.PingIntervalSeconds,
-		sites[1].PingIntervalSeconds) || !reflect.DeepEqual(s2.TimeoutSeconds,
-		sites[1].TimeoutSeconds) || !reflect.DeepEqual(s2.SiteID, sites[1].SiteID) {
-		t.Fatal("First saved site not equal to input:\n", sites[1], s2)
+	if s2.URL != sites[1].URL || s1.IsActive != sites[1].IsActive ||
+		s2.Name != sites[1].Name || s2.PingIntervalSeconds != sites[1].PingIntervalSeconds ||
+		s2.TimeoutSeconds != sites[1].TimeoutSeconds || s2.SiteID != sites[1].SiteID {
+		t.Fatal("Second saved site not equal to input:\n", sites[1], s2)
 	}
 
 	// Verify the first contact was Loaded with proper attributes and sorted last.
