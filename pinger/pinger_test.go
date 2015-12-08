@@ -1,21 +1,28 @@
 package pinger_test
 
 import (
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 	"time"
 
+	_ "github.com/erikstmartin/go-testdb"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
+func CreatePing(DB *sql.DB) error {
+	return nil
+}
+
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
+	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock, pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock, pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 
 	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
@@ -39,8 +46,9 @@ func TestNewPinger(t *testing.T) {
 
 // TestStartEmptySitesPinger verifies that proper reporting is done for the case of no active sites.
 func TestStartEmptySitesPinger(t *testing.T) {
+	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetEmptySitesMock, pinger.RequestURLMock,
+	p := pinger.NewPinger(db, pinger.GetEmptySitesMock, pinger.RequestURLMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
@@ -57,8 +65,9 @@ func TestStartEmptySitesPinger(t *testing.T) {
 // TestStartPingerErrorWithGetSites verifies that an error is handled when the get sites returns
 // an error.
 func TestStartPingerErrorWithGetSites(t *testing.T) {
+	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetSitesErrorMock, pinger.RequestURLMock,
+	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
@@ -74,8 +83,10 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 
 // TestStartPinger starts up the pinger and then stops it after 10 seconds
 func TestStartPinger(t *testing.T) {
+	// Fake db for testing.
+	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(nil, pinger.GetSitesMock, pinger.RequestURLMock,
+	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(10 * time.Second)

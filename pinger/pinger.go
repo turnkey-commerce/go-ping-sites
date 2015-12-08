@@ -14,6 +14,11 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 )
 
+// PingSaver provides an interface for testing the Pinger.
+type PingSaver interface {
+	CreatePing(DB *sql.DB) error
+}
+
 // Pinger does the HTTP pinging of the sites that are retrieved from the DB.
 type Pinger struct {
 	Sites      database.Sites
@@ -134,12 +139,10 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			p.Duration = int(responseTime.Nanoseconds() / 1e6)
 			p.HTTPStatusCode = statusCode
 			p.TimedOut = false
-			// Save to db if not in test mode.
-			if db != nil {
-				err = p.CreatePing(db)
-				if err != nil {
-					log.Println("Error saving to ping to db:", err)
-				}
+			// Save ping to db.
+			err = p.CreatePing(db)
+			if err != nil {
+				log.Println("Error saving to ping to db:", err)
 			}
 			// Do the notifications if applicable
 			if notify {
