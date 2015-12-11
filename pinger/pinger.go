@@ -14,11 +14,6 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 )
 
-// PingSaver provides an interface for testing the Pinger.
-type PingSaver interface {
-	CreatePing(DB *sql.DB) error
-}
-
 // Pinger does the HTTP pinging of the sites that are retrieved from the DB.
 type Pinger struct {
 	Sites      database.Sites
@@ -91,12 +86,12 @@ func (p *Pinger) Stop() {
 func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 	sendEmail notifier.EmailSender, sendSms notifier.SmsSender) {
 	siteWasUp := true
-	var notify bool
+	var statusChange bool
 	var partialDetails string
 	var partialSubject string
 	for {
-		// initialize notify to false and only notify on change of siteWasUp status
-		notify = false
+		// initialize statusChange to false and only notify on change of siteWasUp status
+		statusChange = false
 		// Check for a quit signal to stop the pinging
 		select {
 		case <-stop:
@@ -114,7 +109,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			if err != nil {
 				log.Println(s.Name, "Error", err)
 				if siteWasUp {
-					notify = true
+					statusChange = true
 					partialSubject = "Site is Down"
 					partialDetails = "Site is down, Error is " + err.Error()
 				}
@@ -122,14 +117,14 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			} else if statusCode != 200 {
 				log.Println(s.Name, "Error - HTTP Status Code is", statusCode)
 				if siteWasUp {
-					notify = true
+					statusChange = true
 					partialSubject = "Site is Down"
 					partialDetails = "Site is down, HTTP Status Code is " + strconv.Itoa(statusCode) + "."
 				}
 				siteWasUp = false
 			} else { // if no errors site is up.
 				if !siteWasUp {
-					notify = true
+					statusChange = true
 					partialSubject = "Site is Up"
 					partialDetails = fmt.Sprintf("Site is now up, response time was %v.", responseTime)
 				}
@@ -145,7 +140,13 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				log.Println("Error saving to ping to db:", err)
 			}
 			// Do the notifications if applicable
-			if notify {
+			if statusChange {
+				// Update the site Status
+				err = s.UpdateSiteStatus(db, siteWasUp)
+				if err != nil {
+					log.Println("Error updating site status:", err)
+				}
+				// Do the notifications if applicable
 				subject := s.Name + ": " + partialSubject
 				details := s.Name + " at " + s.URL + ": " + partialDetails
 				log.Println("Will notify status change for", s.Name+":", details)

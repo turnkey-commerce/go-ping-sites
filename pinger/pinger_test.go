@@ -14,10 +14,6 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
-func CreatePing(DB *sql.DB) error {
-	return nil
-}
-
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
