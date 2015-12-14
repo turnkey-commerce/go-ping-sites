@@ -177,7 +177,7 @@ func TestRequestURLError(t *testing.T) {
 }
 
 func TestCreatePingerLogError(t *testing.T) {
-	var logFile = "X:\\pinger.log"
+	var logFile = "/bogusFilePath/pinger.log"
 	err := pinger.CreatePingerLog(logFile)
 	if err == nil {
 		t.Error("Creation of pinger log should throw error for bad path.")
