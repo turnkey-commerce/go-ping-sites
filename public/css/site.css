@@ -1,0 +1,55 @@
+.navbar-custom {
+    background-color:#660066;
+    color:#ffffff;
+    border-radius:0;
+}
+  
+.navbar-custom .navbar-nav > li > a {
+    color:#eeeeee;
+    padding-left:20px;
+    padding-right:20px;
+}
+.navbar-custom .navbar-nav > .active > a, .navbar-nav > .active > a:hover, .navbar-nav > .active > a:focus {
+    color: #eeeeee;
+    background-color:transparent;
+}
+      
+.navbar-custom .navbar-nav > li > a:hover, .nav > li > a:focus {
+    text-decoration: none;
+    background-color: #990098;
+    color:#eeeeee;
+}
+      
+.navbar-custom .navbar-brand {
+    color:#eeeeee;
+}
+.navbar-custom .navbar-toggle {
+    background-color:#eeeeee;
+}
+.navbar-custom .icon-bar {
+    background-color:#990098;
+    color:#eeeeee;
+}
+.nav .open>a, .nav .open>a:focus, .nav .open>a:hover {
+    background-color: #990098;
+    border-color: #337ab7;
+    color:#eeeeee;
+}
+.navbar-custom .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:focus, .navbar-inverse .navbar-nav>.active>a:hover {
+    color: #ffe5ff;
+    background-color: #4d004c;
+}
+
+body {
+  padding-top: 60px;
+}
+
+.text-danger {
+    color: Red;
+    font-weight: bold ;
+}
+
+.text-success {
+    color: Green;
+    font-weight: bold ;
+}
