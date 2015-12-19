@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"bufio"
+	"database/sql"
 	"net/http"
 	"os"
 	"strings"
@@ -11,12 +12,13 @@ import (
 )
 
 // Register the handlers for a given route.
-func Register(templates *template.Template) {
+func Register(db *sql.DB, templates *template.Template) {
 	router := mux.NewRouter()
 
 	hc := new(homeController)
 	hc.template = templates.Lookup("home.html")
-	router.HandleFunc("/home", hc.get)
+	hc.DB = db
+	router.HandleFunc("/", hc.get)
 
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.html")

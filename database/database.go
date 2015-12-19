@@ -98,6 +98,38 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	return nil
 }
 
+// GetActiveSites  gets all of the active sites without contacts.
+func (s *Sites) GetActiveSites(db *sql.DB) error {
+	rows, err := db.Query(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+		TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE IsActive = $1
+		ORDER BY Name`, true)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		var SiteID int64
+		var Name string
+		var IsActive bool
+		var URL string
+		var PingIntervalSeconds int
+		var TimeoutSeconds int
+		var IsSiteUp bool
+		var LastStatusChange time.Time
+		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
+			&IsSiteUp, &LastStatusChange)
+		if err != nil {
+			return err
+		}
+		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
+			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
+			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange}
+		*s = append(*s, site)
+	}
+	return nil
+}
+
 // GetActiveSitesWithContacts gets all of the active sites with the contacts.
 func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
 	rows, err := db.Query(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
@@ -123,7 +155,8 @@ func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
 			return err
 		}
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
-			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds}
+			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
+			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange}
 		err = site.GetSiteContacts(db, site.SiteID)
 		if err != nil {
 			return err
