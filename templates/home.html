@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-{{template "_head.html" .Title}}
-    <body role="document">
-{{template "_nav.html" .Active}}
+<head>
+  <meta http-equiv="refresh" content="30">
+  {{template "_head.html" .Title}}
+</head>
+<body role="document">
+  {{template "_nav.html" .Active}}
   <div class="container">
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
@@ -13,7 +16,7 @@
             <tr>
               <th class="col-md-4">Website</th>
               <th class="col-md-2">Status</th>
-              <th class="col-md-6">How Long?</th>
+              <th class="col-md-6">Since</th>
             </tr>
           </thead>
           <tbody>
@@ -30,7 +33,6 @@
     </div>
   </div>
 </div> <!-- /container -->
-
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -39,5 +41,5 @@
     <script src="js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="js/ie10-viewport-bug-workaround.js"></script>
-  </body>
+</body>
 </html>

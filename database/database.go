@@ -49,13 +49,14 @@ type Ping struct {
 //CreateSite inserts a new site in the DB.
 func (s *Site) CreateSite(db *sql.DB) error {
 	result, err := db.Exec(
-		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, LastStatusChange)
-			VALUES ($1, $2, $3, $4, $5, $6)`,
+		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange)
+			VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
 		s.PingIntervalSeconds,
 		s.TimeoutSeconds,
+		s.IsSiteUp,
 		s.LastStatusChange,
 	)
 	if err != nil {

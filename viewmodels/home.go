@@ -3,8 +3,8 @@ package viewmodels
 import (
 	"database/sql"
 	"fmt"
-	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
@@ -46,7 +46,7 @@ func GetHomeViewModel(db *sql.DB) HomeViewModel {
 			siteVM.Status = "Down"
 			siteVM.CSSClass = "danger"
 		}
-		siteVM.HowLong = fmt.Sprintf("%v", time.Since(site.LastStatusChange))
+		siteVM.HowLong = fmt.Sprintf("%s", humanize.Time(site.LastStatusChange))
 
 		result.Sites = append(result.Sites, *siteVM)
 	}

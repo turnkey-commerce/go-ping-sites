@@ -328,7 +328,7 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Create the first site.
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+		PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true}
 	err = s1.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create first site:", err)
@@ -336,7 +336,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.test.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+		PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: false,
+		LastStatusChange: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)}
 	err = s2.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create second site:", err)
@@ -394,14 +395,16 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	// Verify the first site was Loaded with proper attributes.
 	if s1.URL != sites[0].URL || s1.IsActive != sites[0].IsActive ||
 		s1.Name != sites[0].Name || s1.PingIntervalSeconds != sites[0].PingIntervalSeconds ||
-		s1.TimeoutSeconds != sites[0].TimeoutSeconds || s1.SiteID != sites[0].SiteID {
+		s1.TimeoutSeconds != sites[0].TimeoutSeconds || s1.SiteID != sites[0].SiteID ||
+		s1.IsSiteUp != sites[0].IsSiteUp || !s1.LastStatusChange.IsZero() {
 		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes.
 	if s2.URL != sites[1].URL || s1.IsActive != sites[1].IsActive ||
 		s2.Name != sites[1].Name || s2.PingIntervalSeconds != sites[1].PingIntervalSeconds ||
-		s2.TimeoutSeconds != sites[1].TimeoutSeconds || s2.SiteID != sites[1].SiteID {
+		s2.TimeoutSeconds != sites[1].TimeoutSeconds || s2.SiteID != sites[1].SiteID ||
+		s2.IsSiteUp != sites[1].IsSiteUp || s2.LastStatusChange != sites[1].LastStatusChange {
 		t.Fatal("Second saved site not equal to input:\n", sites[1], s2)
 	}
 
