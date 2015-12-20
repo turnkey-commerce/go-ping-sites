@@ -396,7 +396,7 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	if s1.URL != sites[0].URL || s1.IsActive != sites[0].IsActive ||
 		s1.Name != sites[0].Name || s1.PingIntervalSeconds != sites[0].PingIntervalSeconds ||
 		s1.TimeoutSeconds != sites[0].TimeoutSeconds || s1.SiteID != sites[0].SiteID ||
-		s1.IsSiteUp != sites[0].IsSiteUp || !s1.LastStatusChange.IsZero() {
+		s1.IsSiteUp != sites[0].IsSiteUp || !sites[0].LastStatusChange.IsZero() {
 		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
@@ -419,5 +419,28 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	// Verify the first contact was loaded to the second site.
 	if !reflect.DeepEqual(c1, sites[1].Contacts[0]) {
 		t.Fatal("Second saved contact not equal to input:\n", sites[1].Contacts[0], c1)
+	}
+
+	// Test for just the sites without the contacts
+	var sitesNoContacts database.Sites
+	err = sitesNoContacts.GetActiveSites(db)
+	if err != nil {
+		t.Fatal("Failed to get all the sites.", err)
+	}
+
+	// Verify the first site was Loaded with proper attributes.
+	if s1.URL != sitesNoContacts[0].URL || s1.IsActive != sitesNoContacts[0].IsActive ||
+		s1.Name != sitesNoContacts[0].Name || s1.PingIntervalSeconds != sitesNoContacts[0].PingIntervalSeconds ||
+		s1.TimeoutSeconds != sitesNoContacts[0].TimeoutSeconds || s1.SiteID != sitesNoContacts[0].SiteID ||
+		s1.IsSiteUp != sitesNoContacts[0].IsSiteUp || !sitesNoContacts[0].LastStatusChange.IsZero() {
+		t.Fatal("First saved site not equal to GetActiveSites results:\n", sitesNoContacts[0], s1)
+	}
+
+	// Verify the second site was Loaded with proper attributes.
+	if s2.URL != sitesNoContacts[1].URL || s1.IsActive != sitesNoContacts[1].IsActive ||
+		s2.Name != sitesNoContacts[1].Name || s2.PingIntervalSeconds != sitesNoContacts[1].PingIntervalSeconds ||
+		s2.TimeoutSeconds != sitesNoContacts[1].TimeoutSeconds || s2.SiteID != sitesNoContacts[1].SiteID ||
+		s2.IsSiteUp != sitesNoContacts[1].IsSiteUp || s2.LastStatusChange != sitesNoContacts[1].LastStatusChange {
+		t.Fatal("Second saved site not equal to GetActiveSites results:\n", sitesNoContacts[1], s2)
 	}
 }

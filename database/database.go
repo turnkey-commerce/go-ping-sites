@@ -99,11 +99,13 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	return nil
 }
 
+const getSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+	TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE IsActive = $1
+	ORDER BY Name`
+
 // GetActiveSites  gets all of the active sites without contacts.
 func (s *Sites) GetActiveSites(db *sql.DB) error {
-	rows, err := db.Query(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE IsActive = $1
-		ORDER BY Name`, true)
+	rows, err := db.Query(getSitesQueryString, true)
 	if err != nil {
 		return err
 	}
@@ -133,9 +135,7 @@ func (s *Sites) GetActiveSites(db *sql.DB) error {
 
 // GetActiveSitesWithContacts gets all of the active sites with the contacts.
 func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
-	rows, err := db.Query(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE IsActive = $1
-		ORDER BY Name`, true)
+	rows, err := db.Query(getSitesQueryString, true)
 	if err != nil {
 		return err
 	}
