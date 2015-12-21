@@ -1,7 +1,6 @@
 package viewmodels
 
 import (
-	"database/sql"
 	"fmt"
 
 	"github.com/dustin/go-humanize"
@@ -25,17 +24,13 @@ type SiteViewModel struct {
 }
 
 // GetHomeViewModel populates the items required by the home.html view
-func GetHomeViewModel(db *sql.DB) HomeViewModel {
+func GetHomeViewModel(sites database.Sites, err error) HomeViewModel {
 	result := HomeViewModel{
 		Title:  "Go Ping Sites - Home",
 		Active: "home",
-		Error:  nil,
+		Error:  err,
 	}
-	var sites database.Sites
-	err := sites.GetActiveSites(db)
-	if err != nil {
-		result.Error = err
-	}
+
 	for _, site := range sites {
 		siteVM := new(SiteViewModel)
 		siteVM.Name = site.Name
@@ -46,7 +41,11 @@ func GetHomeViewModel(db *sql.DB) HomeViewModel {
 			siteVM.Status = "Down"
 			siteVM.CSSClass = "danger"
 		}
-		siteVM.HowLong = fmt.Sprintf("%s", humanize.Time(site.LastStatusChange))
+		if site.LastStatusChange.IsZero() {
+			siteVM.HowLong = "Unknown"
+		} else {
+			siteVM.HowLong = fmt.Sprintf("%s", humanize.Time(site.LastStatusChange))
+		}
 
 		result.Sites = append(result.Sites, *siteVM)
 	}

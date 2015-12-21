@@ -48,6 +48,8 @@ type Ping struct {
 
 //CreateSite inserts a new site in the DB.
 func (s *Site) CreateSite(db *sql.DB) error {
+	// Set site to initially be up, as is the assumption when the pinging first starts.
+	s.IsSiteUp = true
 	result, err := db.Exec(
 		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange)
 			VALUES ($1, $2, $3, $4, $5, $6, $7)`,

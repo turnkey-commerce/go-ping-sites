@@ -328,7 +328,7 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Create the first site.
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true}
+		PingIntervalSeconds: 60, TimeoutSeconds: 30}
 	err = s1.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create first site:", err)
@@ -336,7 +336,7 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.test.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: false,
+		PingIntervalSeconds: 60, TimeoutSeconds: 30,
 		LastStatusChange: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)}
 	err = s2.CreateSite(db)
 	if err != nil {
