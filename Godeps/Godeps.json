@@ -1,0 +1,35 @@
+{
+	"ImportPath": "github.com/turnkey-commerce/go-ping-sites",
+	"GoVersion": "go1.5",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0-21-g056c9bc",
+			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+		},
+		{
+			"ImportPath": "github.com/dustin/go-humanize",
+			"Rev": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0"
+		},
+		{
+			"ImportPath": "github.com/erikstmartin/go-testdb",
+			"Rev": "e91c57bcc918671f042bb1722841946bd376dcde"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
+		},
+		{
+			"ImportPath": "github.com/mattn/go-sqlite3",
+			"Comment": "v1.1.0-27-g5651a9d",
+			"Rev": "5651a9d9d49ec25811d08220ee972080378d52ea"
+		},
+		{
+			"ImportPath": "github.com/sfreiberg/gotwilio",
+			"Rev": "b7230c284bd0c1614c94d00b9998c49f9a2737d8"
+		}
+	]
+}
