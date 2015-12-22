@@ -1,9 +1,9 @@
 .navbar-custom {
-    background-color:#660066;
+    background-color:#3333CC;
     color:#ffffff;
     border-radius:0;
 }
-
+  
 .navbar-custom .navbar-nav > li > a {
     color:#eeeeee;
     padding-left:20px;
@@ -13,13 +13,13 @@
     color: #eeeeee;
     background-color:transparent;
 }
-
+      
 .navbar-custom .navbar-nav > li > a:hover, .nav > li > a:focus {
     text-decoration: none;
-    background-color: #990098;
+    background-color: #6666FF;
     color:#eeeeee;
 }
-
+      
 .navbar-custom .navbar-brand {
     color:#eeeeee;
 }
@@ -27,17 +27,17 @@
     background-color:#eeeeee;
 }
 .navbar-custom .icon-bar {
-    background-color:#990098;
+    background-color:#6666FF;
     color:#eeeeee;
 }
 .nav .open>a, .nav .open>a:focus, .nav .open>a:hover {
-    background-color: #990098;
+    background-color: #6666FF;
     border-color: #337ab7;
     color:#eeeeee;
 }
 .navbar-custom .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:focus, .navbar-inverse .navbar-nav>.active>a:hover {
     color: #ffe5ff;
-    background-color: #990098;
+    background-color: #6666FF;
 }
 
 body {
