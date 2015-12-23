@@ -19,6 +19,10 @@
 			"Rev": "e91c57bcc918671f042bb1722841946bd376dcde"
 		},
 		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
+		},
+		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
 		},
