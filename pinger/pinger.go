@@ -2,12 +2,14 @@ package pinger
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -34,6 +36,8 @@ type URLRequester func(url string, timeout int) (string, int, time.Duration, err
 type Exiter func(code int)
 
 var stop = make(chan bool)
+
+const InternetAccessError = "Internet Access Error"
 
 // NewPinger returns a new Pinger object
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
@@ -107,6 +111,12 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			// Record ping informaton.
 			p := database.Ping{SiteID: s.SiteID, TimeRequest: time.Now()}
 			if err != nil {
+				// Check if the error is due to the Internet not being Accessible
+				if strings.Contains(err.Error(), InternetAccessError) {
+					log.Println(s.Name, "Unable to determine site status -", err)
+					pause(s.PingIntervalSeconds)
+					continue
+				}
 				log.Println(s.Name, "Error", err)
 				if siteWasUp {
 					statusChange = true
@@ -174,8 +184,13 @@ func RequestURL(url string, timeout int) (string, int, time.Duration, error) {
 	timeStart := time.Now()
 	// Do the get request.
 	res, err := client.Get(url)
-	elapsedTime := Round(time.Since(timeStart), time.Millisecond)
+	elapsedTime := round(time.Since(timeStart), time.Millisecond)
 	if err != nil {
+		// If there's an error need to determine if it could be a local networking error
+		// by checking a couple of highly available sites.
+		if !isInternetAccessible() {
+			return "", 0, elapsedTime, errors.New(InternetAccessError + ": " + err.Error())
+		}
 		return "", 0, elapsedTime, err
 	}
 	defer res.Body.Close()
@@ -202,8 +217,25 @@ func DoExit(flag int) {
 	os.Exit(flag)
 }
 
-// Round provides a method to round a time duration.
-func Round(d, r time.Duration) time.Duration {
+// isInternetAccessible checks two highly available sites to check whether the
+// oustide Internet is responding and there are no internal network problems.
+func isInternetAccessible() bool {
+	to := time.Duration(5) * time.Second
+	client := http.Client{
+		Timeout: to,
+	}
+	_, err1 := client.Get("http://www.example.com")
+	if err1 != nil {
+		_, err2 := client.Get("http://www.google.com")
+		if err2 != nil {
+			return false
+		}
+	}
+	return true
+}
+
+// round provides a method to round a time duration.
+func round(d, r time.Duration) time.Duration {
 	if r <= 0 {
 		return d
 	}

@@ -107,6 +107,27 @@ func TestStartPinger(t *testing.T) {
 	}
 }
 
+// TestInternetAccessError starts up the pinger and then stops it after 3 seconds
+func TestInternetAccessError(t *testing.T) {
+	// Fake db for testing.
+	db, _ := sql.Open("testdb", "")
+	pinger.CreatePingerLog("")
+	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLBadInternetAccessMock,
+		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+	time.Sleep(2 * time.Second)
+	p.Stop()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Unable to determine site status - Internet Access Error: connect: network is unreachable") {
+		t.Fatal("Failed to report Internet Access Error: ", results)
+	}
+}
+
 // TestGetSites tests the retrieval of the list of sites.
 func TestGetSites(t *testing.T) {
 	var sites database.Sites
