@@ -299,12 +299,22 @@ func TestCreatePings(t *testing.T) {
 
 	// Verify the first ping was Loaded with proper attibutes and sorted last.
 	if !reflect.DeepEqual(p1, saved.Pings[1]) {
-		t.Fatal("First saved ping not equal to input:\n", saved.Pings[1], p1)
+		t.Error("First saved ping not equal to input:\n", saved.Pings[1], p1)
 	}
 
 	// Verify the second ping was Loaded with proper attributes and sorted first.
 	if !reflect.DeepEqual(p2, saved.Pings[0]) {
-		t.Fatal("Second saved ping not equal to input:\n", saved.Pings[0], p2)
+		t.Error("Second saved ping not equal to input:\n", saved.Pings[0], p2)
+	}
+
+	// Verify that the site reflects the last ping time.
+	err = saved.GetSite(db, s.SiteID)
+	if err != nil {
+		t.Fatal("Failed to retrieve site:", err)
+	}
+
+	if saved.LastPing != p2.TimeRequest {
+		t.Error("Last Ping on site does not match input:\n", saved.LastPing, p1.TimeRequest)
 	}
 
 	// Create a third ping with conflicting times should error.
@@ -337,7 +347,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.test.com",
 		PingIntervalSeconds: 60, TimeoutSeconds: 30,
-		LastStatusChange: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)}
+		LastStatusChange: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+		LastPing:         time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)}
 	err = s2.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create second site:", err)
@@ -396,7 +407,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	if s1.URL != sites[0].URL || s1.IsActive != sites[0].IsActive ||
 		s1.Name != sites[0].Name || s1.PingIntervalSeconds != sites[0].PingIntervalSeconds ||
 		s1.TimeoutSeconds != sites[0].TimeoutSeconds || s1.SiteID != sites[0].SiteID ||
-		s1.IsSiteUp != sites[0].IsSiteUp || !sites[0].LastStatusChange.IsZero() {
+		s1.IsSiteUp != sites[0].IsSiteUp || !sites[0].LastStatusChange.IsZero() ||
+		!sites[0].LastPing.IsZero() {
 		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
@@ -404,7 +416,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	if s2.URL != sites[1].URL || s1.IsActive != sites[1].IsActive ||
 		s2.Name != sites[1].Name || s2.PingIntervalSeconds != sites[1].PingIntervalSeconds ||
 		s2.TimeoutSeconds != sites[1].TimeoutSeconds || s2.SiteID != sites[1].SiteID ||
-		s2.IsSiteUp != sites[1].IsSiteUp || s2.LastStatusChange != sites[1].LastStatusChange {
+		s2.IsSiteUp != sites[1].IsSiteUp || s2.LastStatusChange != sites[1].LastStatusChange ||
+		s2.LastPing != sites[1].LastPing {
 		t.Fatal("Second saved site not equal to input:\n", sites[1], s2)
 	}
 
@@ -432,7 +445,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	if s1.URL != sitesNoContacts[0].URL || s1.IsActive != sitesNoContacts[0].IsActive ||
 		s1.Name != sitesNoContacts[0].Name || s1.PingIntervalSeconds != sitesNoContacts[0].PingIntervalSeconds ||
 		s1.TimeoutSeconds != sitesNoContacts[0].TimeoutSeconds || s1.SiteID != sitesNoContacts[0].SiteID ||
-		s1.IsSiteUp != sitesNoContacts[0].IsSiteUp || !sitesNoContacts[0].LastStatusChange.IsZero() {
+		s1.IsSiteUp != sitesNoContacts[0].IsSiteUp || !sitesNoContacts[0].LastStatusChange.IsZero() ||
+		!sitesNoContacts[0].LastPing.IsZero() {
 		t.Fatal("First saved site not equal to GetActiveSites results:\n", sitesNoContacts[0], s1)
 	}
 
@@ -440,7 +454,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	if s2.URL != sitesNoContacts[1].URL || s1.IsActive != sitesNoContacts[1].IsActive ||
 		s2.Name != sitesNoContacts[1].Name || s2.PingIntervalSeconds != sitesNoContacts[1].PingIntervalSeconds ||
 		s2.TimeoutSeconds != sitesNoContacts[1].TimeoutSeconds || s2.SiteID != sitesNoContacts[1].SiteID ||
-		s2.IsSiteUp != sitesNoContacts[1].IsSiteUp || s2.LastStatusChange != sitesNoContacts[1].LastStatusChange {
+		s2.IsSiteUp != sitesNoContacts[1].IsSiteUp || s2.LastStatusChange != sitesNoContacts[1].LastStatusChange ||
+		s2.LastPing != sitesNoContacts[1].LastPing {
 		t.Fatal("Second saved site not equal to GetActiveSites results:\n", sitesNoContacts[1], s2)
 	}
 }

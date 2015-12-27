@@ -17,6 +17,7 @@ type Site struct {
 	TimeoutSeconds      int
 	IsSiteUp            bool
 	LastStatusChange    time.Time
+	LastPing            time.Time
 	Contacts            []Contact
 	Pings               []Ping
 }
@@ -51,8 +52,8 @@ func (s *Site) CreateSite(db *sql.DB) error {
 	// Set site to initially be up, as is the assumption when the pinging first starts.
 	s.IsSiteUp = true
 	result, err := db.Exec(
-		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange)
-			VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
@@ -60,6 +61,7 @@ func (s *Site) CreateSite(db *sql.DB) error {
 		s.TimeoutSeconds,
 		s.IsSiteUp,
 		s.LastStatusChange,
+		s.LastPing,
 	)
 	if err != nil {
 		return err
@@ -92,9 +94,9 @@ func (s *Site) UpdateSiteStatus(db *sql.DB, isSiteUp bool) error {
 // GetSite gets the site details for a given site.
 func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE SiteID = $1`, siteID).
+		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites WHERE SiteID = $1`, siteID).
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds,
-		&s.IsSiteUp, &s.LastStatusChange)
+		&s.IsSiteUp, &s.LastStatusChange, &s.LastPing)
 	if err != nil {
 		return err
 	}
@@ -102,7 +104,7 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 }
 
 const getSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-	TimeoutSeconds, IsSiteUp, LastStatusChange FROM Sites WHERE IsActive = $1
+	TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites WHERE IsActive = $1
 	ORDER BY Name`
 
 // GetActiveSites  gets all of the active sites without contacts.
@@ -122,14 +124,15 @@ func (s *Sites) GetActiveSites(db *sql.DB) error {
 		var TimeoutSeconds int
 		var IsSiteUp bool
 		var LastStatusChange time.Time
+		var LastPing time.Time
 		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
-			&IsSiteUp, &LastStatusChange)
+			&IsSiteUp, &LastStatusChange, &LastPing)
 		if err != nil {
 			return err
 		}
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
-			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange}
+			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing}
 		*s = append(*s, site)
 	}
 	return nil
@@ -152,14 +155,15 @@ func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
 		var TimeoutSeconds int
 		var IsSiteUp bool
 		var LastStatusChange time.Time
+		var LastPing time.Time
 		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
-			&IsSiteUp, &LastStatusChange)
+			&IsSiteUp, &LastStatusChange, &LastPing)
 		if err != nil {
 			return err
 		}
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
-			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange}
+			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing}
 		err = site.GetSiteContacts(db, site.SiteID)
 		if err != nil {
 			return err
@@ -281,9 +285,10 @@ func (c *Contacts) GetContacts(db *sql.DB) error {
 	return nil
 }
 
-//CreatePing inserts a new ping row in the DB.
+//CreatePing inserts a new ping row and last check for the site in the DB.
 func (p Ping) CreatePing(db *sql.DB) error {
-	_, err := db.Exec(
+	var err error
+	_, err = db.Exec(
 		`INSERT INTO Pings (SiteID, TimeRequest, Duration, HttpStatusCode, TimedOut)
 			VALUES ($1, $2, $3, $4, $5)`,
 		p.SiteID,
@@ -291,6 +296,16 @@ func (p Ping) CreatePing(db *sql.DB) error {
 		p.Duration,
 		p.HTTPStatusCode,
 		p.TimedOut,
+	)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(
+		`UPDATE Sites SET LastPing = $1
+		  WHERE SiteId = $2`,
+		p.TimeRequest,
+		p.SiteID,
 	)
 	if err != nil {
 		return err

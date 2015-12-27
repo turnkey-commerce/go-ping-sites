@@ -16,7 +16,8 @@
             <tr>
               <th class="col-md-4">Website</th>
               <th class="col-md-2">Status</th>
-              <th class="col-md-6">Since</th>
+              <th class="col-md-3">Since</th>
+              <th class="col-md-3">Last Checked</th>
             </tr>
           </thead>
           <tbody>
@@ -25,10 +26,12 @@
                 <td>{{.Name}}</td>
                 <td class="text-{{.CSSClass}}">{{.Status}}</td>
                 <td>{{.HowLong}}</td>
+                <td>{{.LastChecked}}</td>
               </tr>
             {{end}}
           </tbody>
         </table>
+        <i><div id="divLocal" style="font-style: italic;"></i>
       </div>
     </div>
   </div>
@@ -41,5 +44,15 @@
     <script src="js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="js/ie10-viewport-bug-workaround.js"></script>
+    <script src="js/moment.min.js"></script>
+    <script language="JavaScript">
+      $(window).load(function() {
+        var divLocal = $('#divLocal');
+        var utcTime = moment.utc().format('YYYY-MM-DD HH:mm:ss');        
+        var localTimeJS  = moment.utc(utcTime).toDate();
+        var localTime = 'Page refreshed: ' + moment(localTimeJS).format('YYYY-MM-DD h:mm:ss A');
+        divLocal.text(localTime); 
+      });
+    </script>
 </body>
 </html>

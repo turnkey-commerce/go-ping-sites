@@ -17,10 +17,11 @@ type HomeViewModel struct {
 
 // SiteViewModel holds the required information about the site.
 type SiteViewModel struct {
-	Name     string
-	Status   string
-	HowLong  string
-	CSSClass string
+	Name        string
+	Status      string
+	HowLong     string
+	CSSClass    string
+	LastChecked string
 }
 
 // GetHomeViewModel populates the items required by the home.html view
@@ -34,6 +35,7 @@ func GetHomeViewModel(sites database.Sites, err error) HomeViewModel {
 	for _, site := range sites {
 		siteVM := new(SiteViewModel)
 		siteVM.Name = site.Name
+
 		if site.IsSiteUp {
 			siteVM.Status = "Up"
 			siteVM.CSSClass = "success"
@@ -41,10 +43,17 @@ func GetHomeViewModel(sites database.Sites, err error) HomeViewModel {
 			siteVM.Status = "Down"
 			siteVM.CSSClass = "danger"
 		}
+
 		if site.LastStatusChange.IsZero() {
 			siteVM.HowLong = "Unknown"
 		} else {
 			siteVM.HowLong = fmt.Sprintf("%s", humanize.Time(site.LastStatusChange))
+		}
+
+		if site.LastPing.IsZero() {
+			siteVM.LastChecked = "Never"
+		} else {
+			siteVM.LastChecked = fmt.Sprintf("%s", humanize.Time(site.LastPing))
 		}
 
 		result.Sites = append(result.Sites, *siteVM)

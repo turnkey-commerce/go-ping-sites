@@ -13,14 +13,15 @@ import (
 // It seems better to put it in the code rather than an external file to
 // prevent accidental changes by the users.
 const createStatements = `CREATE TABLE "Sites" (
-	"SiteId"	           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"SiteId"	             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"Name"	               TEXT NOT NULL UNIQUE,
 	"IsActive"	           INTEGER NOT NULL DEFAULT 1,
-	"URL"	               TEXT NOT NULL UNIQUE,
+	"URL"	                 TEXT NOT NULL UNIQUE,
 	"PingIntervalSeconds"  INTEGER NOT NULL DEFAULT 60,
-	"TimeoutSeconds"	   INTEGER NOT NULL DEFAULT 30,
+	"TimeoutSeconds"	     INTEGER NOT NULL DEFAULT 30,
 	"IsSiteUp"             INTEGER NOT NULL DEFAULT 1,
-	"LastStatusChange"     TIMESTAMP
+	"LastStatusChange"     TIMESTAMP,
+	"LastPing"						 TIMESTAMP
 );
 
 CREATE TABLE "SiteContacts" (
