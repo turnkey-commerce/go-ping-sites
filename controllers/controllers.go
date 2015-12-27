@@ -16,12 +16,12 @@ func Register(db *sql.DB, templates *template.Template) {
 	router := mux.NewRouter()
 
 	hc := new(homeController)
-	hc.template = templates.Lookup("home.html")
+	hc.template = templates.Lookup("home.gohtml")
 	hc.DB = db
 	router.HandleFunc("/", hc.get)
 
 	ac := new(aboutController)
-	ac.template = templates.Lookup("about.html")
+	ac.template = templates.Lookup("about.gohtml")
 	router.HandleFunc("/about", ac.get)
 
 	http.Handle("/", router)

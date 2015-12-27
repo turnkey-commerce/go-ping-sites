@@ -7,7 +7,7 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
-// HomeViewModel holds the view information for the home.html template
+// HomeViewModel holds the view information for the home.gohtml template
 type HomeViewModel struct {
 	Error  error
 	Title  string
@@ -24,7 +24,7 @@ type SiteViewModel struct {
 	LastChecked string
 }
 
-// GetHomeViewModel populates the items required by the home.html view
+// GetHomeViewModel populates the items required by the home.gohtml view
 func GetHomeViewModel(sites database.Sites, err error) HomeViewModel {
 	result := HomeViewModel{
 		Title:  "Go Ping Sites - Home",

@@ -85,7 +85,7 @@ func TestStartPinger(t *testing.T) {
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
-	time.Sleep(10 * time.Second)
+	time.Sleep(3 * time.Second)
 	p.Stop()
 
 	results, err := pinger.GetLogContent()
@@ -115,7 +115,7 @@ func TestInternetAccessError(t *testing.T) {
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLBadInternetAccessMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
-	time.Sleep(2 * time.Second)
+	time.Sleep(1 * time.Second)
 	p.Stop()
 
 	results, err := pinger.GetLogContent()

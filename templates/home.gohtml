@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta http-equiv="refresh" content="30">
-  {{template "_head.html" .Title}}
+  {{template "_head.gohtml" .Title}}
 </head>
 <body role="document">
-  {{template "_nav.html" .Active}}
+  {{template "_nav.gohtml" .Active}}
   <div class="container">
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
@@ -48,10 +48,10 @@
     <script language="JavaScript">
       $(window).load(function() {
         var divLocal = $('#divLocal');
-        var utcTime = moment.utc().format('YYYY-MM-DD HH:mm:ss');        
+        var utcTime = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         var localTimeJS  = moment.utc(utcTime).toDate();
         var localTime = 'Page refreshed: ' + moment(localTimeJS).format('YYYY-MM-DD h:mm:ss A');
-        divLocal.text(localTime); 
+        divLocal.text(localTime);
       });
     </script>
 </body>
