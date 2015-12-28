@@ -24,6 +24,10 @@ func Register(db *sql.DB, templates *template.Template) {
 	ac.template = templates.Lookup("about.gohtml")
 	router.HandleFunc("/about", ac.get)
 
+	lc := new(loginController)
+	lc.template = templates.Lookup("login.gohtml")
+	router.HandleFunc("/login", lc.get)
+
 	http.Handle("/", router)
 
 	http.HandleFunc("/img/", serveResource)
