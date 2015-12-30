@@ -34,11 +34,10 @@ func main() {
 	}
 	defer db.Close()
 	// Setup the auth
-	// create the backend
-	os.Create(authBackendFile)
-	authBackend, err = httpauth.NewSqlAuthBackend("sqlite3", authBackendFile)
+	// create the authorization backend
+	authBackend, err = createAuthBackendFile()
 	if err != nil {
-		log.Fatal("Create Auth Backend: ", err)
+		log.Fatal("Failed to create Auth Backend: ", err)
 	}
 	// create some default roles
 	roles = make(map[string]httpauth.Role)
@@ -94,4 +93,15 @@ func createDefaultUser() {
 			panic(err)
 		}
 	}
+}
+
+func createAuthBackendFile() (s httpauth.SqlAuthBackend, err error) {
+	if _, err = os.Stat(authBackendFile); os.IsNotExist(err) {
+		_, err = os.Create(authBackendFile)
+		if err != nil {
+			return s, err
+		}
+	}
+	s, err = httpauth.NewSqlAuthBackend("sqlite3", authBackendFile)
+	return s, err
 }
