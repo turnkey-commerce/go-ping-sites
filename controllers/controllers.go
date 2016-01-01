@@ -8,11 +8,12 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/apexskier/httpauth"
 	"github.com/gorilla/mux"
 )
 
 // Register the handlers for a given route.
-func Register(db *sql.DB, templates *template.Template) {
+func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Template) {
 	router := mux.NewRouter()
 
 	hc := new(homeController)
@@ -26,7 +27,9 @@ func Register(db *sql.DB, templates *template.Template) {
 
 	lc := new(loginController)
 	lc.template = templates.Lookup("login.gohtml")
-	router.HandleFunc("/login", lc.get)
+	lc.authorizer = authorizer
+	router.HandleFunc("/login", lc.get).Methods("GET")
+	router.HandleFunc("/login", lc.post).Methods("POST")
 
 	http.Handle("/", router)
 

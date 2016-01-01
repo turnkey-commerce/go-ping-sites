@@ -39,10 +39,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Failed to create Auth Backend: ", err)
 	}
-	// create some default roles
-	roles = make(map[string]httpauth.Role)
-	roles["user"] = 30
-	roles["admin"] = 80
+
+	roles = getRoles()
 	authorizer, err = httpauth.NewAuthorizer(authBackend, []byte("cookie-encryption-key"), "user", roles)
 	createDefaultUser()
 	// Start the Pinger
@@ -51,7 +49,7 @@ func main() {
 	p.Start()
 	// Start the web server.
 	templates := populateTemplates()
-	controllers.Register(db, templates)
+	controllers.Register(db, authorizer, templates)
 	err = http.ListenAndServe(":8000", nil) // set listen port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
@@ -104,4 +102,12 @@ func createAuthBackendFile() (s httpauth.SqlAuthBackend, err error) {
 	}
 	s, err = httpauth.NewSqlAuthBackend("sqlite3", authBackendFile)
 	return s, err
+}
+
+func getRoles() map[string]httpauth.Role {
+	// create some default roles
+	var r = make(map[string]httpauth.Role)
+	r["user"] = 30
+	r["admin"] = 80
+	return r
 }
