@@ -18,11 +18,13 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Te
 
 	hc := new(homeController)
 	hc.template = templates.Lookup("home.gohtml")
+	hc.authorizer = authorizer
 	hc.DB = db
 	router.HandleFunc("/", hc.get)
 
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.gohtml")
+	ac.authorizer = authorizer
 	router.HandleFunc("/about", ac.get)
 
 	lc := new(loginController)
@@ -30,6 +32,10 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Te
 	lc.authorizer = authorizer
 	router.HandleFunc("/login", lc.get).Methods("GET")
 	router.HandleFunc("/login", lc.post).Methods("POST")
+
+	loc := new(logoutController)
+	loc.authorizer = authorizer
+	router.HandleFunc("/logout", loc.get)
 
 	http.Handle("/", router)
 

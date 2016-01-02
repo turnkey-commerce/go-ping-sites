@@ -5,8 +5,11 @@
   {{template "_head.gohtml" .Title}}
 </head>
 <body role="document">
-  {{template "_nav.gohtml" .Active}}
+  {{template "_nav.gohtml" .Nav}}
   <div class="container">
+    {{range .Messages}}
+      <div class="alert alert-danger" role="alert">{{.}}</div>
+    {{end}}
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
         <h1>Monitored Sites Status</h1>
