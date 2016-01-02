@@ -37,6 +37,12 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Te
 	loc.authorizer = authorizer
 	router.HandleFunc("/logout", loc.get)
 
+	sc := new(settingsController)
+	sc.template = templates.Lookup("settings.gohtml")
+	sc.authorizer = authorizer
+	sc.DB = db
+	router.HandleFunc("/settings", sc.get)
+
 	http.Handle("/", router)
 
 	http.HandleFunc("/img/", serveResource)

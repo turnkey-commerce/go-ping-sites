@@ -13,12 +13,12 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li {{if eq .Active "home"}}class="active"{{end}}><a href="/">Dashboard</a></li>
+        <li {{if eq .Active "settings"}}class="active"{{end}}><a href="/settings">Settings</a></li>
         <li {{if eq .Active "about"}}class="active"{{end}}><a href="/about">About</a></li>
-        <li><a href="/contact">Contact</a></li>
-        <li><a href="/admin">Setup</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         {{if .IsAuthenticated}}
+          <p class="navbar-text">Logged in as {{.User.Username}}</p>
           <li><a href="/logout">Logout</a></li>
         {{else}}
           <li><a href="/login">Login</a></li>

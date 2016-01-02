@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "_head.gohtml" .Title}}
+</head>
+<body role="document">
+  {{template "_nav.gohtml" .Nav}}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <h1>Settings</h1>
+        <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th class="col-md-4">Website</th>
+              <th class="col-md-4">Active?</th>
+              <th class="col-md-4">URL</th>
+              <th class="col-md-4">Ping Interval (s)</th>
+              <th class="col-md-4">Timeout (s)</th>
+              <th class="col-md-4"># Contacts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Sites}}
+              <tr>
+                <td>{{.Name}}</td>
+                <td>{{.IsActive}}</td>
+                <td>{{.URL}}</td>
+                <td>{{.PingIntervalSeconds}}</td>
+                <td>{{.TimeoutSeconds}}</td>
+                <td>{{.NumContacts}}</td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{template "_footer.gohtml"}}
+</body>
+</html>

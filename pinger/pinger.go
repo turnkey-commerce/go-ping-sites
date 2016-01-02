@@ -37,6 +37,7 @@ type Exiter func(code int)
 
 var stop = make(chan bool)
 
+// InternetAccessError defines errors where the Internet is inaccessible from the server.
 const InternetAccessError = "Internet Access Error"
 
 // NewPinger returns a new Pinger object
@@ -205,7 +206,8 @@ func RequestURL(url string, timeout int) (string, int, time.Duration, error) {
 // GetSites provides the implementation of the SitesGetter type for runtime usage.
 func GetSites(db *sql.DB) (database.Sites, error) {
 	var sites database.Sites
-	err := sites.GetActiveSitesWithContacts(db)
+	// Get active sites with contacts.
+	err := sites.GetSites(db, true, true)
 	if err != nil {
 		return nil, err
 	}

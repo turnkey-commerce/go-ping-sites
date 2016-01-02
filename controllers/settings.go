@@ -10,22 +10,25 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
-type homeController struct {
+type settingsController struct {
 	DB         *sql.DB
 	template   *template.Template
 	authorizer httpauth.Authorizer
 }
 
-func (controller *homeController) get(rw http.ResponseWriter, req *http.Request) {
+func (controller *settingsController) get(rw http.ResponseWriter, req *http.Request) {
+	if err := controller.authorizer.AuthorizeRole(rw, req, "admin", true); err != nil {
+		http.Redirect(rw, req, "/login", http.StatusSeeOther)
+		return
+	}
 	var sites database.Sites
-	// Get active sites with no contacts.
-	err := sites.GetSites(controller.DB, true, false)
+	// Get all of the sites, including inactive ones, and the contacts.
+	err := sites.GetSites(controller.DB, false, true)
 	isAuthenticated := false
 	user, authErr := controller.authorizer.CurrentUser(rw, req)
 	if authErr == nil {
 		isAuthenticated = true
 	}
-	messages := controller.authorizer.Messages(rw, req)
-	vm := viewmodels.GetHomeViewModel(sites, isAuthenticated, user, messages, err)
+	vm := viewmodels.GetSettingsViewModel(sites, isAuthenticated, user, err)
 	controller.template.Execute(rw, vm)
 }

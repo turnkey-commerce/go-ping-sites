@@ -103,13 +103,25 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	return nil
 }
 
-const getSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+const getActiveSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
 	TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites WHERE IsActive = $1
 	ORDER BY Name`
 
-// GetActiveSites  gets all of the active sites without contacts.
-func (s *Sites) GetActiveSites(db *sql.DB) error {
-	rows, err := db.Query(getSitesQueryString, true)
+const getAllSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
+	TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites
+	ORDER BY Name`
+
+// GetSites gets all of the sites without contacts.
+// The switch activeOnly controls whether to get only active sites.
+// The option withContacts controls whether to also get the associated contacts.
+func (s *Sites) GetSites(db *sql.DB, activeOnly bool, withContacts bool) error {
+	var queryString string
+	if activeOnly {
+		queryString = getActiveSitesQueryString
+	} else {
+		queryString = getAllSitesQueryString
+	}
+	rows, err := db.Query(queryString, true)
 	if err != nil {
 		return err
 	}
@@ -133,40 +145,11 @@ func (s *Sites) GetActiveSites(db *sql.DB) error {
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
 			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing}
-		*s = append(*s, site)
-	}
-	return nil
-}
-
-// GetActiveSitesWithContacts gets all of the active sites with the contacts.
-func (s *Sites) GetActiveSitesWithContacts(db *sql.DB) error {
-	rows, err := db.Query(getSitesQueryString, true)
-	if err != nil {
-		return err
-	}
-
-	defer rows.Close()
-	for rows.Next() {
-		var SiteID int64
-		var Name string
-		var IsActive bool
-		var URL string
-		var PingIntervalSeconds int
-		var TimeoutSeconds int
-		var IsSiteUp bool
-		var LastStatusChange time.Time
-		var LastPing time.Time
-		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
-			&IsSiteUp, &LastStatusChange, &LastPing)
-		if err != nil {
-			return err
-		}
-		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
-			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
-			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing}
-		err = site.GetSiteContacts(db, site.SiteID)
-		if err != nil {
-			return err
+		if withContacts {
+			err = site.GetSiteContacts(db, site.SiteID)
+			if err != nil {
+				return err
+			}
 		}
 		*s = append(*s, site)
 	}

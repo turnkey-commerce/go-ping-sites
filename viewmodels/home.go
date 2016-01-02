@@ -3,23 +3,23 @@ package viewmodels
 import (
 	"fmt"
 
+	"github.com/apexskier/httpauth"
 	"github.com/dustin/go-humanize"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
 // HomeViewModel holds the view information for the home.gohtml template
 type HomeViewModel struct {
-	Error           error
-	Title           string
-	Active          string
-	IsAuthenticated bool
-	Sites           []SiteViewModel
-	Nav             NavViewModel
-	Messages        []string
+	Error    error
+	Title    string
+	Sites    []SiteViewModel
+	Nav      NavViewModel
+	Messages []string
 }
 
 // SiteViewModel holds the required information about the site.
 type SiteViewModel struct {
+	SiteID      int64
 	Name        string
 	Status      string
 	HowLong     string
@@ -31,19 +31,20 @@ type SiteViewModel struct {
 type NavViewModel struct {
 	Active          string
 	IsAuthenticated bool
+	User            httpauth.UserData
 	Messages        []string
 }
 
 // GetHomeViewModel populates the items required by the home.gohtml view
-func GetHomeViewModel(sites database.Sites, isAuthenticated bool, messages []string, err error) HomeViewModel {
+func GetHomeViewModel(sites database.Sites, isAuthenticated bool, user httpauth.UserData, messages []string, err error) HomeViewModel {
 	nav := NavViewModel{
 		Active:          "home",
 		IsAuthenticated: isAuthenticated,
+		User:            user,
 	}
 
 	result := HomeViewModel{
 		Title:    "Go Ping Sites - Home",
-		Active:   "home",
 		Error:    err,
 		Nav:      nav,
 		Messages: messages,
@@ -52,6 +53,7 @@ func GetHomeViewModel(sites database.Sites, isAuthenticated bool, messages []str
 	for _, site := range sites {
 		siteVM := new(SiteViewModel)
 		siteVM.Name = site.Name
+		siteVM.SiteID = site.SiteID
 
 		if site.IsSiteUp {
 			siteVM.Status = "Up"

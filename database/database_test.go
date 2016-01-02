@@ -22,7 +22,8 @@ func TestCreateDb(t *testing.T) {
 	}
 
 	var sites database.Sites
-	err = sites.GetActiveSitesWithContacts(db)
+	// Get all of the active sites
+	err = sites.GetSites(db, true, false)
 	if err != nil {
 		t.Fatal("Failed to get all the sites.", err)
 	}
@@ -393,7 +394,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	var sites database.Sites
-	err = sites.GetActiveSitesWithContacts(db)
+	// Get active sites with contacts
+	err = sites.GetSites(db, true, true)
 	if err != nil {
 		t.Fatal("Failed to get all the sites.", err)
 	}
@@ -423,39 +425,52 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Verify the first contact was Loaded with proper attributes and sorted last.
 	if !reflect.DeepEqual(c1, sites[0].Contacts[1]) {
-		t.Fatal("Second saved contact not equal to input:\n", sites[0].Contacts[1], c1)
+		t.Error("Second saved contact not equal to input:\n", sites[0].Contacts[1], c1)
 	}
 	// Verify the second contact was loaded with the proper attributes and sorted first.
 	if !reflect.DeepEqual(c2, sites[0].Contacts[0]) {
-		t.Fatal("First saved contact not equal to input:\n", sites[0].Contacts[0], c2)
+		t.Error("First saved contact not equal to input:\n", sites[0].Contacts[0], c2)
 	}
 	// Verify the first contact was loaded to the second site.
 	if !reflect.DeepEqual(c1, sites[1].Contacts[0]) {
-		t.Fatal("Second saved contact not equal to input:\n", sites[1].Contacts[0], c1)
+		t.Error("Second saved contact not equal to input:\n", sites[1].Contacts[0], c1)
 	}
 
-	// Test for just the sites without the contacts
+	// Test for just the active sites without the contacts
 	var sitesNoContacts database.Sites
-	err = sitesNoContacts.GetActiveSites(db)
+	err = sitesNoContacts.GetSites(db, true, false)
 	if err != nil {
 		t.Fatal("Failed to get all the sites.", err)
 	}
 
-	// Verify the first site was Loaded with proper attributes.
+	// Verify the first site was Loaded with proper attributes and no contacts.
 	if s1.URL != sitesNoContacts[0].URL || s1.IsActive != sitesNoContacts[0].IsActive ||
 		s1.Name != sitesNoContacts[0].Name || s1.PingIntervalSeconds != sitesNoContacts[0].PingIntervalSeconds ||
 		s1.TimeoutSeconds != sitesNoContacts[0].TimeoutSeconds || s1.SiteID != sitesNoContacts[0].SiteID ||
 		s1.IsSiteUp != sitesNoContacts[0].IsSiteUp || !sitesNoContacts[0].LastStatusChange.IsZero() ||
-		!sitesNoContacts[0].LastPing.IsZero() {
-		t.Fatal("First saved site not equal to GetActiveSites results:\n", sitesNoContacts[0], s1)
+		!sitesNoContacts[0].LastPing.IsZero() || len(s2.Contacts) != 0 {
+		t.Error("First saved site not equal to GetActiveSites results:\n", sitesNoContacts[0], s1)
 	}
 
-	// Verify the second site was Loaded with proper attributes.
+	// Verify the second site was Loaded with proper attributes and no contacts.
 	if s2.URL != sitesNoContacts[1].URL || s1.IsActive != sitesNoContacts[1].IsActive ||
 		s2.Name != sitesNoContacts[1].Name || s2.PingIntervalSeconds != sitesNoContacts[1].PingIntervalSeconds ||
 		s2.TimeoutSeconds != sitesNoContacts[1].TimeoutSeconds || s2.SiteID != sitesNoContacts[1].SiteID ||
 		s2.IsSiteUp != sitesNoContacts[1].IsSiteUp || s2.LastStatusChange != sitesNoContacts[1].LastStatusChange ||
-		s2.LastPing != sitesNoContacts[1].LastPing {
-		t.Fatal("Second saved site not equal to GetActiveSites results:\n", sitesNoContacts[1], s2)
+		s2.LastPing != sitesNoContacts[1].LastPing || len(s2.Contacts) != 0 {
+		t.Error("Second saved site not equal to GetActiveSites results:\n", sitesNoContacts[1], s2)
 	}
+
+	// Test for all of the sites without the contacts
+	var allSitesNoContacts database.Sites
+	err = allSitesNoContacts.GetSites(db, false, false)
+	if err != nil {
+		t.Fatal("Failed to get all of the sites.", err)
+	}
+
+	// Verify that there are 3 total sites.
+	if len(allSitesNoContacts) != 3 {
+		t.Error("There should be three total sites loaded.")
+	}
+
 }
