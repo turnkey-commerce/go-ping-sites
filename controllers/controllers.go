@@ -48,6 +48,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Te
 	http.HandleFunc("/img/", serveResource)
 	http.HandleFunc("/css/", serveResource)
 	http.HandleFunc("/js/", serveResource)
+	http.HandleFunc("/fonts/", serveResource)
 }
 
 func serveResource(w http.ResponseWriter, req *http.Request) {
@@ -57,6 +58,14 @@ func serveResource(w http.ResponseWriter, req *http.Request) {
 		contentType = "text/css"
 	} else if strings.HasSuffix(path, ".png") {
 		contentType = "image/png"
+	} else if strings.HasSuffix(path, ".eot") {
+		contentType = "application/font-sfnt"
+	} else if strings.HasSuffix(path, ".ttf") {
+		contentType = "application/font-sfnt"
+	} else if strings.HasSuffix(path, ".woff") {
+		contentType = "application/font-woff"
+	} else if strings.HasSuffix(path, ".woff2") {
+		contentType = "application/font-woff2"
 	} else if strings.HasSuffix(path, ".js") {
 		contentType = "text/javascript"
 	} else {

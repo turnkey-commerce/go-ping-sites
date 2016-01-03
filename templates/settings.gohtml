@@ -13,20 +13,22 @@
         <table class="table table-striped">
           <thead>
             <tr>
-              <th class="col-md-4">Website</th>
-              <th class="col-md-4">Active?</th>
-              <th class="col-md-4">URL</th>
-              <th class="col-md-4">Ping Interval (s)</th>
-              <th class="col-md-4">Timeout (s)</th>
-              <th class="col-md-4"># Contacts</th>
+              <th class="col-md-1"><a href="/settings/site/new" title="Add Site"><span class="glyphicon glyphicon-plus"></span></a></th>
+              <th class="col-md-2">Name</th>
+              <th class="col-md-1">Active?</th>
+              <th class="col-md-3">URL</th>
+              <th class="col-md-2">Ping Rate (s)</th>
+              <th class="col-md-2">Timeout (s)</th>
+              <th class="col-md-1"># Contacts</th>
             </tr>
           </thead>
           <tbody>
             {{range .Sites}}
               <tr>
+                <td><a href="/settings/site/details/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/site/edit/{{.SiteID}}" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
                 <td>{{.IsActive}}</td>
-                <td>{{.URL}}</td>
+                <td><a href="{{.URL}}" target="_blank">{{.URL}}<a/></td>
                 <td>{{.PingIntervalSeconds}}</td>
                 <td>{{.TimeoutSeconds}}</td>
                 <td>{{.NumContacts}}</td>
