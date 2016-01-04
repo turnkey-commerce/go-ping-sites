@@ -13,5 +13,5 @@ type logoutController struct {
 // get executes the logout.
 func (controller *logoutController) get(rw http.ResponseWriter, req *http.Request) {
 	controller.authorizer.Logout(rw, req)
-	http.Redirect(rw, req, "/", http.StatusSeeOther)
+	http.Redirect(rw, req, "/login", http.StatusSeeOther)
 }

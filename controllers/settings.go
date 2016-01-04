@@ -17,18 +17,10 @@ type settingsController struct {
 }
 
 func (controller *settingsController) get(rw http.ResponseWriter, req *http.Request) {
-	if err := controller.authorizer.AuthorizeRole(rw, req, "admin", true); err != nil {
-		http.Redirect(rw, req, "/login", http.StatusSeeOther)
-		return
-	}
 	var sites database.Sites
 	// Get all of the sites, including inactive ones, and the contacts.
 	err := sites.GetSites(controller.DB, false, true)
-	isAuthenticated := false
-	user, authErr := controller.authorizer.CurrentUser(rw, req)
-	if authErr == nil {
-		isAuthenticated = true
-	}
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	vm := viewmodels.GetSettingsViewModel(sites, isAuthenticated, user, err)
 	controller.template.Execute(rw, vm)
 }

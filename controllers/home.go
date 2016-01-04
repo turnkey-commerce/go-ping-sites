@@ -20,11 +20,7 @@ func (controller *homeController) get(rw http.ResponseWriter, req *http.Request)
 	var sites database.Sites
 	// Get active sites with no contacts.
 	err := sites.GetSites(controller.DB, true, false)
-	isAuthenticated := false
-	user, authErr := controller.authorizer.CurrentUser(rw, req)
-	if authErr == nil {
-		isAuthenticated = true
-	}
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	messages := controller.authorizer.Messages(rw, req)
 	vm := viewmodels.GetHomeViewModel(sites, isAuthenticated, user, messages, err)
 	controller.template.Execute(rw, vm)

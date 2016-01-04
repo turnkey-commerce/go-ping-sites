@@ -20,7 +20,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Te
 	hc.template = templates.Lookup("home.gohtml")
 	hc.authorizer = authorizer
 	hc.DB = db
-	router.HandleFunc("/", hc.get)
+	router.Handle("/", authorizeRole(http.HandlerFunc(hc.get), authorizer, "user"))
 
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.gohtml")
@@ -41,7 +41,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, templates *template.Te
 	sc.template = templates.Lookup("settings.gohtml")
 	sc.authorizer = authorizer
 	sc.DB = db
-	router.HandleFunc("/settings", sc.get)
+	router.Handle("/settings", authorizeRole(http.HandlerFunc(sc.get), authorizer, "admin"))
 
 	http.Handle("/", router)
 
@@ -85,4 +85,24 @@ func serveResource(w http.ResponseWriter, req *http.Request) {
 	} else {
 		w.WriteHeader(404)
 	}
+}
+
+func authorizeRole(h http.Handler, authorizer httpauth.Authorizer, role string) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		if err := authorizer.AuthorizeRole(rw, req, role, true); err != nil {
+			http.Redirect(rw, req, "/login", http.StatusSeeOther)
+			return
+		}
+		h.ServeHTTP(rw, req)
+	})
+}
+
+func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer httpauth.Authorizer) (isAuthenticated bool, user httpauth.UserData) {
+	isAuthenticated = false
+	var err error
+	user, err = authorizer.CurrentUser(rw, req)
+	if err == nil {
+		isAuthenticated = true
+	}
+	return isAuthenticated, user
 }
