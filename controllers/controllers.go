@@ -59,8 +59,10 @@ func serveResource(w http.ResponseWriter, req *http.Request) {
 	} else if strings.HasSuffix(path, ".png") {
 		contentType = "image/png"
 	} else if strings.HasSuffix(path, ".eot") {
-		contentType = "application/font-sfnt"
+		contentType = "application/vnd.ms-fontobject"
 	} else if strings.HasSuffix(path, ".ttf") {
+		contentType = "application/font-sfnt"
+	} else if strings.HasSuffix(path, ".otf") {
 		contentType = "application/font-sfnt"
 	} else if strings.HasSuffix(path, ".woff") {
 		contentType = "application/font-woff"
