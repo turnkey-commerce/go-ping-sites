@@ -6,7 +6,6 @@ import (
 	"os"
 )
 
-// LogFile is the name of the log file used to record the pinger activities.
 var logFile = "pinger.log"
 
 // GetLogContent reads the results of the log file for verification.

@@ -77,7 +77,7 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 	}
 }
 
-// TestStartPinger starts up the pinger and then stops it after 10 seconds
+// TestStartPinger starts up the pinger and then stops it after 3 seconds
 func TestStartPinger(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
@@ -94,10 +94,10 @@ func TestStartPinger(t *testing.T) {
 	}
 
 	if !strings.Contains(results, "Client.Timeout") {
-		t.Fatal("Failed to report timeout error.")
+		t.Errorf("Failed to report timeout error.")
 	}
 	if !strings.Contains(results, "Test 3 Paused") {
-		t.Fatal("Failed to report paused site.")
+		t.Errorf("Failed to report paused site.")
 	}
 	if !strings.Contains(results, "Error - HTTP Status Code") {
 		t.Fatal("Failed to report bad HTTP Status Code.")

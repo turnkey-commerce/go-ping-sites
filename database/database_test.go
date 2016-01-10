@@ -25,12 +25,12 @@ func TestCreateDb(t *testing.T) {
 	// Get all of the active sites
 	err = sites.GetSites(db, true, false)
 	if err != nil {
-		t.Fatal("Failed to get all the sites.", err)
+		t.Error("Failed to get all the sites.", err)
 	}
 
 	// Verify that there are  two active sites loaded.
 	if len(sites) != 2 {
-		t.Fatal("There should be two active sites loaded.")
+		t.Error("There should be two active sites loaded.")
 	}
 }
 
@@ -89,25 +89,25 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to create new site:", err)
 	}
-	// Associate to the site ID
+	// Associate the contact to the site
 	err = c2.AddContactToSite(db, site.SiteID)
 	if err != nil {
-		t.Fatal("Failed to associate contact2 with site:", err)
+		t.Error("Failed to associate contact2 with site:", err)
 	}
 
-	//Get the saved site
+	//Get the saved site contacts
 	err = site.GetSiteContacts(db, site.SiteID)
 	if err != nil {
-		t.Fatal("Failed to retrieve site contacts:", err)
+		t.Error("Failed to retrieve site contacts:", err)
 	}
 
 	// Verify the first contact was Loaded as the last in list by sort order
 	if !reflect.DeepEqual(c, site.Contacts[1]) {
-		t.Fatal("New contact saved not equal to input:\n", site.Contacts[1], c)
+		t.Error("New contact saved not equal to input:\n", site.Contacts[1], c)
 	}
 	// Verify the second contact was Loaded as the first in list by sort order
 	if !reflect.DeepEqual(c2, site.Contacts[0]) {
-		t.Fatal("New contact saved not equal to input:\n", site.Contacts[0], c2)
+		t.Error("New contact saved not equal to input:\n", site.Contacts[0], c2)
 	}
 
 	// Remove second contact from site.

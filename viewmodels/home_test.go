@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
@@ -11,6 +12,8 @@ import (
 // TestGetHomeViewModel tests the view model is created as expected.
 func TestGetHomeViewModel(t *testing.T) {
 	sites := database.Sites{}
+	user := httpauth.UserData{}
+
 	// First site has no last status change.
 	sites = append(sites, database.Site{Name: "Test 1", IsSiteUp: true})
 	// Second site was down 2 hours ago.
@@ -21,8 +24,8 @@ func TestGetHomeViewModel(t *testing.T) {
 	twodaysAgo := now.Add(-48 * time.Hour)
 	sites = append(sites, database.Site{Name: "Test 3", IsSiteUp: true, LastStatusChange: twodaysAgo})
 
-	result := viewmodels.GetHomeViewModel(sites, nil)
-	if result.Active != "home" {
+	result := viewmodels.GetHomeViewModel(sites, false, user, nil, nil)
+	if result.Nav.Active != "home" {
 		t.Error("Home View Model Active returned incorrect value")
 	}
 
