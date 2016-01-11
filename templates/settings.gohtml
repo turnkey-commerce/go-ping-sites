@@ -9,11 +9,14 @@
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
         <h1>Settings</h1>
+        <p>&nbsp;<a href="/settings/users" title="Users"><span class="glyphicon glyphicon-user"></span>&nbsp;Users</a>
+        &nbsp;&nbsp; <a href="/settings/contacts" title="Contacts"><span class="glyphicon glyphicon-envelope"></span>&nbsp;Contacts</a></p>
         <div class="table-responsive">
         <table class="table table-striped">
+          <caption>Sites</caption>
           <thead>
             <tr>
-              <th class="col-md-1"><a href="/settings/site/new" title="Add Site"><span class="glyphicon glyphicon-plus"></span></a></th>
+              <th class="col-md-1"><a href="/settings/sites/new" title="Add Site"><span class="glyphicon glyphicon-plus"></span></a></th>
               <th class="col-md-2">Name</th>
               <th class="col-md-1">Active?</th>
               <th class="col-md-3">URL</th>
@@ -25,7 +28,7 @@
           <tbody>
             {{range .Sites}}
               <tr>
-                <td><a href="/settings/site/details/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/site/edit/{{.SiteID}}" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td><a href="/settings/sites/details/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/sites/edit/{{.SiteID}}" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
                 <td>{{.IsActive}}</td>
                 <td><a href="{{.URL}}" target="_blank">{{.URL}}<a/></td>

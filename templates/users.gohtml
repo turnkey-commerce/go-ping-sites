@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "_head.gohtml" .Title}}
+</head>
+<body role="document">
+  {{template "_nav.gohtml" .Nav}}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <h1>Settings - Users</h1>
+        <div class="table-responsive">
+        <table class="table table-striped">
+          <caption>Users</caption>
+          <thead>
+            <tr>
+              <th class="col-md-1"><a href="/settings/users/new" title="Add Site"><span class="glyphicon glyphicon-plus"></span></a></th>
+              <th class="col-md-2">Username</th>
+              <th class="col-md-1">Email</th>
+              <th class="col-md-3">Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Users}}
+              <tr>
+                <td><a href="/settings/users/edit/{{.Username}}" title="Edit User"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td>{{.Username}}</td>
+                <td>{{.Email}}</td>
+                <td>{{.Role}}</td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{template "_footer.gohtml"}}
+</body>
+</html>
