@@ -49,7 +49,7 @@ func main() {
 	p.Start()
 	// Start the web server.
 	templates := populateTemplates()
-	controllers.Register(db, authorizer, authBackend, templates)
+	controllers.Register(db, authorizer, authBackend, roles, templates)
 	err = http.ListenAndServe(":8000", nil) // set listen port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)

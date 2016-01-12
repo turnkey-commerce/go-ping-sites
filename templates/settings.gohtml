@@ -28,7 +28,7 @@
           <tbody>
             {{range .Sites}}
               <tr>
-                <td><a href="/settings/sites/details/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/sites/edit/{{.SiteID}}" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td><a href="/settings/sites/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/sites/{{.SiteID}}/edit" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
                 <td>{{.IsActive}}</td>
                 <td><a href="{{.URL}}" target="_blank">{{.URL}}<a/></td>

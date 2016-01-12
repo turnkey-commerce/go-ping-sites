@@ -5,20 +5,32 @@ import (
 	"text/template"
 
 	"github.com/apexskier/httpauth"
+	"github.com/gorilla/mux"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
 type usersController struct {
-	template    *template.Template
-	authorizer  httpauth.Authorizer
-	authBackend httpauth.AuthBackend
+	getTemplate  *template.Template
+	editTemplate *template.Template
+	authorizer   httpauth.Authorizer
+	authBackend  httpauth.AuthBackend
+	roles        map[string]httpauth.Role
 }
 
 func (controller *usersController) get(rw http.ResponseWriter, req *http.Request) {
-	var users []httpauth.UserData
 	// Get all of the users
 	users, err := controller.authBackend.Users()
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	vm := viewmodels.GetUsersViewModel(users, isAuthenticated, user, err)
-	controller.template.Execute(rw, vm)
+	controller.getTemplate.Execute(rw, vm)
+}
+
+func (controller *usersController) edit(rw http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	username := vars["username"]
+	// Get the user to edit
+	editUser, err := controller.authBackend.User(username)
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+	vm := viewmodels.EditUserViewModel(editUser, controller.roles, isAuthenticated, user, err)
+	controller.editTemplate.Execute(rw, vm)
 }

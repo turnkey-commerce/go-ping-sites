@@ -13,7 +13,7 @@ import (
 )
 
 // Register the handlers for a given route.
-func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend, templates *template.Template) {
+func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend, roles map[string]httpauth.Role, templates *template.Template) {
 	router := mux.NewRouter()
 
 	hc := new(homeController)
@@ -47,10 +47,13 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	settingsSub := router.PathPrefix("/settings").Subrouter()
 
 	uc := new(usersController)
-	uc.template = templates.Lookup("users.gohtml")
+	uc.getTemplate = templates.Lookup("users.gohtml")
+	uc.editTemplate = templates.Lookup("user_edit.gohtml")
 	uc.authorizer = authorizer
 	uc.authBackend = authBackend
+	uc.roles = roles
 	settingsSub.Handle("/users", authorizeRole(http.HandlerFunc(uc.get), authorizer, "admin"))
+	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.edit), authorizer, "admin")).Methods("GET")
 
 	http.Handle("/", router)
 
