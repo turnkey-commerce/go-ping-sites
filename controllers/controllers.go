@@ -53,7 +53,8 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	uc.authBackend = authBackend
 	uc.roles = roles
 	settingsSub.Handle("/users", authorizeRole(http.HandlerFunc(uc.get), authorizer, "admin"))
-	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.edit), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editPost), authorizer, "admin")).Methods("Post")
 
 	http.Handle("/", router)
 
