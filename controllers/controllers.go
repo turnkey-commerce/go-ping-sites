@@ -49,12 +49,15 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	uc := new(usersController)
 	uc.getTemplate = templates.Lookup("users.gohtml")
 	uc.editTemplate = templates.Lookup("user_edit.gohtml")
+	uc.newTemplate = templates.Lookup("user_new.gohtml")
 	uc.authorizer = authorizer
 	uc.authBackend = authBackend
 	uc.roles = roles
 	settingsSub.Handle("/users", authorizeRole(http.HandlerFunc(uc.get), authorizer, "admin"))
 	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editGet), authorizer, "admin")).Methods("GET")
-	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editPost), authorizer, "admin")).Methods("Post")
+	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/users/new", authorizeRole(http.HandlerFunc(uc.newGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/users/new", authorizeRole(http.HandlerFunc(uc.newPost), authorizer, "admin")).Methods("POST")
 
 	http.Handle("/", router)
 
@@ -103,7 +106,7 @@ func serveResource(w http.ResponseWriter, req *http.Request) {
 func authorizeRole(h http.Handler, authorizer httpauth.Authorizer, role string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if err := authorizer.AuthorizeRole(rw, req, role, true); err != nil {
-			http.Redirect(rw, req, "/login", http.StatusSeeOther)
+			http.Redirect(rw, req, "/", http.StatusSeeOther)
 			return
 		}
 		h.ServeHTTP(rw, req)
