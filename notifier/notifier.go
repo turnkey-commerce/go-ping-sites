@@ -28,10 +28,10 @@ type EmailSender func(recipient string, message string, subject string) error
 type SmsSender func(smsNumber string, message string) error
 
 // NewNotifier returns a new Notifier object to perform notifications about status change
-func NewNotifier(site database.Site, message string, subject string, sendEmail EmailSender, sendSms SmsSender) *Notifier {
-	n := Notifier{Site: site, Message: message, Subject: subject, SendEmail: sendEmail,
-		SendSms: sendSms}
-
+func NewNotifier(site database.Site, message string, subject string,
+	sendEmail EmailSender, sendSms SmsSender) *Notifier {
+	n := Notifier{Site: site, Message: message, Subject: subject,
+		SendEmail: sendEmail, SendSms: sendSms}
 	return &n
 }
 

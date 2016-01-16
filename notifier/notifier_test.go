@@ -16,7 +16,7 @@ func TestNewNotifier(t *testing.T) {
 	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailMock, notifier.SendSmsMock)
 	// Verify the first contact was Loaded with proper attributes and sorted last.
 	if !reflect.DeepEqual(site.Contacts, n.Site.Contacts) {
-		t.Fatal("Incoming site contacts are not the same as the notifier contacts:\n", site.Contacts, n.Site.Contacts)
+		t.Error("Incoming site contacts are not the same as the notifier contacts:\n", site.Contacts, n.Site.Contacts)
 	}
 }
 
@@ -33,11 +33,11 @@ func TestNotify(t *testing.T) {
 	}
 
 	if !strings.Contains(results, "Sending notifications for Jack Contact Site 1 Up Site 1 responding OK") {
-		t.Fatal("Failed to report successful send to Jack Content.")
+		t.Error("Failed to report successful send to Jack Contact.")
 	}
 
 	if !strings.Contains(results, "Sending notifications for Joe Contact Site 1 Up Site 1 responding OK") {
-		t.Fatal("Failed to report successful send to Joe Content.")
+		t.Error("Failed to report successful send to Joe Contact.")
 	}
 }
 
@@ -53,11 +53,11 @@ func TestNotifyError(t *testing.T) {
 	}
 
 	if !strings.Contains(results, "Error sending SMS: Error - no response from server.") {
-		t.Fatal("Failed to report error in SMS send to Jack Content.")
+		t.Error("Failed to report error in SMS send to Jack Contact.")
 	}
 
 	if !strings.Contains(results, "Error sending email: Error - no response from server.") {
-		t.Fatal("Failed to report error in email send to Joe Content.")
+		t.Error("Failed to report error in email send to Joe Contact.")
 	}
 }
 
