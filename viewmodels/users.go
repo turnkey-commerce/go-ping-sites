@@ -4,10 +4,10 @@ import "github.com/apexskier/httpauth"
 
 // UsersEditViewModel holds the required information about the site to choose for editing.
 type UsersEditViewModel struct {
-	Username string
-	Email    string
-	Role     string
-	Password string
+	Username string `valid:"alphanum,required"`
+	Email    string `valid:"email,required"`
+	Role     string `valid:"-"`
+	Password string `valid:"-"`
 }
 
 // UsersViewModel holds the view information for the users.gohtml template

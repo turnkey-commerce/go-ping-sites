@@ -106,7 +106,13 @@ func serveResource(w http.ResponseWriter, req *http.Request) {
 func authorizeRole(h http.Handler, authorizer httpauth.Authorizer, role string) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		if err := authorizer.AuthorizeRole(rw, req, role, true); err != nil {
-			http.Redirect(rw, req, "/", http.StatusSeeOther)
+			// Redirect to about in  to avoid confusing the user if it's about privileges
+			// This also avoids a redirect loop if the main dashboard page is not authorized.
+			if strings.Contains(err.Error(), "user not logged in") {
+				http.Redirect(rw, req, "/login", http.StatusSeeOther)
+			} else {
+				http.Redirect(rw, req, "/about", http.StatusSeeOther)
+			}
 			return
 		}
 		h.ServeHTTP(rw, req)

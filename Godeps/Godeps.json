@@ -11,6 +11,15 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
+			"ImportPath": "github.com/apexskier/httpauth",
+			"Rev": "c252e6f3a05e81ece38819f5978e5076756da899"
+		},
+		{
+			"ImportPath": "github.com/asaskevich/govalidator",
+			"Comment": "v2-45-g1295808",
+			"Rev": "129580890d97de923d9d9aec06cb1aa771812aff"
+		},
+		{
 			"ImportPath": "github.com/dustin/go-humanize",
 			"Rev": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0"
 		},
@@ -19,12 +28,16 @@
 			"Rev": "e91c57bcc918671f042bb1722841946bd376dcde"
 		},
 		{
-			"ImportPath": "github.com/gorilla/context",
-			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
-		},
-		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
+		},
+		{
+			"ImportPath": "github.com/gorilla/schema",
+			"Rev": "14c555599c2a4f493c1e13fd1ea6fdf721739028"
+		},
+		{
+			"ImportPath": "github.com/gorilla/sessions",
+			"Rev": "99b16d2edd22458c541b3640ce83689b08a05c20"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
@@ -34,6 +47,19 @@
 		{
 			"ImportPath": "github.com/sfreiberg/gotwilio",
 			"Rev": "b7230c284bd0c1614c94d00b9998c49f9a2737d8"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb",
+			"Rev": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "f18420efc3b4f8e9f3d51f6bd2476e92c46260e9"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2",
+			"Comment": "r2015.12.06",
+			"Rev": "e30de8ac9ae3b30df7065f766c71f88bba7d4e49"
 		}
 	]
 }

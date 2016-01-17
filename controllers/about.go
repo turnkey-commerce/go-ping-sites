@@ -15,6 +15,7 @@ type aboutController struct {
 
 func (controller *aboutController) get(rw http.ResponseWriter, req *http.Request) {
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-	vm := viewmodels.GetAboutViewModel(isAuthenticated, user)
+	messages := controller.authorizer.Messages(rw, req)
+	vm := viewmodels.GetAboutViewModel(isAuthenticated, user, messages)
 	controller.template.Execute(rw, vm)
 }

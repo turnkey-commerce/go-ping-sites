@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"regexp"
 	"strings"
 	"text/template"
 	"unicode/utf8"
@@ -11,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/apexskier/httpauth"
+	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
@@ -28,6 +28,11 @@ type usersController struct {
 func (controller *usersController) get(rw http.ResponseWriter, req *http.Request) {
 	// Get all of the users
 	users, err := controller.authBackend.Users()
+	// TODO: Replace with better error handling.
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	vm := viewmodels.GetUsersViewModel(users, isAuthenticated, user, err)
 	controller.getTemplate.Execute(rw, vm)
@@ -39,7 +44,8 @@ func (controller *usersController) editGet(rw http.ResponseWriter, req *http.Req
 	// Get the user to edit
 	editUser, err := controller.authBackend.User(username)
 	if err != nil {
-		// Handle Error.
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	userEdit := new(viewmodels.UsersEditViewModel)
@@ -51,24 +57,21 @@ func (controller *usersController) editGet(rw http.ResponseWriter, req *http.Req
 }
 
 func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Request) {
-	authErr := controller.authorizer.AuthorizeRole(rw, req, "admin", true)
-	if authErr != nil {
-		http.Redirect(rw, req, "/", http.StatusSeeOther)
-	}
-
 	err := req.ParseForm()
 	if err != nil {
-		// Handle error
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	decoder := schema.NewDecoder()
 	formUser := new(viewmodels.UsersEditViewModel)
 	err = decoder.Decode(formUser, req.PostForm)
 	if err != nil {
-		fmt.Println(err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	valErrors := Validate(formUser, true)
+	valErrors := validateUserForm(formUser, true)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.EditUserViewModel(formUser, controller.roles, isAuthenticated, user, valErrors)
@@ -82,7 +85,8 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 	if formUser.Password != "" {
 		hash, err = bcrypt.GenerateFromPassword([]byte(formUser.Password), bcrypt.DefaultCost)
 		if err != nil {
-			fmt.Println(err)
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
 		}
 	} else {
 		hash = editUser.Hash
@@ -105,24 +109,21 @@ func (controller *usersController) newGet(rw http.ResponseWriter, req *http.Requ
 }
 
 func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Request) {
-	authErr := controller.authorizer.AuthorizeRole(rw, req, "admin", true)
-	if authErr != nil {
-		http.Redirect(rw, req, "/", http.StatusSeeOther)
-	}
-
 	err := req.ParseForm()
 	if err != nil {
-		// Handle error
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	decoder := schema.NewDecoder()
 	formUser := new(viewmodels.UsersEditViewModel)
 	err = decoder.Decode(formUser, req.PostForm)
 	if err != nil {
-		fmt.Println(err)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	valErrors := Validate(formUser, false)
+	valErrors := validateUserForm(formUser, false)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.NewUserViewModel(formUser, controller.roles, isAuthenticated, user, valErrors)
@@ -143,25 +144,18 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
 }
 
-// Validate checks the inputs for errors
-func Validate(user *viewmodels.UsersEditViewModel, allowMissingPassword bool) (valErrors map[string]string) {
+// validateUserForm checks the inputs for errors
+func validateUserForm(user *viewmodels.UsersEditViewModel, allowMissingPassword bool) (valErrors map[string]string) {
 	valErrors = make(map[string]string)
 
-	if strings.TrimSpace(user.Username) == "" {
-		valErrors["Username"] = "Please provide a Username"
-	}
+	_, err := govalidator.ValidateStruct(user)
+	valErrors = govalidator.ErrorsByField(err)
 
 	if !allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(user.Password)) < 6 {
 		valErrors["Password"] = "Password must be at least 6 characters in length"
 	} else if allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(user.Password)) < 6 &&
 		utf8.RuneCountInString(strings.TrimSpace(user.Password)) > 0 {
 		valErrors["Password"] = "Password must be at least 6 characters in length"
-	}
-
-	re := regexp.MustCompile(".+@.+\\..+")
-	matched := re.Match([]byte(user.Email))
-	if matched == false {
-		valErrors["Email"] = "Please enter a valid email address"
 	}
 
 	return valErrors
