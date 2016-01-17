@@ -12,6 +12,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
@@ -37,8 +38,15 @@ func (controller *usersController) editGet(rw http.ResponseWriter, req *http.Req
 	username := vars["username"]
 	// Get the user to edit
 	editUser, err := controller.authBackend.User(username)
+	if err != nil {
+		// Handle Error.
+	}
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-	vm := viewmodels.EditUserViewModel(editUser, controller.roles, isAuthenticated, user, err)
+	userEdit := new(viewmodels.UsersEditViewModel)
+	userEdit.Email = editUser.Email
+	userEdit.Role = editUser.Role
+	userEdit.Username = editUser.Username
+	vm := viewmodels.EditUserViewModel(userEdit, controller.roles, isAuthenticated, user, make(map[string]string))
 	controller.editTemplate.Execute(rw, vm)
 }
 
@@ -47,16 +55,32 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 	if authErr != nil {
 		http.Redirect(rw, req, "/", http.StatusSeeOther)
 	}
-	password := req.PostFormValue("password")
-	username := req.PostFormValue("username")
-	role := req.PostFormValue("role")
-	email := req.PostFormValue("email")
+
+	err := req.ParseForm()
+	if err != nil {
+		// Handle error
+	}
+
+	decoder := schema.NewDecoder()
+	formUser := new(viewmodels.UsersEditViewModel)
+	err = decoder.Decode(formUser, req.PostForm)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	valErrors := Validate(formUser, true)
+	if len(valErrors) > 0 {
+		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+		vm := viewmodels.EditUserViewModel(formUser, controller.roles, isAuthenticated, user, valErrors)
+		controller.editTemplate.Execute(rw, vm)
+		return
+	}
 
 	// Get the user to edit
 	var hash []byte
-	editUser, err := controller.authBackend.User(username)
-	if password != "" {
-		hash, err = bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	editUser, err := controller.authBackend.User(formUser.Username)
+	if formUser.Password != "" {
+		hash, err = bcrypt.GenerateFromPassword([]byte(formUser.Password), bcrypt.DefaultCost)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -64,17 +88,19 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 		hash = editUser.Hash
 	}
 
-	newuser := httpauth.UserData{Username: username, Email: email, Hash: hash, Role: role}
+	newuser := httpauth.UserData{Username: formUser.Username, Email: formUser.Email, Hash: hash, Role: formUser.Role}
 	err = controller.authBackend.SaveUser(newuser)
 	if err != nil {
-		http.Redirect(rw, req, "/settings/users/"+username+"/edit", http.StatusSeeOther)
+		http.Redirect(rw, req, "/settings/users/"+formUser.Username+"/edit", http.StatusSeeOther)
 	}
 	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
 }
 
 func (controller *usersController) newGet(rw http.ResponseWriter, req *http.Request) {
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-	vm := viewmodels.NewUserViewModel(controller.roles, isAuthenticated, user)
+	userEdit := new(viewmodels.UsersEditViewModel)
+	userEdit.Role = "user"
+	vm := viewmodels.NewUserViewModel(userEdit, controller.roles, isAuthenticated, user, make(map[string]string))
 	controller.newTemplate.Execute(rw, vm)
 }
 
@@ -84,12 +110,32 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 		http.Redirect(rw, req, "/", http.StatusSeeOther)
 	}
 
+	err := req.ParseForm()
+	if err != nil {
+		// Handle error
+	}
+
+	decoder := schema.NewDecoder()
+	formUser := new(viewmodels.UsersEditViewModel)
+	err = decoder.Decode(formUser, req.PostForm)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	valErrors := Validate(formUser, false)
+	if len(valErrors) > 0 {
+		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+		vm := viewmodels.NewUserViewModel(formUser, controller.roles, isAuthenticated, user, valErrors)
+		controller.newTemplate.Execute(rw, vm)
+		return
+	}
+
 	var user httpauth.UserData
-	user.Username = req.PostFormValue("username")
-	user.Email = req.PostFormValue("email")
-	password := req.PostFormValue("password")
-	user.Role = req.PostFormValue("role")
-	err := controller.authorizer.Register(rw, req, user, password)
+	user.Username = formUser.Username
+	user.Email = formUser.Email
+	password := formUser.Password
+	user.Role = formUser.Role
+	err = controller.authorizer.Register(rw, req, user, password)
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(rw, req, "/settings/users/new", http.StatusSeeOther)
@@ -97,31 +143,26 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
 }
 
-// Message contains the inputs and any validation errors
-type Message struct {
-	Email    string
-	Username string
-	Password string
-	Errors   map[string]string
-}
-
 // Validate checks the inputs for errors
-func (msg *Message) Validate() bool {
-	msg.Errors = make(map[string]string)
+func Validate(user *viewmodels.UsersEditViewModel, allowMissingPassword bool) (valErrors map[string]string) {
+	valErrors = make(map[string]string)
 
-	if strings.TrimSpace(msg.Username) == "" {
-		msg.Errors["Content"] = "Please provide a Username"
+	if strings.TrimSpace(user.Username) == "" {
+		valErrors["Username"] = "Please provide a Username"
 	}
 
-	if utf8.RuneCountInString(strings.TrimSpace(msg.Password)) < 6 {
-		msg.Errors["Content"] = "Password must be at least 6 characters in length"
+	if !allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(user.Password)) < 6 {
+		valErrors["Password"] = "Password must be at least 6 characters in length"
+	} else if allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(user.Password)) < 6 &&
+		utf8.RuneCountInString(strings.TrimSpace(user.Password)) > 0 {
+		valErrors["Password"] = "Password must be at least 6 characters in length"
 	}
 
 	re := regexp.MustCompile(".+@.+\\..+")
-	matched := re.Match([]byte(msg.Email))
+	matched := re.Match([]byte(user.Email))
 	if matched == false {
-		msg.Errors["Email"] = "Please enter a valid email address"
+		valErrors["Email"] = "Please enter a valid email address"
 	}
 
-	return len(msg.Errors) == 0
+	return valErrors
 }

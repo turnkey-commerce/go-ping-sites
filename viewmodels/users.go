@@ -7,6 +7,7 @@ type UsersEditViewModel struct {
 	Username string
 	Email    string
 	Role     string
+	Password string
 }
 
 // UsersViewModel holds the view information for the users.gohtml template
@@ -19,11 +20,11 @@ type UsersViewModel struct {
 
 // UserViewModel holds the view information for the user_edit.gohtml template
 type UserViewModel struct {
-	Error error
-	Title string
-	User  UsersEditViewModel
-	Nav   NavViewModel
-	Roles map[string]httpauth.Role
+	Errors map[string]string
+	Title  string
+	User   UsersEditViewModel
+	Nav    NavViewModel
+	Roles  map[string]httpauth.Role
 }
 
 // GetUsersViewModel populates the items required by the settings.gohtml view
@@ -51,7 +52,8 @@ func GetUsersViewModel(users []httpauth.UserData, isAuthenticated bool, user htt
 }
 
 // EditUserViewModel populates the items required by the user_edit.gohtml view
-func EditUserViewModel(editUser httpauth.UserData, roles map[string]httpauth.Role, isAuthenticated bool, user httpauth.UserData, err error) UserViewModel {
+func EditUserViewModel(formUser *UsersEditViewModel, roles map[string]httpauth.Role,
+	isAuthenticated bool, user httpauth.UserData, errors map[string]string) UserViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -59,15 +61,16 @@ func EditUserViewModel(editUser httpauth.UserData, roles map[string]httpauth.Rol
 	}
 
 	result := UserViewModel{
-		Title: "Go Ping Sites - Settings - Edit User",
-		Nav:   nav,
-		Roles: roles,
+		Title:  "Go Ping Sites - Settings - Edit User",
+		Nav:    nav,
+		Roles:  roles,
+		Errors: errors,
 	}
 
 	userVM := new(UsersEditViewModel)
-	userVM.Username = editUser.Username
-	userVM.Email = editUser.Email
-	userVM.Role = editUser.Role
+	userVM.Username = formUser.Username
+	userVM.Email = formUser.Email
+	userVM.Role = formUser.Role
 
 	result.User = *userVM
 
@@ -75,7 +78,8 @@ func EditUserViewModel(editUser httpauth.UserData, roles map[string]httpauth.Rol
 }
 
 // NewUserViewModel populates the items required by the user_edit.gohtml view
-func NewUserViewModel(roles map[string]httpauth.Role, isAuthenticated bool, user httpauth.UserData) UserViewModel {
+func NewUserViewModel(formUser *UsersEditViewModel, roles map[string]httpauth.Role,
+	isAuthenticated bool, user httpauth.UserData, errors map[string]string) UserViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -83,15 +87,17 @@ func NewUserViewModel(roles map[string]httpauth.Role, isAuthenticated bool, user
 	}
 
 	result := UserViewModel{
-		Title: "Go Ping Sites - Settings - New User",
-		Nav:   nav,
-		Roles: roles,
+		Title:  "Go Ping Sites - Settings - New User",
+		Nav:    nav,
+		Roles:  roles,
+		Errors: errors,
 	}
 
 	userVM := new(UsersEditViewModel)
-	userVM.Username = ""
-	userVM.Email = ""
-	userVM.Role = "user"
+	userVM.Username = formUser.Username
+	userVM.Email = formUser.Email
+	userVM.Role = formUser.Role
+	userVM.Password = formUser.Password
 
 	result.User = *userVM
 

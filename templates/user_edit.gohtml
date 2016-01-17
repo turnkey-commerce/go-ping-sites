@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   {{template "_head.gohtml" .Title}}
+  <style type="text/css">.error {color: red;}</style>
 </head>
 <body role="document">
   {{template "_nav.gohtml" .Nav}}
@@ -15,23 +16,34 @@
             <label for="username">Username</label>
             <p>{{.User.Username}}</p>
             <input type="hidden" name="username" value="{{.User.Username}}">
+            {{ with .Errors.Username }}
+              <div class="error">{{ . }}</div>
+            {{ end }}
           </div>
           <div class="form-group">
             <label for="password">Password (leave blank for no change)</label>
             <input type="password" class="form-control" name="password" id="password">
+            {{ with .Errors.Password }}
+              <div class="error">{{ . }}</div>
+            {{ end }}
           </div>
           <div class="form-group">
             <label for="Email">Email</label>
             <input type="email" class="form-control" name="email" id="email" value="{{.User.Email}}">
+            {{ with .Errors.Email }}
+              <div class="error">{{ . }}</div>
+            {{ end }}
           </div>
           <div class="form-group">
             <label for="Role">Role</label>
             {{ $role := .User.Role}}
             <select name="role" id="role" class="form-control">
               <option value=""{{if eq $role ""}} selected{{end}}>No role</option>
-
               {{ range $key, $val := .Roles }}<option value="{{ $key }}"{{ if eq $role $key }} selected{{ end }}>{{$key}}</option>{{ end }}
             </select>
+            {{ with .Errors.Role }}
+              <div class="error">{{ . }}</div>
+            {{ end }}
           </div>
           <button type="submit" class="btn btn-default">Submit</button>
         </form>
