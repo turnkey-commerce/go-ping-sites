@@ -40,6 +40,9 @@ var stop = make(chan bool)
 // InternetAccessError defines errors where the Internet is inaccessible from the server.
 const InternetAccessError = "Internet Access Error"
 
+const site1 = "http://www.example.com"
+const site2 = "http://www.google.com"
+
 // NewPinger returns a new Pinger object
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 	exit Exiter, sendEmail notifier.EmailSender, sendSms notifier.SmsSender) *Pinger {
@@ -189,7 +192,7 @@ func RequestURL(url string, timeout int) (string, int, time.Duration, error) {
 	if err != nil {
 		// If there's an error need to determine if it could be a local networking error
 		// by checking a couple of highly available sites.
-		if !isInternetAccessible() {
+		if !isInternetAccessible(site1, site2) {
 			return "", 0, elapsedTime, errors.New(InternetAccessError + ": " + err.Error())
 		}
 		return "", 0, elapsedTime, err
@@ -221,14 +224,14 @@ func DoExit(flag int) {
 
 // isInternetAccessible checks two highly available sites to check whether the
 // oustide Internet is responding and there are no internal network problems.
-func isInternetAccessible() bool {
+func isInternetAccessible(testSite1 string, testSite2 string) bool {
 	to := time.Duration(5) * time.Second
 	client := http.Client{
 		Timeout: to,
 	}
-	_, err1 := client.Get("http://www.example.com")
+	_, err1 := client.Get(testSite1)
 	if err1 != nil {
-		_, err2 := client.Get("http://www.google.com")
+		_, err2 := client.Get(testSite2)
 		if err2 != nil {
 			return false
 		}
