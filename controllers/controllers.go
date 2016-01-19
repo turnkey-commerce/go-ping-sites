@@ -12,6 +12,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// CurrentUserGetter gets the current user from the http request
+type CurrentUserGetter interface {
+	CurrentUser(rw http.ResponseWriter, req *http.Request) (user httpauth.UserData, e error)
+	Messages(rw http.ResponseWriter, req *http.Request) []string
+}
+
 // Register the handlers for a given route.
 func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend, roles map[string]httpauth.Role, templates *template.Template) {
 	router := mux.NewRouter()
@@ -119,7 +125,7 @@ func authorizeRole(h http.Handler, authorizer httpauth.Authorizer, role string) 
 	})
 }
 
-func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer httpauth.Authorizer) (isAuthenticated bool, user httpauth.UserData) {
+func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer CurrentUserGetter) (isAuthenticated bool, user httpauth.UserData) {
 	isAuthenticated = false
 	var err error
 	user, err = authorizer.CurrentUser(rw, req)
@@ -127,4 +133,25 @@ func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer httpau
 		isAuthenticated = true
 	}
 	return isAuthenticated, user
+}
+
+// PopulateTemplates loads and parses all of the templates in the templates directory
+func PopulateTemplates(templatePath string) *template.Template {
+	result := template.New("templates")
+
+	basePath := templatePath
+	templateFolder, _ := os.Open(basePath)
+	defer templateFolder.Close()
+
+	templatePathsRaw, _ := templateFolder.Readdir(-1)
+	templatePaths := new([]string)
+	for _, pathInfo := range templatePathsRaw {
+		if !pathInfo.IsDir() {
+			*templatePaths = append(*templatePaths,
+				basePath+"/"+pathInfo.Name())
+		}
+	}
+
+	result.ParseFiles(*templatePaths...)
+	return result
 }
