@@ -12,10 +12,7 @@ func TestAboutController(t *testing.T) {
 	mockUserGetter := MockCurrentUserGetter{Username: "jules",
 		FlashMessages: []string{"Log in to do that."}}
 
-	req, err := http.NewRequest("GET", "http://example.com/about", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	req, _ := http.NewRequest("GET", "/about", nil)
 
 	templates := PopulateTemplates("../templates")
 

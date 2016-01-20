@@ -15,13 +15,15 @@ type MockCurrentUserGetter struct {
 }
 
 // Messages is the mock of the Messasges method from the httpauth package.
-func (m MockCurrentUserGetter) Messages(rw http.ResponseWriter, req *http.Request) []string {
+func (m MockCurrentUserGetter) Messages(rw http.ResponseWriter,
+	req *http.Request) []string {
 	messages := m.FlashMessages
 	return messages
 }
 
 // CurrentUser is the mock of the CurrentUser method from the httpauth package.
-func (m MockCurrentUserGetter) CurrentUser(rw http.ResponseWriter, req *http.Request) (user httpauth.UserData, e error) {
+func (m MockCurrentUserGetter) CurrentUser(rw http.ResponseWriter,
+	req *http.Request) (user httpauth.UserData, e error) {
 	user = httpauth.UserData{Username: m.Username}
 	return user, m.UserError
 }
