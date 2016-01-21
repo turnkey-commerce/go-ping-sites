@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "_head.gohtml" .Title}}
+</head>
+<body role="document">
+  {{template "_nav.gohtml" .Nav}}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <h1>Settings - Contacts</h1>
+        <div class="table-responsive">
+        <table class="table table-striped">
+          <caption>Contacts</caption>
+          <thead>
+            <tr>
+              <th class="col-md-1"><a href="/settings/contacts/new" title="Add Contact"><span class="glyphicon glyphicon-plus"></span></a></th>
+              <th class="col-md-2">Name</th>
+              <th class="col-md-3">Email</th>
+              <th class="col-md-1 text-center">Email<br />Active?</th>
+              <th class="col-md-2">Text Number</th>
+              <th class="col-md-1 text-center">Text<br />Active?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Contacts}}
+              <tr>
+                <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td>{{.Name}}</td>
+                <td>{{.EmailAddress}}</td>
+                <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
+                <td>{{.SmsNumber}}</td>
+                <td class="text-center">{{if .SmsActive}}Y{{else}}N{{end}}</td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{template "_footer.gohtml"}}
+</body>
+</html>

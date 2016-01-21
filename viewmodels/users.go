@@ -77,7 +77,7 @@ func EditUserViewModel(formUser *UsersEditViewModel, roles map[string]httpauth.R
 	return result
 }
 
-// NewUserViewModel populates the items required by the user_edit.gohtml view
+// NewUserViewModel populates the items required by the user_new.gohtml view
 func NewUserViewModel(formUser *UsersEditViewModel, roles map[string]httpauth.Role,
 	isAuthenticated bool, user httpauth.UserData, errors map[string]string) UserViewModel {
 	nav := NavViewModel{
