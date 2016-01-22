@@ -67,10 +67,12 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 
 	cc := new(contactsController)
 	cc.getTemplate = templates.Lookup("contacts.gohtml")
+	cc.editTemplate = templates.Lookup("contact_edit.gohtml")
 	cc.newTemplate = templates.Lookup("contact_new.gohtml")
 	cc.authorizer = authorizer
 	cc.DB = db
 	settingsSub.Handle("/contacts", authorizeRole(http.HandlerFunc(cc.get), authorizer, "admin"))
+	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(http.HandlerFunc(cc.editGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/contacts/new", authorizeRole(http.HandlerFunc(cc.newGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/contacts/new", authorizeRole(http.HandlerFunc(cc.newPost), authorizer, "admin")).Methods("POST")
 

@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"text/template"
@@ -95,7 +94,8 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 	newuser := httpauth.UserData{Username: formUser.Username, Email: formUser.Email, Hash: hash, Role: formUser.Role}
 	err = controller.authBackend.SaveUser(newuser)
 	if err != nil {
-		http.Redirect(rw, req, "/settings/users/"+formUser.Username+"/edit", http.StatusSeeOther)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
 }
@@ -138,8 +138,8 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 	user.Role = formUser.Role
 	err = controller.authorizer.Register(rw, req, user, password)
 	if err != nil {
-		fmt.Println(err)
-		http.Redirect(rw, req, "/settings/users/new", http.StatusSeeOther)
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
 }

@@ -209,6 +209,18 @@ func (c *Contact) CreateContact(db *sql.DB) error {
 	return nil
 }
 
+// GetContact gets the contact details for a given contact.
+func (c *Contact) GetContact(db *sql.DB, contactID int64) error {
+	err := db.QueryRow(`SELECT ContactID, Name, EmailAddress, SmsNumber, SmsActive,
+		EmailActive FROM Contacts WHERE ContactID = $1`, contactID).
+		Scan(&c.ContactID, &c.Name, &c.EmailAddress, &c.SmsNumber, &c.SmsActive,
+		&c.EmailActive)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // AddContactToSite associates a contact with a site.
 func (c Contact) AddContactToSite(db *sql.DB, siteID int64) error {
 	// Insert the contactID and the siteID in the many-to-many table

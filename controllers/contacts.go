@@ -3,20 +3,23 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
+	"strconv"
 	"text/template"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
 type contactsController struct {
-	DB          *sql.DB
-	getTemplate *template.Template
-	newTemplate *template.Template
-	authorizer  httpauth.Authorizer
+	DB           *sql.DB
+	getTemplate  *template.Template
+	editTemplate *template.Template
+	newTemplate  *template.Template
+	authorizer   httpauth.Authorizer
 }
 
 func (controller *contactsController) get(rw http.ResponseWriter, req *http.Request) {
@@ -26,6 +29,33 @@ func (controller *contactsController) get(rw http.ResponseWriter, req *http.Requ
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	vm := viewmodels.GetContactsViewModel(contacts, isAuthenticated, user, err)
 	controller.getTemplate.Execute(rw, vm)
+}
+
+func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	contactID, err := strconv.ParseInt(vars["contactID"], 10, 64)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// Get the contact to edit
+	contact := new(database.Contact)
+	err = contact.GetContact(controller.DB, contactID)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+	contactEdit := new(viewmodels.ContactsEditViewModel)
+	contactEdit.Name = contact.Name
+	contactEdit.ContactID = contact.ContactID
+	contactEdit.EmailAddress = contact.EmailAddress
+	contactEdit.SmsNumber = contact.SmsNumber
+	contactEdit.EmailActive = contact.EmailActive
+	contactEdit.SmsActive = contact.SmsActive
+
+	vm := viewmodels.EditContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
+	controller.editTemplate.Execute(rw, vm)
 }
 
 func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.Request) {
@@ -66,11 +96,11 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	contact.EmailActive = formContact.EmailActive
 	contact.SmsNumber = formContact.SmsNumber
 	contact.SmsActive = formContact.SmsActive
-	// err = controller.authorizer.Register(rw, req, user, password)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	http.Redirect(rw, req, "/settings/contacts/new", http.StatusSeeOther)
-	// }
+	err = contact.CreateContact(controller.DB)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
 }
 

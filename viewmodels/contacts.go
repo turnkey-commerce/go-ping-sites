@@ -59,6 +59,34 @@ func GetContactsViewModel(contacts database.Contacts, isAuthenticated bool, user
 	return result
 }
 
+// EditContactViewModel populates the items required by the user_contact.gohtml view
+func EditContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bool,
+	user httpauth.UserData, errors map[string]string) ContactViewModel {
+	nav := NavViewModel{
+		Active:          "settings",
+		IsAuthenticated: isAuthenticated,
+		User:            user,
+	}
+
+	result := ContactViewModel{
+		Title:  "Go Ping Sites - Settings - Edit Contact",
+		Nav:    nav,
+		Errors: errors,
+	}
+
+	contactVM := new(ContactsEditViewModel)
+	contactVM.ContactID = formContact.ContactID
+	contactVM.Name = formContact.Name
+	contactVM.EmailAddress = formContact.EmailAddress
+	contactVM.EmailActive = formContact.EmailActive
+	contactVM.SmsNumber = formContact.SmsNumber
+	contactVM.SmsActive = formContact.SmsActive
+
+	result.Contact = *contactVM
+
+	return result
+}
+
 // NewContactViewModel populates the items required by the user_contact.gohtml view
 func NewContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bool,
 	user httpauth.UserData, errors map[string]string) ContactViewModel {
@@ -75,6 +103,7 @@ func NewContactViewModel(formContact *ContactsEditViewModel, isAuthenticated boo
 	}
 
 	contactVM := new(ContactsEditViewModel)
+	contactVM.ContactID = formContact.ContactID
 	contactVM.Name = formContact.Name
 	contactVM.EmailAddress = formContact.EmailAddress
 	contactVM.EmailActive = formContact.EmailActive

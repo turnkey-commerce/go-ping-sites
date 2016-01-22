@@ -34,7 +34,7 @@ func TestCreateDb(t *testing.T) {
 	}
 }
 
-// TestCreateSiteAndContacts tests creating a site and adding a new contacts
+// TestCreateSiteAndContacts tests creating a site and adding new contacts
 // in the database and then retrieving it.
 func TestCreateSiteAndContacts(t *testing.T) {
 	db, err := database.InitializeTestDB("")
@@ -69,9 +69,9 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Error("New site saved not equal to input:\n", site, s)
 	}
 
-	// Create first contact
+	// Create first contact - ContactID is for referencing the contact get test
 	c := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
-		SmsActive: false, EmailActive: false}
+		SmsActive: false, EmailActive: false, ContactID: 1}
 	err = c.CreateContact(db)
 	if err != nil {
 		t.Fatal("Failed to create new contact:", err)
@@ -124,6 +124,18 @@ func TestCreateSiteAndContacts(t *testing.T) {
 
 	if len(site.Contacts) != 1 {
 		t.Fatal("Site should have only one contact after removal")
+	}
+
+	//Get the first contact by itself
+	c1Get := database.Contact{}
+	err = c1Get.GetContact(db, c.ContactID)
+	if err != nil {
+		t.Error("Failed to retrieve the first contact.")
+	}
+
+	// Verify the first contact was retrieved OK
+	if !reflect.DeepEqual(c, c1Get) {
+		t.Error("Retrieved contact saved not equal to input:\n", c1Get, c)
 	}
 
 }
