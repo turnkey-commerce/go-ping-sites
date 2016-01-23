@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "_head.gohtml" .Title}}
+</head>
+<body role="document">
+  {{template "_nav.gohtml" .Nav}}
+  <div class="container">
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <h1>Settings</h1>
+        <h2>Site Details</h2>
+        <div class="panel panel-default">
+          <div class="panel-heading"><b>{{.Site.Name}}</b></div>
+          <div class="row">
+            <div class="col-sm-2 text-right"><b>URL</b></div>
+            <div class="col-sm-5">{{.Site.URL}}</div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2 text-right"><b>Active?</b></div>
+            <div class="col-sm-5">{{if .Site.IsActive}}Y{{else}}N{{end}}</div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2 text-right"><b>Ping Rate (s)</b></div>
+            <div class="col-sm-5">{{.Site.PingIntervalSeconds}}</div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2 text-right"><b>Timeout (s)</b></div>
+            <div class="col-sm-5">{{.Site.TimeoutSeconds}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {{template "_footer.gohtml"}}
+</body>
+</html>

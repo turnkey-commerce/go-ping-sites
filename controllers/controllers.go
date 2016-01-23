@@ -47,7 +47,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	sc.template = templates.Lookup("settings.gohtml")
 	sc.authorizer = authorizer
 	sc.DB = db
-	router.Handle("/settings", authorizeRole(http.HandlerFunc(sc.get), authorizer, "admin"))
+	router.Handle("/settings", authorizeRole(appHandler(sc.get), authorizer, "admin"))
 
 	//settingsSub is a subrouter "/settings"
 	settingsSub := router.PathPrefix("/settings").Subrouter()
@@ -59,11 +59,11 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	uc.authorizer = authorizer
 	uc.authBackend = authBackend
 	uc.roles = roles
-	settingsSub.Handle("/users", authorizeRole(http.HandlerFunc(uc.get), authorizer, "admin"))
-	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editGet), authorizer, "admin")).Methods("GET")
-	settingsSub.Handle("/users/{username}/edit", authorizeRole(http.HandlerFunc(uc.editPost), authorizer, "admin")).Methods("POST")
-	settingsSub.Handle("/users/new", authorizeRole(http.HandlerFunc(uc.newGet), authorizer, "admin")).Methods("GET")
-	settingsSub.Handle("/users/new", authorizeRole(http.HandlerFunc(uc.newPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/users", authorizeRole(appHandler(uc.get), authorizer, "admin"))
+	settingsSub.Handle("/users/{username}/edit", authorizeRole(appHandler(uc.editGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/users/{username}/edit", authorizeRole(appHandler(uc.editPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/users/new", authorizeRole(appHandler(uc.newGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/users/new", authorizeRole(appHandler(uc.newPost), authorizer, "admin")).Methods("POST")
 
 	cc := new(contactsController)
 	cc.getTemplate = templates.Lookup("contacts.gohtml")
@@ -71,11 +71,18 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	cc.newTemplate = templates.Lookup("contact_new.gohtml")
 	cc.authorizer = authorizer
 	cc.DB = db
-	settingsSub.Handle("/contacts", authorizeRole(http.HandlerFunc(cc.get), authorizer, "admin"))
-	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(http.HandlerFunc(cc.editGet), authorizer, "admin")).Methods("GET")
-	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(http.HandlerFunc(cc.editPost), authorizer, "admin")).Methods("POST")
-	settingsSub.Handle("/contacts/new", authorizeRole(http.HandlerFunc(cc.newGet), authorizer, "admin")).Methods("GET")
-	settingsSub.Handle("/contacts/new", authorizeRole(http.HandlerFunc(cc.newPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/contacts", authorizeRole(appHandler(cc.get), authorizer, "admin"))
+	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(appHandler(cc.editGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(appHandler(cc.editPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/contacts/new", authorizeRole(appHandler(cc.newGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/contacts/new", authorizeRole(appHandler(cc.newPost), authorizer, "admin")).Methods("POST")
+
+	stc := new(sitesController)
+	stc.detailsTemplate = templates.Lookup("site_details.gohtml")
+	stc.authorizer = authorizer
+	stc.DB = db
+	// Site list is handled on main settings page so not needed here.
+	settingsSub.Handle("/sites/{siteID}", authorizeRole(appHandler(stc.getDetails), authorizer, "admin"))
 
 	http.Handle("/", router)
 
@@ -135,6 +142,22 @@ func authorizeRole(h http.Handler, authorizer httpauth.Authorizer, role string) 
 		}
 		h.ServeHTTP(rw, req)
 	})
+}
+
+type appHandler func(http.ResponseWriter, *http.Request) (int, error)
+
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if status, err := fn(w, r); err != nil {
+		switch status {
+		// We can have cases as granular as we like, if we wanted to
+		// return custom errors for specific status codes.
+		case http.StatusInternalServerError:
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		default:
+			// Catch any other errors we haven't explicitly handled
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		}
+	}
 }
 
 func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer CurrentUserGetter) (isAuthenticated bool, user httpauth.UserData) {

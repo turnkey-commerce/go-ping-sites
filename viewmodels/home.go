@@ -12,13 +12,13 @@ import (
 type HomeViewModel struct {
 	Error    error
 	Title    string
-	Sites    []SiteViewModel
+	Sites    []SiteDashboardViewModel
 	Nav      NavViewModel
 	Messages []string
 }
 
-// SiteViewModel holds the required information about the site.
-type SiteViewModel struct {
+// SiteDashboardViewModel holds the required information about the site.
+type SiteDashboardViewModel struct {
 	SiteID      int64
 	Name        string
 	Status      string
@@ -51,7 +51,7 @@ func GetHomeViewModel(sites database.Sites, isAuthenticated bool, user httpauth.
 	}
 
 	for _, site := range sites {
-		siteVM := new(SiteViewModel)
+		siteVM := new(SiteDashboardViewModel)
 		siteVM.Name = site.Name
 		siteVM.SiteID = site.SiteID
 

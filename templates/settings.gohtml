@@ -18,11 +18,11 @@
             <tr>
               <th class="col-md-1"><a href="/settings/sites/new" title="Add Site"><span class="glyphicon glyphicon-plus"></span></a></th>
               <th class="col-md-2">Name</th>
-              <th class="col-md-1">Active?</th>
-              <th class="col-md-3">URL</th>
-              <th class="col-md-2">Ping Rate (s)</th>
-              <th class="col-md-2">Timeout (s)</th>
-              <th class="col-md-1"># Contacts</th>
+              <th class="col-md-1 text-center">Active?</th>
+              <th class="col-md-3" >URL</th>
+              <th class="col-md-2 text-center">Ping Rate<br />(s)</th>
+              <th class="col-md-2 text-center">Timeout<br />(s)</th>
+              <th class="col-md-1 text-center">#<br />Contacts</th>
             </tr>
           </thead>
           <tbody>
@@ -30,11 +30,11 @@
               <tr>
                 <td><a href="/settings/sites/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/sites/{{.SiteID}}/edit" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
-                <td>{{.IsActive}}</td>
+                <td class="text-center">{{.IsActive}}</td>
                 <td><a href="{{.URL}}" target="_blank">{{.URL}}<a/></td>
-                <td>{{.PingIntervalSeconds}}</td>
-                <td>{{.TimeoutSeconds}}</td>
-                <td>{{.NumContacts}}</td>
+                <td class="text-center">{{.PingIntervalSeconds}}</td>
+                <td class="text-center">{{.TimeoutSeconds}}</td>
+                <td class="text-center">{{.NumContacts}}</td>
               </tr>
             {{end}}
           </tbody>

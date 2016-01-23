@@ -22,28 +22,29 @@ type contactsController struct {
 	authorizer   httpauth.Authorizer
 }
 
-func (controller *contactsController) get(rw http.ResponseWriter, req *http.Request) {
+func (controller *contactsController) get(rw http.ResponseWriter, req *http.Request) (int, error) {
 	var contacts database.Contacts
 	// Get contacts.
 	err := contacts.GetContacts(controller.DB)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	vm := viewmodels.GetContactsViewModel(contacts, isAuthenticated, user, err)
-	controller.getTemplate.Execute(rw, vm)
+	return http.StatusOK, controller.getTemplate.Execute(rw, vm)
 }
 
-func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.Request) {
+func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.Request) (int, error) {
 	vars := mux.Vars(req)
 	contactID, err := strconv.ParseInt(vars["contactID"], 10, 64)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 	// Get the contact to edit
 	contact := new(database.Contact)
 	err = contact.GetContact(controller.DB, contactID)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	contactEdit := new(viewmodels.ContactsEditViewModel)
@@ -55,89 +56,82 @@ func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.
 	contactEdit.SmsActive = contact.SmsActive
 
 	vm := viewmodels.EditContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
-	controller.editTemplate.Execute(rw, vm)
+	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
 
-func (controller *contactsController) editPost(rw http.ResponseWriter, req *http.Request) {
+func (controller *contactsController) editPost(rw http.ResponseWriter, req *http.Request) (int, error) {
 	err := req.ParseForm()
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	decoder := schema.NewDecoder()
 	formContact := new(viewmodels.ContactsEditViewModel)
 	err = decoder.Decode(formContact, req.PostForm)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.NewContactViewModel(formContact, isAuthenticated, user, valErrors)
-		controller.newTemplate.Execute(rw, vm)
-		return
+		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
 
 	// Get the contact to edit
 	contact := new(database.Contact)
 	err = contact.GetContact(controller.DB, formContact.ContactID)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	mapContacts(contact, formContact)
 	err = contact.UpdateContact(controller.DB)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
+	return http.StatusSeeOther, nil
 }
 
-func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.Request) {
+func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.Request) (int, error) {
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	contactEdit := new(viewmodels.ContactsEditViewModel)
 	contactEdit.EmailActive = false
 	contactEdit.SmsActive = false
 	vm := viewmodels.NewContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
-	controller.newTemplate.Execute(rw, vm)
+	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
 
-func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.Request) {
+func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.Request) (int, error) {
 	err := req.ParseForm()
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	decoder := schema.NewDecoder()
 	formContact := new(viewmodels.ContactsEditViewModel)
 	err = decoder.Decode(formContact, req.PostForm)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.NewContactViewModel(formContact, isAuthenticated, user, valErrors)
-		controller.newTemplate.Execute(rw, vm)
-		return
+		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
 
 	contact := database.Contact{}
 	mapContacts(&contact, formContact)
 	err = contact.CreateContact(controller.DB)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
-		return
+		return http.StatusInternalServerError, err
 	}
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
+	return http.StatusSeeOther, nil
 }
 
 // validateUserForm checks the inputs for errors
