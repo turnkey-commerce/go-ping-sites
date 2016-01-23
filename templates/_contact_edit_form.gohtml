@@ -1,0 +1,40 @@
+<div class="form-group">
+  <label for="name">Name</label>
+  <input type="text"  class="form-control" name="name" id="name" value="{{.Contact.Name}}">
+  {{ with .Errors.Name }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="emailAddress">Email</label>
+  <input type="email" class="form-control" name="emailAddress" id="emailAddress" value="{{.Contact.EmailAddress}}">
+  {{ with .Errors.EmailAddress }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="emailActive">
+    <input type="checkbox" name="emailActive" id="emailActive" {{if .Contact.EmailActive}}checked{{end}}>
+    Email Active?
+  </label>
+  {{ with .Errors.EmailActive }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="smsNumber">Text Number</label>
+  <input type="text" class="form-control" name="smsNumber" id="smsNumber" value="{{.Contact.SmsNumber}}">
+  {{ with .Errors.SmsNumber }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="smsActive">
+    <input type="checkbox" name="smsActive" id="smsActive" {{if .Contact.SmsActive}}checked{{end}}>
+    Text Active?
+  </label>
+  {{ with .Errors.EmailActive }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<button type="submit" class="btn btn-default">Submit</button>

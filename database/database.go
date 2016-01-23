@@ -209,6 +209,25 @@ func (c *Contact) CreateContact(db *sql.DB) error {
 	return nil
 }
 
+// UpdateContact updates the contact information in the DB.
+func (c *Contact) UpdateContact(db *sql.DB) error {
+	_, err := db.Exec(
+		`Update Contacts SET Name = $1, EmailAddress = $2, SmsNumber = $3,
+		  EmailActive = $4, SmsActive = $5
+			WHERE ContactID = $6`,
+		c.Name,
+		c.EmailAddress,
+		c.SmsNumber,
+		c.EmailActive,
+		c.SmsActive,
+		c.ContactID,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // GetContact gets the contact details for a given contact.
 func (c *Contact) GetContact(db *sql.DB, contactID int64) error {
 	err := db.QueryRow(`SELECT ContactID, Name, EmailAddress, SmsNumber, SmsActive,

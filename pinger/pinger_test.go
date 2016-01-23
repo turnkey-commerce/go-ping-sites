@@ -85,6 +85,7 @@ func TestStartPinger(t *testing.T) {
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
+	// TODO - replace with channel
 	time.Sleep(3 * time.Second)
 	p.Stop()
 

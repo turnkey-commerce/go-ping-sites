@@ -73,6 +73,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	cc.DB = db
 	settingsSub.Handle("/contacts", authorizeRole(http.HandlerFunc(cc.get), authorizer, "admin"))
 	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(http.HandlerFunc(cc.editGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(http.HandlerFunc(cc.editPost), authorizer, "admin")).Methods("POST")
 	settingsSub.Handle("/contacts/new", authorizeRole(http.HandlerFunc(cc.newGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/contacts/new", authorizeRole(http.HandlerFunc(cc.newPost), authorizer, "admin")).Methods("POST")
 

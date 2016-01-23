@@ -58,6 +58,46 @@ func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.
 	controller.editTemplate.Execute(rw, vm)
 }
 
+func (controller *contactsController) editPost(rw http.ResponseWriter, req *http.Request) {
+	err := req.ParseForm()
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	decoder := schema.NewDecoder()
+	formContact := new(viewmodels.ContactsEditViewModel)
+	err = decoder.Decode(formContact, req.PostForm)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	valErrors := validateContactForm(formContact)
+	if len(valErrors) > 0 {
+		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+		vm := viewmodels.NewContactViewModel(formContact, isAuthenticated, user, valErrors)
+		controller.newTemplate.Execute(rw, vm)
+		return
+	}
+
+	// Get the contact to edit
+	contact := new(database.Contact)
+	err = contact.GetContact(controller.DB, formContact.ContactID)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	mapContacts(contact, formContact)
+	err = contact.UpdateContact(controller.DB)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
+}
+
 func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.Request) {
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	contactEdit := new(viewmodels.ContactsEditViewModel)
@@ -90,12 +130,8 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 		return
 	}
 
-	var contact database.Contact
-	contact.Name = formContact.Name
-	contact.EmailAddress = formContact.EmailAddress
-	contact.EmailActive = formContact.EmailActive
-	contact.SmsNumber = formContact.SmsNumber
-	contact.SmsActive = formContact.SmsActive
+	contact := database.Contact{}
+	mapContacts(&contact, formContact)
 	err = contact.CreateContact(controller.DB)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -112,4 +148,12 @@ func validateContactForm(contact *viewmodels.ContactsEditViewModel) (valErrors m
 	valErrors = govalidator.ErrorsByField(err)
 
 	return valErrors
+}
+
+func mapContacts(contact *database.Contact, formContact *viewmodels.ContactsEditViewModel) {
+	contact.Name = formContact.Name
+	contact.EmailAddress = formContact.EmailAddress
+	contact.EmailActive = formContact.EmailActive
+	contact.SmsNumber = formContact.SmsNumber
+	contact.SmsActive = formContact.SmsActive
 }

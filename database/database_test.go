@@ -126,7 +126,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Site should have only one contact after removal")
 	}
 
-	//Get the first contact by itself
+	// Get the first contact via the GetContact method
 	c1Get := database.Contact{}
 	err = c1Get.GetContact(db, c.ContactID)
 	if err != nil {
@@ -138,6 +138,30 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Error("Retrieved contact saved not equal to input:\n", c1Get, c)
 	}
 
+	// Update the first contact.
+	c1Update := database.Contact{Name: "Jane Contact", EmailAddress: "jane@test.com", SmsNumber: "5125551313",
+		SmsActive: true, EmailActive: true, ContactID: 1}
+	c1Get.Name = c1Update.Name
+	c1Get.EmailAddress = c1Update.EmailAddress
+	c1Get.SmsNumber = c1Update.SmsNumber
+	c1Get.EmailActive = c1Update.EmailActive
+	c1Get.SmsActive = c1Update.SmsActive
+	err = c1Get.UpdateContact(db)
+	if err != nil {
+		t.Error("Failed to update the first contact.")
+	}
+
+	// Get the first contact again after update
+	c1Get2 := database.Contact{}
+	err = c1Get2.GetContact(db, c1Update.ContactID)
+	if err != nil {
+		t.Error("Failed to retrieve the first contact.")
+	}
+
+	// Verify the first contact was retrieved OK
+	if !reflect.DeepEqual(c1Update, c1Get2) {
+		t.Error("Retrieved updated contact saved not equal to input:\n", c1Get2, c1Update)
+	}
 }
 
 // TestCreateUniqueSite tests that the same URL and Site Name can't be entered twice.
