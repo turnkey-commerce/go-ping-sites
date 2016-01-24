@@ -15,11 +15,12 @@ import (
 )
 
 type sitesController struct {
-	DB              *sql.DB
-	detailsTemplate *template.Template
-	editTemplate    *template.Template
-	newTemplate     *template.Template
-	authorizer      httpauth.Authorizer
+	DB                     *sql.DB
+	detailsTemplate        *template.Template
+	editTemplate           *template.Template
+	newTemplate            *template.Template
+	changeContactsTemplate *template.Template
+	authorizer             httpauth.Authorizer
 }
 
 func (controller *sitesController) getDetails(rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -102,6 +103,70 @@ func (controller *sitesController) editPost(rw http.ResponseWriter, req *http.Re
 	}
 	http.Redirect(rw, req, "/settings", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
+}
+
+func (controller *sitesController) newGet(rw http.ResponseWriter, req *http.Request) (int, error) {
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+	siteEdit := new(viewmodels.SitesEditViewModel)
+	siteEdit.IsActive = true
+	vm := viewmodels.NewSiteViewModel(siteEdit, isAuthenticated, user, make(map[string]string))
+	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
+}
+
+func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Request) (int, error) {
+	err := req.ParseForm()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	decoder := schema.NewDecoder()
+	formSite := new(viewmodels.SitesEditViewModel)
+	err = decoder.Decode(formSite, req.PostForm)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	valErrors := validateSiteForm(formSite)
+	if len(valErrors) > 0 {
+		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+		vm := viewmodels.NewSiteViewModel(formSite, isAuthenticated, user, valErrors)
+		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
+	}
+
+	site := database.Site{}
+	viewmodels.MapSiteVMtoDB(formSite, &site)
+	err = site.CreateSite(controller.DB)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	http.Redirect(rw, req, "/settings", http.StatusSeeOther)
+	return http.StatusSeeOther, nil
+}
+
+func (controller *sitesController) editContactsGet(rw http.ResponseWriter, req *http.Request) (int, error) {
+	vars := mux.Vars(req)
+	siteID, err := strconv.ParseInt(vars["siteID"], 10, 64)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	site := new(database.Site)
+	err = site.GetSite(controller.DB, siteID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	// Get the contacts for the user to know the currently assigned ones.
+	err = site.GetSiteContacts(controller.DB, siteID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	// Get all of the contacts to display in the table.
+	var contacts database.Contacts
+	err = contacts.GetContacts(controller.DB)
+
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+	vm := viewmodels.SiteChangeContactsViewModel(site, contacts, isAuthenticated, user)
+	return http.StatusOK, controller.changeContactsTemplate.Execute(rw, vm)
 }
 
 //validateSiteForm checks the inputs for errors

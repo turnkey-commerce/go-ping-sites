@@ -34,7 +34,7 @@
                 <td><a href="{{.URL}}" target="_blank">{{.URL}}<a/></td>
                 <td class="text-center">{{.PingIntervalSeconds}}</td>
                 <td class="text-center">{{.TimeoutSeconds}}</td>
-                <td class="text-center">{{.NumContacts}}</td>
+                <td class="text-center">{{.NumContacts}}&nbsp;<a href="/settings/sites/{{.SiteID}}/contacts/edit" title="Change Assigned Contacts"><span class="glyphicon glyphicon-envelope"></span></a></td>
               </tr>
             {{end}}
           </tbody>

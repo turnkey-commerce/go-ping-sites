@@ -52,6 +52,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	//settingsSub is a subrouter "/settings"
 	settingsSub := router.PathPrefix("/settings").Subrouter()
 
+	// /settings/users
 	uc := new(usersController)
 	uc.getTemplate = templates.Lookup("users.gohtml")
 	uc.editTemplate = templates.Lookup("user_edit.gohtml")
@@ -65,6 +66,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	settingsSub.Handle("/users/new", authorizeRole(appHandler(uc.newGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/users/new", authorizeRole(appHandler(uc.newPost), authorizer, "admin")).Methods("POST")
 
+	// /settings/contacts
 	cc := new(contactsController)
 	cc.getTemplate = templates.Lookup("contacts.gohtml")
 	cc.editTemplate = templates.Lookup("contact_edit.gohtml")
@@ -77,15 +79,21 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	settingsSub.Handle("/contacts/new", authorizeRole(appHandler(cc.newGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/contacts/new", authorizeRole(appHandler(cc.newPost), authorizer, "admin")).Methods("POST")
 
+	// /settings/sites
 	stc := new(sitesController)
 	stc.detailsTemplate = templates.Lookup("site_details.gohtml")
 	stc.editTemplate = templates.Lookup("site_edit.gohtml")
+	stc.newTemplate = templates.Lookup("site_new.gohtml")
+	stc.changeContactsTemplate = templates.Lookup("site_change_contacts.gohtml")
 	stc.authorizer = authorizer
 	stc.DB = db
-	// Site list is handled on main settings page so not needed here.
+	// Site list is handled on main settings page so not required here.
+	settingsSub.Handle("/sites/new", authorizeRole(appHandler(stc.newGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/sites/new", authorizeRole(appHandler(stc.newPost), authorizer, "admin")).Methods("POST")
 	settingsSub.Handle("/sites/{siteID}", authorizeRole(appHandler(stc.getDetails), authorizer, "admin"))
 	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/sites/{siteID}/contacts/edit", authorizeRole(appHandler(stc.editContactsGet), authorizer, "admin")).Methods("GET")
 
 	http.Handle("/", router)
 

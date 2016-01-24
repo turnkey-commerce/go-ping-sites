@@ -8,13 +8,15 @@
   <div class="container">
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
-        <h1>Settings - Contacts</h1>
+        <h1>Settings</h1>
+        <h2>Change Contacts Assigned to Site</h2>
+        <p>Site: <b>{{.Site.Name}}</b></p>
+        <form action="" method="post" id="change_contacts">
         <div class="table-responsive">
         <table class="table table-striped">
-          <caption>Contacts</caption>
           <thead>
             <tr>
-              <th class="col-md-1"><a href="/settings/contacts/new" title="Add Contact"><span class="glyphicon glyphicon-plus"></span></a></th>
+              <th class="col-md-1 text-center">Assigned?</th>
               <th class="col-md-2">Name</th>
               <th class="col-md-3">Email</th>
               <th class="col-md-1 text-center">Email<br />Active?</th>
@@ -23,9 +25,9 @@
             </tr>
           </thead>
           <tbody>
-            {{range .Contacts}}
+            {{range .AllContacts}}
               <tr>
-                <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td class="text-center"><input type="checkbox" name="contact_{{.ContactID}}" id="contact_{{.ContactID}}" {{if .IsAssigned}}checked{{end}}></td>
                 <td>{{.Name}}</td>
                 <td>{{.EmailAddress}}</td>
                 <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
@@ -36,7 +38,8 @@
           </tbody>
         </table>
         </div>
-        <p><a href="/settings" title="Back to Sites List"><span class="glyphicon glyphicon-arrow-left"></span>&nbsp;Back</a></p>
+        <button type="submit" class="btn btn-default">Submit Changes</button>
+        </form>
       </div>
     </div>
   </div>
