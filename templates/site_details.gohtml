@@ -11,23 +11,50 @@
         <h1>Settings</h1>
         <h2>Site Details</h2>
         <div class="panel panel-default">
-          <div class="panel-heading"><b>{{.Site.Name}}</b></div>
+          <div class="panel-heading"><a href="/settings/sites/{{.Site.SiteID}}/edit" title="Edit Site"><span class="glyphicon glyphicon-edit"></a> &nbsp;&nbsp;<b>{{.Site.Name}}</b></div>
           <div class="row">
-            <div class="col-sm-2 text-right"><b>URL</b></div>
+            <div class="col-sm-2"><b>URL</b></div>
             <div class="col-sm-5">{{.Site.URL}}</div>
           </div>
           <div class="row">
-            <div class="col-sm-2 text-right"><b>Active?</b></div>
+            <div class="col-sm-2"><b>Active?</b></div>
             <div class="col-sm-5">{{if .Site.IsActive}}Y{{else}}N{{end}}</div>
           </div>
           <div class="row">
-            <div class="col-sm-2 text-right"><b>Ping Rate (s)</b></div>
+            <div class="col-sm-2"><b>Ping Rate (secs)</b></div>
             <div class="col-sm-5">{{.Site.PingIntervalSeconds}}</div>
           </div>
           <div class="row">
-            <div class="col-sm-2 text-right"><b>Timeout (s)</b></div>
+            <div class="col-sm-2"><b>Timeout (secs)</b></div>
             <div class="col-sm-5">{{.Site.TimeoutSeconds}}</div>
           </div>
+        </div>
+        <div class="table-responsive">
+        <table class="table table-striped">
+          <caption>Site Contacts</caption>
+          <thead>
+            <tr>
+              <th class="col-md-1"><a href="/settings/sites/{{.Site.SiteID}}/AddContact" title="Add Contact to Site"><span class="glyphicon glyphicon-plus"></span></a></th>
+              <th class="col-md-2">Name</th>
+              <th class="col-md-3">Email</th>
+              <th class="col-md-1 text-center">Email<br />Active?</th>
+              <th class="col-md-2">Text Number</th>
+              <th class="col-md-1 text-center">Text<br />Active?</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{range .Contacts}}
+              <tr>
+                <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td>{{.Name}}</td>
+                <td>{{.EmailAddress}}</td>
+                <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
+                <td>{{.SmsNumber}}</td>
+                <td class="text-center">{{if .SmsActive}}Y{{else}}N{{end}}</td>
+              </tr>
+            {{end}}
+          </tbody>
+        </table>
         </div>
       </div>
     </div>

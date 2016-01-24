@@ -75,6 +75,25 @@ func (s *Site) CreateSite(db *sql.DB) error {
 	return nil
 }
 
+// UpdateSite updates the site information in the DB.
+func (s *Site) UpdateSite(db *sql.DB) error {
+	_, err := db.Exec(
+		`Update Sites SET Name = $1, URL = $2, IsActive = $3,
+		  PingIntervalSeconds = $4, TimeoutSeconds = $5
+			WHERE SiteId = $6`,
+		s.Name,
+		s.URL,
+		s.IsActive,
+		s.PingIntervalSeconds,
+		s.TimeoutSeconds,
+		s.SiteID,
+	)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //UpdateSiteStatus updates the up/down status and last status change of a Site.
 func (s *Site) UpdateSiteStatus(db *sql.DB, isSiteUp bool) error {
 	_, err := db.Exec(

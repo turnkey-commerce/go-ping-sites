@@ -75,11 +75,11 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.NewContactViewModel(formContact, isAuthenticated, user, valErrors)
-		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
+		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
 
-	// Get the contact to edit
+	// Get the contact to update
 	contact := new(database.Contact)
 	err = contact.GetContact(controller.DB, formContact.ContactID)
 	if err != nil {

@@ -69,6 +69,33 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Error("New site saved not equal to input:\n", site, s)
 	}
 
+	//Update the saved site
+	sUpdate := database.Site{SiteID: 1, Name: "Test Update", IsActive: false,
+		URL: "http://www.example.com", PingIntervalSeconds: 30, TimeoutSeconds: 15}
+	site.Name = sUpdate.Name
+	site.URL = sUpdate.URL
+	site.IsActive = sUpdate.IsActive
+	site.PingIntervalSeconds = sUpdate.PingIntervalSeconds
+	site.TimeoutSeconds = sUpdate.TimeoutSeconds
+	err = site.UpdateSite(db)
+	if err != nil {
+		t.Fatal("Failed to update site:", err)
+	}
+
+	//Get the updated site
+	var siteUpdated database.Site
+	err = siteUpdated.GetSite(db, s.SiteID)
+	if err != nil {
+		t.Fatal("Failed to retrieve updated site:", err)
+	}
+	//Verify the saved site is same as the input.
+	if siteUpdated.URL != sUpdate.URL || siteUpdated.IsActive != sUpdate.IsActive ||
+		siteUpdated.Name != sUpdate.Name || siteUpdated.TimeoutSeconds != sUpdate.TimeoutSeconds ||
+		siteUpdated.PingIntervalSeconds != sUpdate.PingIntervalSeconds ||
+		siteUpdated.SiteID != sUpdate.SiteID {
+		t.Error("Updated site saved not equal to input:\n", siteUpdated, sUpdate)
+	}
+
 	// Create first contact - ContactID is for referencing the contact get test
 	c := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
 		SmsActive: false, EmailActive: false, ContactID: 1}

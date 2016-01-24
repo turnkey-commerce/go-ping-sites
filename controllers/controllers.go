@@ -79,10 +79,13 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 
 	stc := new(sitesController)
 	stc.detailsTemplate = templates.Lookup("site_details.gohtml")
+	stc.editTemplate = templates.Lookup("site_edit.gohtml")
 	stc.authorizer = authorizer
 	stc.DB = db
 	// Site list is handled on main settings page so not needed here.
 	settingsSub.Handle("/sites/{siteID}", authorizeRole(appHandler(stc.getDetails), authorizer, "admin"))
+	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editPost), authorizer, "admin")).Methods("POST")
 
 	http.Handle("/", router)
 

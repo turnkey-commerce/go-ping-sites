@@ -1,0 +1,39 @@
+<div class="form-group">
+  <label for="name">Name</label>
+  <input type="text"  class="form-control" name="name" id="name" value="{{.Site.Name}}">
+  {{ with .Errors.Name }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="url">URL</label>
+  <input type="text" class="form-control" name="url" id="url" value="{{.Site.URL}}">
+  {{ with .Errors.URL }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="isActive">
+    <input type="checkbox" name="isActive" id="isActive" {{if .Site.IsActive}}checked{{end}}>
+    Site Active?
+  </label>
+  {{ with .Errors.IsActive }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="pingIntervalSeconds">Ping Rate (seconds)</label>
+  <input type="text" class="form-control" name="pingIntervalSeconds" id="pingIntervalSeconds" value="{{.Site.PingIntervalSeconds}}">
+  {{ with .Errors.PingIntervalSeconds }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="timeoutSeconds">Timeout (seconds)</label>
+  <input type="text" class="form-control" name="timeoutSeconds" id="timeoutSeconds" value="{{.Site.TimeoutSeconds}}">
+  {{ with .Errors.TimeoutSeconds }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+
+<button type="submit" class="btn btn-default">Submit</button>
