@@ -169,10 +169,60 @@ func (controller *sitesController) editContactsGet(rw http.ResponseWriter, req *
 	return http.StatusOK, controller.changeContactsTemplate.Execute(rw, vm)
 }
 
+func (controller *sitesController) editContactsPost(rw http.ResponseWriter, req *http.Request) (int, error) {
+	err := req.ParseForm()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	decoder := schema.NewDecoder()
+	formContacts := new(viewmodels.SiteContactsSelectedViewModel)
+	err = decoder.Decode(formContacts, req.PostForm)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	site := new(database.Site)
+	err = site.GetSite(controller.DB, formContacts.SiteID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	//Loop selected ones first and if it's not already in the site then add it.
+	for _, contactSelID := range formContacts.SelectedContacts {
+		if !int64InSlice(int64(contactSelID), formContacts.SiteContacts) {
+			err = site.AddContactToSite(controller.DB, contactSelID)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		}
+	}
+
+	// Loop existing site contacts and if it's not in the selected items then remove it.
+	for _, contactSiteID := range formContacts.SiteContacts {
+		if !int64InSlice(int64(contactSiteID), formContacts.SelectedContacts) {
+			err = site.RemoveContactFromSite(controller.DB, contactSiteID)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		}
+	}
+	http.Redirect(rw, req, "/settings/sites/"+strconv.FormatInt(site.SiteID, 10), http.StatusSeeOther)
+	return http.StatusOK, nil
+}
+
 //validateSiteForm checks the inputs for errors
 func validateSiteForm(site *viewmodels.SitesEditViewModel) (valErrors map[string]string) {
 	valErrors = make(map[string]string)
 	_, err := govalidator.ValidateStruct(site)
 	valErrors = govalidator.ErrorsByField(err)
 	return valErrors
+}
+
+func int64InSlice(a int64, list []int64) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }

@@ -260,12 +260,12 @@ func (c *Contact) GetContact(db *sql.DB, contactID int64) error {
 }
 
 // AddContactToSite associates a contact with a site.
-func (c Contact) AddContactToSite(db *sql.DB, siteID int64) error {
+func (s Site) AddContactToSite(db *sql.DB, contactID int64) error {
 	// Insert the contactID and the siteID in the many-to-many table
 	_, err := db.Exec(
 		"INSERT INTO SiteContacts (ContactID, SiteID) VALUES ($1, $2)",
-		c.ContactID,
-		siteID,
+		contactID,
+		s.SiteID,
 	)
 	if err != nil {
 		return err
@@ -275,12 +275,12 @@ func (c Contact) AddContactToSite(db *sql.DB, siteID int64) error {
 }
 
 // RemoveContactFromSite deletes the association of a contact with a site.
-func (c Contact) RemoveContactFromSite(db *sql.DB, siteID int64) error {
+func (s Site) RemoveContactFromSite(db *sql.DB, contactID int64) error {
 	// Insert the contactID and the siteID in the many-to-many table
 	_, err := db.Exec(
 		"DELETE FROM SiteContacts WHERE ContactID = $1 AND SiteID = $2",
-		c.ContactID,
-		siteID,
+		contactID,
+		s.SiteID,
 	)
 	if err != nil {
 		return err

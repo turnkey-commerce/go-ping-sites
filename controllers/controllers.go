@@ -94,6 +94,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editPost), authorizer, "admin")).Methods("POST")
 	settingsSub.Handle("/sites/{siteID}/contacts/edit", authorizeRole(appHandler(stc.editContactsGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/sites/{siteID}/contacts/edit", authorizeRole(appHandler(stc.editContactsPost), authorizer, "admin")).Methods("POST")
 
 	http.Handle("/", router)
 

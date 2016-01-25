@@ -30,6 +30,14 @@ type SitesAllContactsViewModel struct {
 	EmailActive  bool
 }
 
+// SiteContactsSelectedViewModel holds the selections when contacts are changed.
+// The existing SiteContacts are also containd in SiteContats
+type SiteContactsSelectedViewModel struct {
+	SiteID           int64
+	SelectedContacts []int64
+	SiteContacts     []int64
+}
+
 // SiteViewModel holds the view information for the site_edit.gohtml template
 type SiteViewModel struct {
 	Errors      map[string]string

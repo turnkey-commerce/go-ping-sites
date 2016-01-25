@@ -131,7 +131,7 @@ func seedInitialSites(db *sql.DB, seedFile string) error {
 			return err
 		}
 		for _, s := range Seed.Sites {
-			err = c.AddContactToSite(db, s.SiteID)
+			err = s.AddContactToSite(db, c.ContactID)
 			if err != nil {
 				return err
 			}

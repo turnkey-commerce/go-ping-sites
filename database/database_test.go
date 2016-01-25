@@ -104,7 +104,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to create new contact:", err)
 	}
 	// Associate to the site ID
-	err = c.AddContactToSite(db, site.SiteID)
+	err = site.AddContactToSite(db, c.ContactID)
 	if err != nil {
 		t.Fatal("Failed to associate contact with site:", err)
 	}
@@ -117,7 +117,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to create new site:", err)
 	}
 	// Associate the contact to the site
-	err = c2.AddContactToSite(db, site.SiteID)
+	err = site.AddContactToSite(db, c2.ContactID)
 	if err != nil {
 		t.Error("Failed to associate contact2 with site:", err)
 	}
@@ -138,7 +138,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	}
 
 	// Remove second contact from site.
-	err = c2.RemoveContactFromSite(db, site.SiteID)
+	err = site.RemoveContactFromSite(db, c2.ContactID)
 	if err != nil {
 		t.Fatal("Failed to remove contact2 from site:", err)
 	}
@@ -434,11 +434,11 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 		t.Fatal("Failed to create new contact:", err)
 	}
 	// Associate to the first and second site ID
-	err = c1.AddContactToSite(db, s1.SiteID)
+	err = s1.AddContactToSite(db, c1.ContactID)
 	if err != nil {
 		t.Fatal("Failed to associate contact 1 with first site:", err)
 	}
-	err = c1.AddContactToSite(db, s2.SiteID)
+	err = s2.AddContactToSite(db, c1.ContactID)
 	if err != nil {
 		t.Fatal("Failed to associate contact 1 with second site:", err)
 	}
@@ -451,7 +451,7 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 		t.Fatal("Failed to create new contact:", err)
 	}
 	// Associate only to the first site
-	err = c2.AddContactToSite(db, s1.SiteID)
+	err = s1.AddContactToSite(db, c2.ContactID)
 	if err != nil {
 		t.Fatal("Failed to associate contact 1 with first site:", err)
 	}
