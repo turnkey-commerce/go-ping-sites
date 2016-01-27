@@ -3,8 +3,8 @@
 Name="Example.com"
 IsActive=true
 URL="http://www.example.com"
-PingIntervalSeconds=60
-TimeoutSeconds=30
+PingIntervalSeconds=30
+TimeoutSeconds=15
 
 [[Sites]]
 Name="Example.org"
