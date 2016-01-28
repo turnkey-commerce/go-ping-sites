@@ -77,16 +77,19 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 	}
 }
 
-// TestStartPinger starts up the pinger and then stops it after 3 seconds
-func TestStartPinger(t *testing.T) {
+// TestStartAndRestartPinger starts up the pinger and then stops it after 3 seconds
+func TestStartAndRestartPinger(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
-	// TODO - replace with channel
 	time.Sleep(3 * time.Second)
+	p.Stop()
+	// Test Restart after stop
+	p.Start()
+	time.Sleep(1 * time.Second)
 	p.Stop()
 
 	results, err := pinger.GetLogContent()

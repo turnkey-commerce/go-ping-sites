@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -23,6 +24,9 @@ type Pinger struct {
 	RequestURL URLRequester
 	SendEmail  notifier.EmailSender
 	SendSms    notifier.SmsSender
+	getSites   SitesGetter
+	wg         sync.WaitGroup
+	stopChan   chan struct{}
 	Exit       Exiter
 }
 
@@ -34,8 +38,6 @@ type URLRequester func(url string, timeout int) (string, int, time.Duration, err
 
 // Exiter defines a functio to exit the program to allow exit test scenarios.
 type Exiter func(code int)
-
-var stop = make(chan bool)
 
 // InternetAccessError defines errors where the Internet is inaccessible from the server.
 const InternetAccessError = "Internet Access Error"
@@ -61,7 +63,7 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 	}
 
 	p := Pinger{Sites: sites, DB: db, RequestURL: requestURL, SendEmail: sendEmail,
-		SendSms: sendSms, Exit: exit}
+		SendSms: sendSms, Exit: exit, getSites: getSites}
 	return &p
 }
 
@@ -69,10 +71,12 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 func (p *Pinger) Start() {
 	log.Println("Requesting start of pinger...")
 	siteCount := 0
+	p.stopChan = make(chan struct{})
 	for _, s := range p.Sites {
 		//log.Println(s)
 		if s.URL != "" {
-			go ping(s, p.DB, p.RequestURL, p.SendEmail, p.SendSms)
+			p.wg.Add(1)
+			go ping(s, p.DB, p.RequestURL, p.SendEmail, p.SendSms, &p.wg, p.stopChan)
 			siteCount++
 		}
 	}
@@ -84,15 +88,30 @@ func (p *Pinger) Start() {
 	}
 }
 
-// Stop stops the Pinger service to end pinging
+// Stop stops the Pinger service by sending stop to all pingers and waits until
+// all are stopped via the waitgroup.
 func (p *Pinger) Stop() {
-	log.Println("Requesting stop of pinger...")
-	stop <- true
+	log.Println("Requesting stop of pingers...")
+	close(p.stopChan)
+	p.wg.Wait()
+	// nil out the stopChan to nil so it can be remade when started again.
+	p.stopChan = nil
+	log.Println("All of the pingers have stopped.")
+}
+
+// UpdateSiteSettings stops the pinger, regets the sites for changes in settings,
+// and restarts the pinger
+func (p *Pinger) UpdateSiteSettings() {
+	log.Println("Updating the site settings due to change...")
+	p.Stop()
+	p.getSites(p.DB)
+	p.Start()
 }
 
 // ping does the actual pinging of the site and calls the notifications
 func ping(s database.Site, db *sql.DB, requestURL URLRequester,
-	sendEmail notifier.EmailSender, sendSms notifier.SmsSender) {
+	sendEmail notifier.EmailSender, sendSms notifier.SmsSender, wg *sync.WaitGroup, stop chan struct{}) {
+	defer wg.Done()
 	siteWasUp := true
 	var statusChange bool
 	var partialDetails string
@@ -103,6 +122,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 		// Check for a quit signal to stop the pinging
 		select {
 		case <-stop:
+			log.Println("Stopping ", s.Name)
 			return
 		default:
 			if !s.IsActive {
