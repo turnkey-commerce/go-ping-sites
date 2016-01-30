@@ -20,7 +20,7 @@ clean:
 	-rm -rf $(DIST_PATH)
 
 run: default
-	go-ping-sites
+	cd $(DIST_PATH);go-ping-sites
 
 distribute: clean default
 	cp $(SRC_PATH)$(PATHSEP)config$(PATHSEP)config.toml $(DIST_PATH)$(PATHSEP)config.toml
