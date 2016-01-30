@@ -1,9 +1,11 @@
 ifdef ComSpec
 	PATHSEP2=\\
 	EXE_NAME=go-ping-sites.exe
+	CMDSEP=&
 else
 	PATHSEP2=/
 	EXE_NAME=go-ping-sites
+	CMDSEP=;
 endif
 PATHSEP=$(strip $(PATHSEP2))
 DIST_PATH=$(GOPATH)$(PATHSEP)dist$(PATHSEP)go-ping-sites
@@ -20,7 +22,7 @@ clean:
 	-rm -rf $(DIST_PATH)
 
 run: default
-	cd $(DIST_PATH);go-ping-sites
+	cd $(DIST_PATH)$(CMDSEP)go-ping-sites
 
 distribute: clean default
 	cp $(SRC_PATH)$(PATHSEP)config$(PATHSEP)config.toml $(DIST_PATH)$(PATHSEP)config.toml
