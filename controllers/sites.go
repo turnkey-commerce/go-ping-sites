@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"github.com/turnkey-commerce/go-ping-sites/pinger"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
@@ -21,6 +22,7 @@ type sitesController struct {
 	newTemplate            *template.Template
 	changeContactsTemplate *template.Template
 	authorizer             httpauth.Authorizer
+	pinger                 *pinger.Pinger
 }
 
 func (controller *sitesController) getDetails(rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -101,6 +103,13 @@ func (controller *sitesController) editPost(rw http.ResponseWriter, req *http.Re
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	// Refresh the pinger with the changes.
+	err = controller.pinger.UpdateSiteSettings()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	http.Redirect(rw, req, "/settings", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
 }
@@ -139,6 +148,13 @@ func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Req
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	// Refresh the pinger with the changes.
+	err = controller.pinger.UpdateSiteSettings()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	http.Redirect(rw, req, "/settings", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
 }
@@ -206,6 +222,13 @@ func (controller *sitesController) editContactsPost(rw http.ResponseWriter, req 
 			}
 		}
 	}
+
+	// Refresh the pinger with the changes.
+	err = controller.pinger.UpdateSiteSettings()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	http.Redirect(rw, req, "/settings/sites/"+strconv.FormatInt(site.SiteID, 10), http.StatusSeeOther)
 	return http.StatusOK, nil
 }

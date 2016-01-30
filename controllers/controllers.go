@@ -10,6 +10,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/gorilla/mux"
+	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
 
 // CurrentUserGetter gets the current user from the http request
@@ -19,7 +20,8 @@ type CurrentUserGetter interface {
 }
 
 // Register the handlers for a given route.
-func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend, roles map[string]httpauth.Role, templates *template.Template) {
+func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend,
+	roles map[string]httpauth.Role, templates *template.Template, pinger *pinger.Pinger) {
 	router := mux.NewRouter()
 
 	hc := new(homeController)
@@ -86,6 +88,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	stc.newTemplate = templates.Lookup("site_new.gohtml")
 	stc.changeContactsTemplate = templates.Lookup("site_change_contacts.gohtml")
 	stc.authorizer = authorizer
+	stc.pinger = pinger
 	stc.DB = db
 	// Site list is handled on main settings page so not required here.
 	settingsSub.Handle("/sites/new", authorizeRole(appHandler(stc.newGet), authorizer, "admin")).Methods("GET")

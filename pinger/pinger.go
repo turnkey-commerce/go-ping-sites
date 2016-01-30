@@ -101,11 +101,16 @@ func (p *Pinger) Stop() {
 
 // UpdateSiteSettings stops the pinger, regets the sites for changes in settings,
 // and restarts the pinger
-func (p *Pinger) UpdateSiteSettings() {
+func (p *Pinger) UpdateSiteSettings() error {
 	log.Println("Updating the site settings due to change...")
 	p.Stop()
-	p.getSites(p.DB)
+	sites, err := p.getSites(p.DB)
+	if err != nil {
+		return err
+	}
+	p.Sites = sites
 	p.Start()
+	return nil
 }
 
 // ping does the actual pinging of the site and calls the notifications
