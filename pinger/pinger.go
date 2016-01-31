@@ -117,7 +117,8 @@ func (p *Pinger) UpdateSiteSettings() error {
 func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 	sendEmail notifier.EmailSender, sendSms notifier.SmsSender, wg *sync.WaitGroup, stop chan struct{}) {
 	defer wg.Done()
-	siteWasUp := true
+	// Initialize the previous state of site to the database value. On site creation will initialize to true.
+	siteWasUp := s.IsSiteUp
 	var statusChange bool
 	var partialDetails string
 	var partialSubject string
