@@ -74,6 +74,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	cc.editTemplate = templates.Lookup("contact_edit.gohtml")
 	cc.newTemplate = templates.Lookup("contact_new.gohtml")
 	cc.authorizer = authorizer
+	cc.pinger = pinger
 	cc.DB = db
 	settingsSub.Handle("/contacts", authorizeRole(appHandler(cc.get), authorizer, "admin"))
 	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(appHandler(cc.editGet), authorizer, "admin")).Methods("GET")

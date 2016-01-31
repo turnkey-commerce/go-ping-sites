@@ -45,11 +45,12 @@
               <div class="error">{{ . }}</div>
             {{ end }}
           </div>
-          <button type="submit" class="btn btn-default">Submit</button>
+          <button type="submit" class="btn btn-primary ladda-button" data-style="expand-left"><span class="ladda-label">Submit Changes</span></button>
         </form>
       </div>
     </div>
   </div>
+  {{template "_footer_submit.gohtml"}}
   {{template "_footer.gohtml"}}
 </body>
 </html>

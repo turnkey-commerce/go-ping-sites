@@ -116,9 +116,12 @@ func (controller *sitesController) editPost(rw http.ResponseWriter, req *http.Re
 
 func (controller *sitesController) newGet(rw http.ResponseWriter, req *http.Request) (int, error) {
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-	siteEdit := new(viewmodels.SitesEditViewModel)
-	siteEdit.IsActive = true
-	vm := viewmodels.NewSiteViewModel(siteEdit, isAuthenticated, user, make(map[string]string))
+	siteNew := new(viewmodels.SitesEditViewModel)
+	siteNew.IsActive = true
+	// These are strings in the ViewModel.
+	siteNew.PingIntervalSeconds = "30"
+	siteNew.TimeoutSeconds = "15"
+	vm := viewmodels.NewSiteViewModel(siteNew, isAuthenticated, user, make(map[string]string))
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
 

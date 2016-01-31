@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"github.com/turnkey-commerce/go-ping-sites/pinger"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
@@ -20,6 +21,7 @@ type contactsController struct {
 	editTemplate *template.Template
 	newTemplate  *template.Template
 	authorizer   httpauth.Authorizer
+	pinger       *pinger.Pinger
 }
 
 func (controller *contactsController) get(rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -91,6 +93,14 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	// Refresh the pinger with the changes.
+	// TODO: Check whether this contact is associated with any active site first.
+	err = controller.pinger.UpdateSiteSettings()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
 }
