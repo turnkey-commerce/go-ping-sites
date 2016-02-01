@@ -21,6 +21,10 @@ var Settings struct {
 		AuthToken  string
 		Number     string
 	}
+	Website struct {
+		HTTPPort  string
+		CookieKey string
+	}
 }
 
 func init() {

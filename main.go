@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/go-ping-sites/config"
 	"github.com/turnkey-commerce/go-ping-sites/controllers"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
@@ -40,7 +41,7 @@ func main() {
 	}
 
 	roles = getRoles()
-	authorizer, err = httpauth.NewAuthorizer(authBackend, []byte("cookie-encryption-key"), "user", roles)
+	authorizer, err = httpauth.NewAuthorizer(authBackend, []byte(config.Settings.Website.CookieKey), "user", roles)
 	createDefaultUser()
 	// Start the Pinger
 	p := pinger.NewPinger(db, pinger.GetSites, pinger.RequestURL, pinger.DoExit,
@@ -49,7 +50,7 @@ func main() {
 	// Start the web server.
 	templates := controllers.PopulateTemplates("templates")
 	controllers.Register(db, authorizer, authBackend, roles, templates, p)
-	err = http.ListenAndServe(":8000", nil) // set listen port
+	err = http.ListenAndServe(":"+config.Settings.Website.HTTPPort, nil) // set listen port
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

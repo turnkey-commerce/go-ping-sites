@@ -10,15 +10,15 @@ func TestSmtpConfiguration(t *testing.T) {
 	smtpSettings := config.Settings.SMTP
 
 	if smtpSettings.EmailAddress != "yourusername@example.com" {
-		t.Fatal("Config Email Address mismatch:\n", smtpSettings.EmailAddress)
+		t.Error("Config Email Address mismatch:\n", smtpSettings.EmailAddress)
 	}
 
 	if smtpSettings.Password != "yourpassword" {
-		t.Fatal("Config Email Password mismatch:\n", smtpSettings.Password)
+		t.Error("Config Email Password mismatch:\n", smtpSettings.Password)
 	}
 
 	if smtpSettings.Server != "smtp.gmail.com" {
-		t.Fatal("Config Email Server mismatch:\n", smtpSettings.Server)
+		t.Error("Config Email Server mismatch:\n", smtpSettings.Server)
 	}
 
 	if smtpSettings.Port != "587" {
@@ -30,14 +30,26 @@ func TestTwilioConfiguration(t *testing.T) {
 	twilioSettings := config.Settings.Twilio
 
 	if twilioSettings.AccountSid != "AccountSid" {
-		t.Fatal("Config Twilio Account SID mismatch:\n", twilioSettings.AccountSid)
+		t.Error("Config Twilio Account SID mismatch:\n", twilioSettings.AccountSid)
 	}
 
 	if twilioSettings.AuthToken != "AuthToken" {
-		t.Fatal("Config Twilio Auth Token mismatch:\n", twilioSettings.AuthToken)
+		t.Error("Config Twilio Auth Token mismatch:\n", twilioSettings.AuthToken)
 	}
 
 	if twilioSettings.Number != "+15125551212" {
-		t.Fatal("Config Twilio Number mismatch:\n", twilioSettings.Number)
+		t.Error("Config Twilio Number mismatch:\n", twilioSettings.Number)
+	}
+}
+
+func TestWebsiteConfiguration(t *testing.T) {
+	websiteSettings := config.Settings.Website
+
+	if websiteSettings.HTTPPort != "8000" {
+		t.Error("Config Website HTTPPort mismatch:\n", websiteSettings.HTTPPort)
+	}
+
+	if websiteSettings.CookieKey != "CookieEncryptionKey" {
+		t.Error("Config Website HTTPPort mismatch:\n", websiteSettings.CookieKey)
 	}
 }

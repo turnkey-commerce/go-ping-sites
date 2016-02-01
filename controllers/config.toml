@@ -10,3 +10,8 @@
 	AccountSid 	= ""
 	AuthToken  	= ""
 	Number 	  	= "+15125551212"
+
+#	Website settings - change the CookieKey to some other secret value
+[Website]
+	HTTPPort  = "8000"
+	CookieKey = "CookieEncryptionKey"
