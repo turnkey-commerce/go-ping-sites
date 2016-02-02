@@ -17,6 +17,8 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 )
 
+var mu = &sync.Mutex{}
+
 // Pinger does the HTTP pinging of the sites that are retrieved from the DB.
 type Pinger struct {
 	Sites      database.Sites
@@ -69,7 +71,7 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 
 // Start begins the Pinger service to start pinging
 func (p *Pinger) Start() {
-	log.Println("Requesting start of pinger...")
+	log.Println("Requesting start of pingers...")
 	siteCount := 0
 	p.stopChan = make(chan struct{})
 	for _, s := range p.Sites {
@@ -100,8 +102,12 @@ func (p *Pinger) Stop() {
 }
 
 // UpdateSiteSettings stops the pinger, regets the sites for changes in settings,
-// and restarts the pinger
+// and restarts the pinger. There could potentially be race conditions if multiple
+// web controllers were trying to update it so a mutex is used to protect it.
 func (p *Pinger) UpdateSiteSettings() error {
+	// Lock to avoid race conditions since this is usually called from the website.
+	mu.Lock()
+	defer mu.Unlock()
 	log.Println("Updating the site settings due to change...")
 	p.Stop()
 	sites, err := p.getSites(p.DB)
