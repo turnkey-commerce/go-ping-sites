@@ -3,8 +3,8 @@ package viewmodels
 import (
 	"strconv"
 
-	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 // SitesEditViewModel holds the required information about the Sites to choose for editing.

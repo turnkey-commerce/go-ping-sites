@@ -1,7 +1,7 @@
 package viewmodels
 
 import (
-	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 

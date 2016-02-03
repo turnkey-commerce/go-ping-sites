@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 // MockCurrentUserGetter provides the base struct for the methods to mock the

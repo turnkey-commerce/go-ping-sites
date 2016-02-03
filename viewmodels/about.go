@@ -1,6 +1,6 @@
 package viewmodels
 
-import "github.com/apexskier/httpauth"
+import "github.com/turnkey-commerce/httpauth"
 
 // AboutViewModel holds the view information for the about.gohtml template
 type AboutViewModel struct {

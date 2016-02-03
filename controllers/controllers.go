@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/httpauth"
 	"github.com/gorilla/mux"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )

@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"os"
 
-	"golang.org/x/crypto/bcrypt"
-
-	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/config"
 	"github.com/turnkey-commerce/go-ping-sites/controllers"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 var (
@@ -59,13 +57,14 @@ func main() {
 func createDefaultUser() {
 	// create a default user
 	userName := "admin"
+	pwd := "adminpassword"
 	if _, err := authBackend.User(userName); err != nil {
-		hash, err := bcrypt.GenerateFromPassword([]byte("adminpassword"), bcrypt.DefaultCost)
+		defaultUser := httpauth.UserData{Username: userName, Email: "admin@localhost.com", Role: "admin"}
+		err = authBackend.SaveUser(defaultUser)
 		if err != nil {
 			panic(err)
 		}
-		defaultUser := httpauth.UserData{Username: userName, Email: "admin@localhost.com", Hash: hash, Role: "admin"}
-		err = authBackend.SaveUser(defaultUser)
+		err = authorizer.Update(nil, nil, userName, pwd, "")
 		if err != nil {
 			panic(err)
 		}

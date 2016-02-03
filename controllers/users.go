@@ -6,13 +6,11 @@ import (
 	"text/template"
 	"unicode/utf8"
 
-	"golang.org/x/crypto/bcrypt"
-
-	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 type usersController struct {
@@ -72,20 +70,8 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
 
-	// Get the user to edit
-	var hash []byte
-	editUser, err := controller.authBackend.User(formUser.Username)
-	if formUser.Password != "" {
-		hash, err = bcrypt.GenerateFromPassword([]byte(formUser.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-	} else {
-		hash = editUser.Hash
-	}
-
-	newuser := httpauth.UserData{Username: formUser.Username, Email: formUser.Email, Hash: hash, Role: formUser.Role}
-	err = controller.authBackend.SaveUser(newuser)
+	// Update the user.
+	err = controller.authorizer.Update(rw, req, formUser.Username, formUser.Password, formUser.Email)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

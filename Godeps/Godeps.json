@@ -11,10 +11,6 @@
 			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
 		},
 		{
-			"ImportPath": "github.com/apexskier/httpauth",
-			"Rev": "c252e6f3a05e81ece38819f5978e5076756da899"
-		},
-		{
 			"ImportPath": "github.com/asaskevich/govalidator",
 			"Comment": "v2-45-g1295808",
 			"Rev": "129580890d97de923d9d9aec06cb1aa771812aff"
@@ -51,6 +47,10 @@
 		{
 			"ImportPath": "github.com/syndtr/goleveldb/leveldb",
 			"Rev": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6"
+		},
+		{
+			"ImportPath": "github.com/turnkey-commerce/httpauth",
+			"Rev": "ebf3d4012e34655bfe2aa7848867ad0b608e0b77"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",

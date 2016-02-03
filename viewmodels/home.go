@@ -3,7 +3,7 @@ package viewmodels
 import (
 	"fmt"
 
-	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/httpauth"
 	"github.com/dustin/go-humanize"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
