@@ -8,22 +8,22 @@ import (
 
 var configFile = "config.toml"
 
-// Settings stores the configuration for the SMTP email and Twilio SMS accounts.
+// Settings contains the settings for SMTP, Twilio, and Website from the config.toml file.
 var Settings struct {
 	SMTP struct {
-		EmailAddress string
-		Password     string
-		Server       string
-		Port         string
+		EmailAddress string `valid:"-"`
+		Password     string `valid:"-"`
+		Server       string `valid:"-"`
+		Port         string `valid:"int,required"`
 	}
 	Twilio struct {
-		AccountSid string
-		AuthToken  string
-		Number     string
+		AccountSid string `valid:"-"`
+		AuthToken  string `valid:"-"`
+		Number     string `valid:"-"`
 	}
 	Website struct {
-		HTTPPort  string
-		CookieKey string
+		HTTPPort  string `valid:"int,required"`
+		CookieKey string `valid:"ascii,required"`
 	}
 }
 

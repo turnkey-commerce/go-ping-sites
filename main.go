@@ -2,10 +2,12 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/turnkey-commerce/go-ping-sites/config"
 	"github.com/turnkey-commerce/go-ping-sites/controllers"
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -28,14 +30,19 @@ func main() {
 	pinger.CreatePingerLog("")
 	db, err = database.InitializeDB("go-ping-sites.db", "db-seed.toml")
 	if err != nil {
-		log.Fatal("Failed to initialize database:", err)
+		fatalError("Failed to initialize database:", err)
 	}
 	defer db.Close()
+	// Validate the required config for the website.
+	_, err = govalidator.ValidateStruct(config.Settings.Website)
+	if err != nil {
+		fatalError("Error in config.toml configuration:", err)
+	}
 	// Setup the auth
 	// create the authorization backend
 	authBackend, err = createAuthBackendFile()
 	if err != nil {
-		log.Fatal("Failed to create Auth Backend: ", err)
+		fatalError("Failed to create Auth Backend: ", err)
 	}
 
 	roles = getRoles()
@@ -50,7 +57,7 @@ func main() {
 	controllers.Register(db, authorizer, authBackend, roles, templates, p)
 	err = http.ListenAndServe(":"+config.Settings.Website.HTTPPort, nil) // set listen port
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		fatalError("ListenAndServe: ", err)
 	}
 }
 
@@ -69,6 +76,11 @@ func createDefaultUser() {
 			panic(err)
 		}
 	}
+}
+
+func fatalError(message string, content interface{}) {
+	fmt.Println(message, content)
+	log.Fatal(message, content)
 }
 
 func createAuthBackendFile() (s httpauth.SqlAuthBackend, err error) {
