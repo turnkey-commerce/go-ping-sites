@@ -156,6 +156,18 @@ func InitializeTestDB(seedFile string) (*sql.DB, error) {
 	return db, nil
 }
 
+const reportDB string = "./report_test.db"
+
+// InitializeReportDB is for test packages to initalize a Report DB for integration testing.
+func InitializeReportDB() (*sql.DB, error) {
+	var db *sql.DB
+	db, err := InitializeDB(reportDB, "")
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
+}
+
 // deleteDb removes the DB file, mainly intended for testing
 func deleteDb(dbPath string) error {
 	if _, err := os.Stat(dbPath); err == nil {

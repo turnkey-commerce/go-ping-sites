@@ -47,6 +47,20 @@ type Ping struct {
 	TimedOut       bool
 }
 
+// Report contains information about performance where AvgResponse is the average
+// response time for successful requests, PingsUp are the number of successful
+// pings when the site was up and PingsDown is the number of pings when the site
+// was down.
+type Report struct {
+	AvgResponse float64
+	PingsUp     int
+	PingsDown   int
+	Month       int
+}
+
+// Reports is a slice of reports, usually the index will represent the month.
+type Reports []Report
+
 //CreateSite inserts a new site in the DB.
 func (s *Site) CreateSite(db *sql.DB) error {
 	// Set site to initially be up, as is the assumption when the pinging first starts.
@@ -374,4 +388,45 @@ func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTi
 	}
 
 	return nil
+}
+
+// GetYTDReports gets reports for the active sites
+func GetYTDReports(db *sql.DB) (map[string]Reports, error) {
+	rows, err := db.Query(`
+	SELECT Name, Month, SUM(AvgResponse) AS AvgResponse, SUM(PingsUp) As PingsUp, SUM(PingsDown) as PingsDown
+	FROM(
+	select Name, strftime("%m", timeRequest) as 'month', AVG(duration) as AvgResponse, count(*) as PingsUp, 0 as PingsDown
+	     FROM pings INNER JOIN sites on sites.siteID = pings.siteID
+		   WHERE httpstatuscode = 200 AND timeRequest > date('now', 'start of year')
+		   group by strftime("%m", timeRequest), name
+	UNION ALL
+		   select Name, strftime("%m", timeRequest) as 'month', 0 as AvgResponse, 0 as PingsUp, count(*) as PingsDown
+	       from pings INNER JOIN sites on sites.siteID = pings.siteID
+		   WHERE httpstatuscode <> 200 AND timeRequest > date('now', 'start of year')
+		   group by strftime("%m", timeRequest), name
+	)
+	group by name, month
+	ORDER BY name, month`)
+	if err != nil {
+		return nil, err
+	}
+
+	var ytdReports map[string]Reports
+	ytdReports = make(map[string]Reports)
+	defer rows.Close()
+	for rows.Next() {
+		var Name string
+		var Month int
+		var AvgResponse float64
+		var PingsUp int
+		var PingsDown int
+		err = rows.Scan(&Name, &Month, &AvgResponse, &PingsUp, &PingsDown)
+		if err != nil {
+			return nil, err
+		}
+		ytdReports[Name] = append(ytdReports[Name], Report{AvgResponse: AvgResponse,
+			PingsUp: PingsUp, PingsDown: PingsDown, Month: Month})
+	}
+
+	return ytdReports, nil
 }

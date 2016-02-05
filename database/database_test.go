@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"math"
 	"reflect"
 	"testing"
 	"time"
@@ -536,4 +537,27 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 		t.Error("There should be three total sites loaded.")
 	}
 
+}
+
+// TestReports verifies the reading of the report from the DB.
+func TestReport(t *testing.T) {
+	db, err := database.InitializeReportDB()
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+	report, err := database.GetYTDReports(db)
+	site := "Example.com"
+	if report[site][0].Month != 1 {
+		t.Errorf("Month should be 1, got %d", report[site][0].Month)
+	}
+	if report[site][0].PingsUp != 2875 {
+		t.Errorf("PingsUp should be 2875, got %d", report[site][0].PingsUp)
+	}
+	if report[site][0].PingsDown != 0 {
+		t.Errorf("PingsDown should be 0, got %d", report[site][0].PingsDown)
+	}
+	if math.Abs(report[site][0].AvgResponse-37.397565) > .00001 {
+		t.Errorf("AvgResponse should be 37.397565, got %f", report[site][0].AvgResponse)
+	}
 }
