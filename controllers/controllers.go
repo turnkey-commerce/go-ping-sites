@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/turnkey-commerce/httpauth"
 	"github.com/gorilla/mux"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 // CurrentUserGetter gets the current user from the http request
@@ -29,6 +29,12 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	hc.authorizer = authorizer
 	hc.DB = db
 	router.Handle("/", authorizeRole(http.HandlerFunc(hc.get), authorizer, "user"))
+
+	rc := new(reportsController)
+	rc.template = templates.Lookup("reports.gohtml")
+	rc.authorizer = authorizer
+	rc.DB = db
+	router.Handle("/reports", authorizeRole(appHandler(rc.get), authorizer, "user"))
 
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.gohtml")

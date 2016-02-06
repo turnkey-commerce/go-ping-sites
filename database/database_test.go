@@ -548,9 +548,6 @@ func TestReport(t *testing.T) {
 	defer db.Close()
 	report, err := database.GetYTDReports(db)
 	site := "Example.com"
-	if report[site][0].Month != 1 {
-		t.Errorf("Month should be 1, got %d", report[site][0].Month)
-	}
 	if report[site][0].PingsUp != 2875 {
 		t.Errorf("PingsUp should be 2875, got %d", report[site][0].PingsUp)
 	}

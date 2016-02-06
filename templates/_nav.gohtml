@@ -13,6 +13,7 @@
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li {{if eq .Active "home"}}class="active"{{end}}><a href="/">Dashboard</a></li>
+        <li {{if eq .Active "reports"}}class="active"{{end}}><a href="/reports">Reports</a></li>
         <li {{if eq .Active "settings"}}class="active"{{end}}><a href="/settings">Settings</a></li>
         <li {{if eq .Active "about"}}class="active"{{end}}><a href="/about">About</a></li>
       </ul>

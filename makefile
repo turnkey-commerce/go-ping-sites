@@ -13,7 +13,7 @@ SRC_PATH=$(GOPATH)$(PATHSEP)src$(PATHSEP)github.com$(PATHSEP)turnkey-commerce$(P
 
 default:
 	go install -v
-	-mkdir -p $(DIST_PATH)
+	-mkdir $(DIST_PATH)
 	cp $(GOPATH)$(PATHSEP)bin$(PATHSEP)$(EXE_NAME) $(DIST_PATH)$(PATHSEP)$(EXE_NAME)
 	cp -r $(SRC_PATH)$(PATHSEP)templates $(DIST_PATH)
 	cp -r $(SRC_PATH)$(PATHSEP)public $(DIST_PATH)

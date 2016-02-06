@@ -16,7 +16,7 @@
 
 .navbar-custom .navbar-nav > li > a:hover, .nav > li > a:focus {
     text-decoration: none;
-    background-color: #6666FF;
+    background-color: #5c5cd6;
     color:#eeeeee;
 }
 
@@ -27,17 +27,17 @@
     background-color:#eeeeee;
 }
 .navbar-custom .icon-bar {
-    background-color:#6666FF;
+    background-color:#8585e0;
     color:#eeeeee;
 }
 .nav .open>a, .nav .open>a:focus, .nav .open>a:hover {
-    background-color: #6666FF;
+    background-color: #8585e0;
     border-color: #337ab7;
     color:#eeeeee;
 }
 .navbar-custom .navbar-nav>.active>a, .navbar-inverse .navbar-nav>.active>a:focus, .navbar-inverse .navbar-nav>.active>a:hover {
     color: #ffe5ff;
-    background-color: #6666FF;
+    background-color: #8585e0;
 }
 
 body {

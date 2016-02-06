@@ -55,7 +55,6 @@ type Report struct {
 	AvgResponse float64
 	PingsUp     int
 	PingsDown   int
-	Month       int
 }
 
 // Reports is a slice of reports, usually the index will represent the month.
@@ -424,8 +423,12 @@ func GetYTDReports(db *sql.DB) (map[string]Reports, error) {
 		if err != nil {
 			return nil, err
 		}
-		ytdReports[Name] = append(ytdReports[Name], Report{AvgResponse: AvgResponse,
-			PingsUp: PingsUp, PingsDown: PingsDown, Month: Month})
+
+		if _, ok := ytdReports[Name]; !ok {
+			ytdReports[Name] = make([]Report, 12, 12)
+		}
+		ytdReports[Name][Month-1] = Report{AvgResponse: AvgResponse,
+			PingsUp: PingsUp, PingsDown: PingsDown}
 	}
 
 	return ytdReports, nil

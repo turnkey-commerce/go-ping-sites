@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {{template "_head.gohtml" .Title}}
+</head>
+<body role="document">
+  {{template "_nav.gohtml" .Nav}}
+  <div class="container">
+    {{range .Messages}}
+      <div class="alert alert-danger" role="alert">{{.}}</div>
+    {{end}}
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
+        <h1>Reports</h1>
+        <h2>Year to Date Summary</h2>
+        {{range $key, $reports := .ReportData}}
+           <h3>{{ $key }}</h3>
+           <div class="table-responsive">
+           <table class="table">
+             <thead>
+               <tr>
+                 <th class="col-md-2"></th>
+                 <th class="col-md-1">Jan</th>
+                 <th class="col-md-1">Feb</th>
+                 <th class="col-md-1">Mar</th>
+                 <th class="col-md-1">Apr</th>
+                 <th class="col-md-1">May</th>
+                 <th class="col-md-1">Jun</th>
+                 <th class="col-md-1">Jul</th>
+                 <th class="col-md-1">Aug</th>
+                 <th class="col-md-1">Sep</th>
+                 <th class="col-md-1">Oct</th>
+                 <th class="col-md-1">Nov</th>
+                 <th class="col-md-1">Dec</th>
+               </tr>
+             </thead>
+             <tbody>
+               <tr>
+                 <td>Uptime %</td>
+                 {{range $reports}}
+                  <td>{{ .UptimePercent }}</td>
+                 {{ end }}
+               <tr/>
+               <tr>
+                 <td>Avg Response (ms)</td>
+                 {{range $reports}}
+                  <td>{{ .AvgResponse }}</td>
+                 {{ end }}
+               <tr/>
+             </tbody>
+           </table>
+           </div>
+        {{end}}
+      </div>
+    </div>
+  </div> <!-- /container -->
+    {{template "_footer.gohtml"}}
+</body>
+</html>
