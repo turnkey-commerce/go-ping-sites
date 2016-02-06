@@ -21,6 +21,8 @@ var (
 	authBackendFile = "go-ping-sites-auth.db"
 	roles           map[string]httpauth.Role
 	authorizer      httpauth.Authorizer
+	// Version is the Semver version of the application and should be passed in the build.
+	version = "No Version provided"
 )
 
 func main() {
@@ -28,6 +30,8 @@ func main() {
 	// Setup the main db.
 	var db *sql.DB
 	pinger.CreatePingerLog("")
+	startLog("Starting go-ping-sites version " + version + ", website on port " +
+		config.Settings.Website.HTTPPort + "...")
 	db, err = database.InitializeDB("go-ping-sites.db", "db-seed.toml")
 	if err != nil {
 		fatalError("Failed to initialize database:", err)
@@ -54,7 +58,7 @@ func main() {
 	p.Start()
 	// Start the web server.
 	templates := controllers.PopulateTemplates("templates")
-	controllers.Register(db, authorizer, authBackend, roles, templates, p)
+	controllers.Register(db, authorizer, authBackend, roles, templates, p, version)
 	err = http.ListenAndServe(":"+config.Settings.Website.HTTPPort, nil) // set listen port
 	if err != nil {
 		fatalError("ListenAndServe: ", err)
@@ -76,6 +80,11 @@ func createDefaultUser() {
 			panic(err)
 		}
 	}
+}
+
+func startLog(message string) {
+	fmt.Println(message)
+	log.Println(message)
 }
 
 func fatalError(message string, content interface{}) {

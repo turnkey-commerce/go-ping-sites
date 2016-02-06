@@ -1,8 +1,8 @@
 package viewmodels
 
 import (
-	"github.com/turnkey-commerce/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 // SiteEditViewModel holds the required information about the site to choose for editing.

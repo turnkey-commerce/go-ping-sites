@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/turnkey-commerce/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 type homeController struct {

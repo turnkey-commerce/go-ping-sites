@@ -21,7 +21,8 @@ type CurrentUserGetter interface {
 
 // Register the handlers for a given route.
 func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend,
-	roles map[string]httpauth.Role, templates *template.Template, pinger *pinger.Pinger) {
+	roles map[string]httpauth.Role, templates *template.Template, pinger *pinger.Pinger,
+	version string) {
 	router := mux.NewRouter()
 
 	hc := new(homeController)
@@ -39,6 +40,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.gohtml")
 	ac.authorizer = authorizer
+	ac.version = version
 	router.HandleFunc("/about", ac.get)
 
 	lc := new(loginController)

@@ -3,9 +3,9 @@ package viewmodels
 import (
 	"fmt"
 
-	"github.com/turnkey-commerce/httpauth"
 	"github.com/dustin/go-humanize"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"github.com/turnkey-commerce/httpauth"
 )
 
 // HomeViewModel holds the view information for the home.gohtml template
