@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
-	"github.com/turnkey-commerce/httpauth"
+	"github.com/apexskier/httpauth"
 )
 
 // SitesEditViewModel holds the required information about the Sites to choose for editing.

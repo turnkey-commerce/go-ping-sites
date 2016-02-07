@@ -1,6 +1,6 @@
 package viewmodels
 
-import "github.com/turnkey-commerce/httpauth"
+import "github.com/apexskier/httpauth"
 
 // UsersEditViewModel holds the required information about the site to choose for editing.
 type UsersEditViewModel struct {

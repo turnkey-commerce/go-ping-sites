@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
-	"github.com/turnkey-commerce/httpauth"
+	"github.com/apexskier/httpauth"
 )
 
 // CurrentUserGetter gets the current user from the http request

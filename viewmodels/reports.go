@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
-	"github.com/turnkey-commerce/httpauth"
+	"github.com/apexskier/httpauth"
 )
 
 // ReportViewModel holds the view information for the report.gohtml template

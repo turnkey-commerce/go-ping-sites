@@ -13,7 +13,7 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
-	"github.com/turnkey-commerce/httpauth"
+	"github.com/apexskier/httpauth"
 )
 
 var (

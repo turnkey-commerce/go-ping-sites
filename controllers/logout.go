@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/turnkey-commerce/httpauth"
+	"github.com/apexskier/httpauth"
 )
 
 type logoutController struct {

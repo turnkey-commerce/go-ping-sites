@@ -2,7 +2,7 @@ package viewmodels
 
 import (
 	"github.com/turnkey-commerce/go-ping-sites/database"
-	"github.com/turnkey-commerce/httpauth"
+	"github.com/apexskier/httpauth"
 )
 
 // ContactsEditViewModel holds the required information about the Contacts to choose for editing.
