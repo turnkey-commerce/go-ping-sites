@@ -9,6 +9,7 @@ go:
 
 install:
   - go get -d ./...
+  - go get github.com/erikstmartin/go-testdb
 
 script:
   - go test ./...
