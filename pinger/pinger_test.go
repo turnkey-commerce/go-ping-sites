@@ -18,7 +18,8 @@ import (
 func TestNewPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
-	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock, pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
+		notifier.SendEmailMock, notifier.SendSmsMock)
 
 	if len(p.Sites) != 3 {
 		t.Fatal("Incorrect number of sites returned in new pinger.")
@@ -45,7 +46,7 @@ func TestStartEmptySitesPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(db, pinger.GetEmptySitesMock, pinger.RequestURLMock,
-		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
 	results, err := pinger.GetLogContent()
@@ -64,7 +65,7 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
-		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 
 	results, err := pinger.GetLogContent()
@@ -83,7 +84,7 @@ func TestStartAndRestartPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
-		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(3 * time.Second)
 	p.Stop()
@@ -117,7 +118,7 @@ func TestInternetAccessError(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("")
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLBadInternetAccessMock,
-		pinger.DoExitMock, notifier.SendEmailMock, notifier.SendSmsMock)
+		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	time.Sleep(1 * time.Second)
 	p.Stop()

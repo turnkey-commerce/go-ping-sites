@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -29,7 +28,6 @@ type Pinger struct {
 	getSites   SitesGetter
 	wg         sync.WaitGroup
 	stopChan   chan struct{}
-	Exit       Exiter
 }
 
 // SitesGetter defines a function to get the sites from DB or mock.
@@ -37,9 +35,6 @@ type SitesGetter func(db *sql.DB) (database.Sites, error)
 
 // URLRequester defines a function to get thre response and error from http or mock.
 type URLRequester func(url string, timeout int) (string, int, time.Duration, error)
-
-// Exiter defines a functio to exit the program to allow exit test scenarios.
-type Exiter func(code int)
 
 // InternetAccessError defines errors where the Internet is inaccessible from the server.
 const InternetAccessError = "Internet Access Error"
@@ -49,7 +44,7 @@ const site2 = "http://www.google.com"
 
 // NewPinger returns a new Pinger object
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
-	exit Exiter, sendEmail notifier.EmailSender, sendSms notifier.SmsSender) *Pinger {
+	sendEmail notifier.EmailSender, sendSms notifier.SmsSender) *Pinger {
 	var sites database.Sites
 	var err error
 
@@ -65,7 +60,7 @@ func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
 	}
 
 	p := Pinger{Sites: sites, DB: db, RequestURL: requestURL, SendEmail: sendEmail,
-		SendSms: sendSms, Exit: exit, getSites: getSites}
+		SendSms: sendSms, getSites: getSites}
 	return &p
 }
 
@@ -86,7 +81,6 @@ func (p *Pinger) Start() {
 		var message = "No active sites set up for pinging in the database!"
 		fmt.Println(message)
 		log.Println(message)
-		p.Exit(1)
 	}
 }
 
@@ -247,11 +241,6 @@ func GetSites(db *sql.DB) (database.Sites, error) {
 		return nil, err
 	}
 	return sites, nil
-}
-
-// DoExit provides the implementation of the exit function.
-func DoExit(flag int) {
-	os.Exit(flag)
 }
 
 // isInternetAccessible checks two highly available sites to check whether the

@@ -78,6 +78,11 @@ func InitializeDB(dbPath string, seedFile string) (*sql.DB, error) {
 		}
 	}
 
+	err = upgradeDB(db)
+	if err != nil {
+		return nil, err
+	}
+
 	_, err = db.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		return nil, err
@@ -137,6 +142,31 @@ func seedInitialSites(db *sql.DB, seedFile string) error {
 			}
 		}
 	}
+	return nil
+}
+
+// upgradeStatements is used to upgrade the DB from the initial state that
+// was created in the createStatements.  This ensures that all DB's are at
+// the same level.
+const upgradeStatements = `
+	CREATE INDEX IF NOT EXISTS pings_timerequest_httpstatuscode
+	ON pings (TimeRequest, HttpStatusCode);
+`
+
+//upgradeDB applies any upgrades since the initial schema of the DB.
+func upgradeDB(db *sql.DB) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(upgradeStatements)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
 	return nil
 }
 

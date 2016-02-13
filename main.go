@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
 	"github.com/turnkey-commerce/go-ping-sites/config"
 	"github.com/turnkey-commerce/go-ping-sites/controllers"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
-	"github.com/apexskier/httpauth"
 )
 
 var (
@@ -53,8 +53,7 @@ func main() {
 	authorizer, err = httpauth.NewAuthorizer(authBackend, []byte(config.Settings.Website.CookieKey), "user", roles)
 	createDefaultUser()
 	// Start the Pinger
-	p := pinger.NewPinger(db, pinger.GetSites, pinger.RequestURL, pinger.DoExit,
-		notifier.SendEmail, notifier.SendSms)
+	p := pinger.NewPinger(db, pinger.GetSites, pinger.RequestURL, notifier.SendEmail, notifier.SendSms)
 	p.Start()
 	// Start the web server.
 	templates := controllers.PopulateTemplates("templates")

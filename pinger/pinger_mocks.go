@@ -68,6 +68,3 @@ func GetEmptySitesMock(db *sql.DB) (database.Sites, error) {
 func GetSitesErrorMock(db *sql.DB) (database.Sites, error) {
 	return nil, errors.New("Timeout accessing the SQL database.")
 }
-
-// DoExitMock does nothing in the tests.
-func DoExitMock(flag int) {}
