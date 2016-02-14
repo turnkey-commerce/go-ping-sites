@@ -35,10 +35,10 @@ func GetSitesMock(db *sql.DB) (database.Sites, error) {
 	var sites database.Sites
 	// Create the first site.
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
-		PingIntervalSeconds: 1, TimeoutSeconds: 1}
+		PingIntervalSeconds: 1, TimeoutSeconds: 1, IsSiteUp: true}
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.github.com",
-		PingIntervalSeconds: 2, TimeoutSeconds: 2}
+		PingIntervalSeconds: 2, TimeoutSeconds: 2, IsSiteUp: true}
 	// Create the third site as not active.
 	s3 := database.Site{Name: "Test 3", IsActive: false, URL: "http://www.test.com",
 		PingIntervalSeconds: 2, TimeoutSeconds: 2}

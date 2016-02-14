@@ -104,12 +104,13 @@ func (p *Pinger) UpdateSiteSettings() error {
 	defer mu.Unlock()
 	log.Println("Updating the site settings due to change...")
 	p.Stop()
+	// Defer the start in case of error with the get sites.
+	defer p.Start()
 	sites, err := p.getSites(p.DB)
 	if err != nil {
 		return err
 	}
 	p.Sites = sites
-	p.Start()
 	return nil
 }
 

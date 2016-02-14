@@ -74,7 +74,7 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 	}
 
 	if !strings.Contains(results, "Timeout accessing the SQL database.") {
-		t.Fatal("Failed to report empty sites.")
+		t.Fatal("Failed to report error getting the sites from the DB.")
 	}
 }
 
@@ -86,11 +86,11 @@ func TestStartAndRestartPinger(t *testing.T) {
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
+	// Sleep to allow running the tests before stopping.
 	time.Sleep(3 * time.Second)
 	p.Stop()
 	// Test Restart after stop
 	p.Start()
-	time.Sleep(1 * time.Second)
 	p.Stop()
 
 	results, err := pinger.GetLogContent()
@@ -107,8 +107,57 @@ func TestStartAndRestartPinger(t *testing.T) {
 	if !strings.Contains(results, "Error - HTTP Status Code") {
 		t.Fatal("Failed to report bad HTTP Status Code.")
 	}
+	if !strings.Contains(results, "Sending Notification of Site Contacts about Test 2: Site is Down...") {
+		t.Fatal("Failed to report site being down.")
+	}
 	if !strings.Contains(results, "Will notify status change for Test 2: Test 2 at http://www.github.com: Site is now up, response time was 300ms.") {
 		t.Fatal("Failed to report change in notification.")
+	}
+}
+
+// TestUpdateSiteSettings starts up the pinger and then updates the site settings.
+func TestUpdateSiteSettings(t *testing.T) {
+	// Fake db for testing.
+	db, _ := sql.Open("testdb", "")
+	pinger.CreatePingerLog("")
+	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
+		notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+	// Test UpdateSiteSettings
+	p.UpdateSiteSettings()
+	p.Stop()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+	if !strings.Contains(results, "Updating the site settings due to change...") {
+		t.Fatal("Failed to launch update site settings.")
+	}
+}
+
+// TestUpdateSiteSettingsError tests when UpdateSiteSettings returns a DB error.
+func TestUpdateSiteSettingsError(t *testing.T) {
+	// Fake db for testing.
+	db, _ := sql.Open("testdb", "")
+	pinger.CreatePingerLog("")
+	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
+		notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+	// Test UpdateSiteSettings with error due to database.
+	err := p.UpdateSiteSettings()
+	if err == nil {
+		t.Error("Failed to report error with getting site settings.")
+	}
+	p.Stop()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Timeout accessing the SQL database.") {
+		t.Fatal("Failed to report problem updating the sites.")
 	}
 }
 
