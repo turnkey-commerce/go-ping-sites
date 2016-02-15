@@ -2,7 +2,6 @@ package pinger_test
 
 import (
 	"database/sql"
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -177,12 +176,12 @@ func TestInternetAccessError(t *testing.T) {
 		t.Fatal("Failed to get log results.", err)
 	}
 
-	if !strings.Contains(results, "Unable to determine site status - Internet Access Error: connect: network is unreachable") {
+	if !strings.Contains(results, "Unable to determine site status - connect: network is unreachable") {
 		t.Fatal("Failed to report Internet Access Error: ", results)
 	}
 }
 
-// TestGetSites tests the retrieval of the list of sites.
+// TestGetSites tests the database retrieval of the list of sites.
 func TestGetSites(t *testing.T) {
 	var sites database.Sites
 
@@ -222,32 +221,6 @@ func TestGetSites(t *testing.T) {
 		sites[1].PingIntervalSeconds) || !reflect.DeepEqual(s2.TimeoutSeconds,
 		sites[1].TimeoutSeconds) || !reflect.DeepEqual(s2.SiteID, sites[1].SiteID) {
 		t.Fatal("First saved site not equal to input:\n", sites[1], s2)
-	}
-}
-
-// TestRequestURL tests the concrete implementation of the RequestURL code by requesting an actual site.
-func TestRequestURL(t *testing.T) {
-	content, responseCode, responseTime, err := pinger.RequestURL("http://www.example.com", 60)
-	if err != nil {
-		t.Error("Request URL retrieval error", err)
-	}
-	fmt.Println("Response time:", responseTime)
-
-	if !strings.Contains(content, "<title>Example Domain</title>") {
-		t.Error("Request URL response code error", responseCode)
-	}
-
-	if responseCode != 200 {
-		t.Error("Request URL response code error", responseCode)
-	}
-}
-
-// TestRequestURLError tests the error handling of the concrete implementation of the RequestURL code
-// by requesting a bogus site that will throw an error.
-func TestRequestURLError(t *testing.T) {
-	_, _, _, err := pinger.RequestURL("http://www.examplefoobar.com", 5)
-	if err == nil {
-		t.Error("Bad URL should throw error")
 	}
 }
 

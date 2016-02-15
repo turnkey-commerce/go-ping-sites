@@ -2,13 +2,11 @@ package pinger
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -16,7 +14,11 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/notifier"
 )
 
-var mu = &sync.Mutex{}
+var (
+	mu    = &sync.Mutex{}
+	site1 = "http://www.example.com"
+	site2 = "http://www.google.com"
+)
 
 // Pinger does the HTTP pinging of the sites that are retrieved from the DB.
 type Pinger struct {
@@ -37,10 +39,13 @@ type SitesGetter func(db *sql.DB) (database.Sites, error)
 type URLRequester func(url string, timeout int) (string, int, time.Duration, error)
 
 // InternetAccessError defines errors where the Internet is inaccessible from the server.
-const InternetAccessError = "Internet Access Error"
+type InternetAccessError struct {
+	msg string
+}
 
-const site1 = "http://www.example.com"
-const site2 = "http://www.google.com"
+func (e InternetAccessError) Error() string {
+	return e.msg
+}
 
 // NewPinger returns a new Pinger object
 func NewPinger(db *sql.DB, getSites SitesGetter, requestURL URLRequester,
@@ -143,7 +148,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			p := database.Ping{SiteID: s.SiteID, TimeRequest: time.Now()}
 			if err != nil {
 				// Check if the error is due to the Internet not being Accessible
-				if strings.Contains(err.Error(), InternetAccessError) {
+				if _, ok := err.(InternetAccessError); ok {
 					log.Println(s.Name, "Unable to determine site status -", err)
 					pause(s.PingIntervalSeconds)
 					continue
@@ -220,7 +225,7 @@ func RequestURL(url string, timeout int) (string, int, time.Duration, error) {
 		// If there's an error need to determine if it could be a local networking error
 		// by checking a couple of highly available sites.
 		if !isInternetAccessible(site1, site2) {
-			return "", 0, elapsedTime, errors.New(InternetAccessError + ": " + err.Error())
+			return "", 0, elapsedTime, InternetAccessError{msg: err.Error()}
 		}
 		return "", 0, elapsedTime, err
 	}

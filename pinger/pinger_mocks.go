@@ -27,7 +27,7 @@ func RequestURLMock(url string, timeout int) (string, int, time.Duration, error)
 // RequestURLBadInternetAccessMock mocks the condition where the outgoing Internet connection is down.
 func RequestURLBadInternetAccessMock(url string, timeout int) (string, int, time.Duration, error) {
 	var responseTime = 300 * time.Millisecond
-	return "", 0, responseTime, errors.New(InternetAccessError + ": connect: network is unreachable")
+	return "", 0, responseTime, InternetAccessError{msg: "connect: network is unreachable"}
 }
 
 // GetSitesMock is a mock of the SQL query to get the sites for pinging
