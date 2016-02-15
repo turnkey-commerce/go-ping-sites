@@ -57,7 +57,7 @@ func TestIsInternetAccessibleSecondSiteBad(t *testing.T) {
 // TestRequestURL tests the production implementation of the RequestURL code by
 // requesting an actual site.
 func TestRequestURL(t *testing.T) {
-	content, responseCode, responseTime, err := RequestURL("http://www.example.com", 60)
+	content, responseCode, _, err := RequestURL("http://www.example.com", 60)
 	if err != nil {
 		t.Error("Request URL retrieval error", err)
 	}
