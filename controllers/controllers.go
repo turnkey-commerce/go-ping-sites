@@ -8,9 +8,9 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/apexskier/httpauth"
 	"github.com/gorilla/mux"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
-	"github.com/apexskier/httpauth"
 )
 
 // CurrentUserGetter gets the current user from the http request
@@ -157,7 +157,8 @@ func authorizeRole(h http.Handler, authorizer httpauth.Authorizer, role string) 
 		if err := authorizer.AuthorizeRole(rw, req, role, true); err != nil {
 			// Redirect to about in  to avoid confusing the user if it's about privileges
 			// This also avoids a redirect loop if the main dashboard page is not authorized.
-			if strings.Contains(err.Error(), "user not logged in") {
+			if strings.Contains(err.Error(), "user not logged in") ||
+				strings.Contains(err.Error(), "new authorization session") {
 				http.Redirect(rw, req, "/login", http.StatusSeeOther)
 			} else {
 				http.Redirect(rw, req, "/about", http.StatusSeeOther)
