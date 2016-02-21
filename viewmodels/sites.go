@@ -88,7 +88,7 @@ func EditSiteViewModel(siteVM *SitesEditViewModel, allContacts database.Contacts
 	}
 
 	result.Site = *siteVM
-	result.AllContacts = PopulateAllContactsVMByID(allContacts, siteVM.SelectedContacts)
+	result.AllContacts = PopulateAllContactsVM(allContacts, siteVM.SelectedContacts)
 	return result
 }
 
@@ -107,31 +107,7 @@ func NewSiteViewModel(siteVM *SitesEditViewModel, allContacts database.Contacts,
 		Errors: errors,
 	}
 	result.Site = *siteVM
-	result.AllContacts = PopulateAllContactsVMByID(allContacts, siteVM.SelectedContacts)
-	return result
-}
-
-// SiteChangeContactsViewModel populates the items required by the
-// site_change_contacts.gohtml template
-func SiteChangeContactsViewModel(site *database.Site, allContacts database.Contacts, isAuthenticated bool,
-	user httpauth.UserData) SiteViewModel {
-	nav := NavViewModel{
-		Active:          "settings",
-		IsAuthenticated: isAuthenticated,
-		User:            user,
-	}
-
-	result := SiteViewModel{
-		Title: "Go Ping Sites - Settings - Change Contacts",
-		Nav:   nav,
-	}
-
-	siteVM := new(SitesEditViewModel)
-	MapSiteDBtoVM(site, siteVM)
-	result.Site = *siteVM
-	result.Contacts = site.Contacts
-	result.AllContacts = PopulateAllContactsVM(allContacts, site.Contacts)
-
+	result.AllContacts = PopulateAllContactsVM(allContacts, siteVM.SelectedContacts)
 	return result
 }
 
@@ -172,33 +148,6 @@ func MapSiteDBtoVM(site *database.Site, siteVM *SitesEditViewModel) {
 // PopulateAllContactsVM returns the view model for the contacts with the ones
 // assigned to the site having IsAssigned set to true.
 func PopulateAllContactsVM(allContacts database.Contacts,
-	siteContacts database.Contacts) []SitesAllContactsViewModel {
-	var allContactsVM = []SitesAllContactsViewModel{}
-	for _, contact := range allContacts {
-		hasMatch := false
-		for _, siteContact := range siteContacts {
-			if siteContact.ContactID == contact.ContactID {
-				hasMatch = true
-				break
-			}
-		}
-		contactVM := SitesAllContactsViewModel{
-			ContactID:    contact.ContactID,
-			Name:         contact.Name,
-			IsAssigned:   hasMatch,
-			EmailAddress: contact.EmailAddress,
-			EmailActive:  contact.EmailActive,
-			SmsNumber:    contact.SmsNumber,
-			SmsActive:    contact.SmsActive,
-		}
-		allContactsVM = append(allContactsVM, contactVM)
-	}
-	return allContactsVM
-}
-
-// PopulateAllContactsVMByID returns the view model for the contacts with the ones
-// assigned to the site having IsAssigned set to true.
-func PopulateAllContactsVMByID(allContacts database.Contacts,
 	siteContactIDs []int64) []SitesAllContactsViewModel {
 	var allContactsVM = []SitesAllContactsViewModel{}
 	for _, contact := range allContacts {
