@@ -3,19 +3,21 @@ package viewmodels
 import (
 	"strconv"
 
-	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
 // SitesEditViewModel holds the required information about the Sites to choose for editing.
 // The PingIntervalSeconds and TimeoutSeconds are strings to allow the form validation.
 type SitesEditViewModel struct {
-	SiteID              int64  `valid:"-"`
-	Name                string `valid:"ascii,required"`
-	IsActive            bool   `valid:"-"`
-	URL                 string `valid:"ascii,required"`
-	PingIntervalSeconds string `valid:"int,required"`
-	TimeoutSeconds      string `valid:"int,required"`
+	SiteID              int64   `valid:"-"`
+	Name                string  `valid:"ascii,required"`
+	IsActive            bool    `valid:"-"`
+	URL                 string  `valid:"ascii,required"`
+	PingIntervalSeconds string  `valid:"int,required"`
+	TimeoutSeconds      string  `valid:"int,required"`
+	SelectedContacts    []int64 `valid:"-"`
+	SiteContacts        []int64 `valid:"-"`
 }
 
 // SitesAllContactsViewModel has all of the sites available and carries whether
@@ -71,8 +73,8 @@ func GetSiteDetailsViewModel(site *database.Site, isAuthenticated bool,
 }
 
 // EditSiteViewModel populates the items required by the site_edit.gohtml view
-func EditSiteViewModel(siteVM *SitesEditViewModel, isAuthenticated bool,
-	user httpauth.UserData, errors map[string]string) SiteViewModel {
+func EditSiteViewModel(siteVM *SitesEditViewModel, allContacts database.Contacts,
+	isAuthenticated bool, user httpauth.UserData, errors map[string]string) SiteViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -86,12 +88,13 @@ func EditSiteViewModel(siteVM *SitesEditViewModel, isAuthenticated bool,
 	}
 
 	result.Site = *siteVM
+	result.AllContacts = PopulateAllContactsVMByID(allContacts, siteVM.SelectedContacts)
 	return result
 }
 
 // NewSiteViewModel populates the items required by the site_new.gohtml view
-func NewSiteViewModel(siteVM *SitesEditViewModel, isAuthenticated bool,
-	user httpauth.UserData, errors map[string]string) SiteViewModel {
+func NewSiteViewModel(siteVM *SitesEditViewModel, allContacts database.Contacts,
+	isAuthenticated bool, user httpauth.UserData, errors map[string]string) SiteViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -104,6 +107,7 @@ func NewSiteViewModel(siteVM *SitesEditViewModel, isAuthenticated bool,
 		Errors: errors,
 	}
 	result.Site = *siteVM
+	result.AllContacts = PopulateAllContactsVMByID(allContacts, siteVM.SelectedContacts)
 	return result
 }
 
@@ -174,6 +178,33 @@ func PopulateAllContactsVM(allContacts database.Contacts,
 		hasMatch := false
 		for _, siteContact := range siteContacts {
 			if siteContact.ContactID == contact.ContactID {
+				hasMatch = true
+				break
+			}
+		}
+		contactVM := SitesAllContactsViewModel{
+			ContactID:    contact.ContactID,
+			Name:         contact.Name,
+			IsAssigned:   hasMatch,
+			EmailAddress: contact.EmailAddress,
+			EmailActive:  contact.EmailActive,
+			SmsNumber:    contact.SmsNumber,
+			SmsActive:    contact.SmsActive,
+		}
+		allContactsVM = append(allContactsVM, contactVM)
+	}
+	return allContactsVM
+}
+
+// PopulateAllContactsVMByID returns the view model for the contacts with the ones
+// assigned to the site having IsAssigned set to true.
+func PopulateAllContactsVMByID(allContacts database.Contacts,
+	siteContactIDs []int64) []SitesAllContactsViewModel {
+	var allContactsVM = []SitesAllContactsViewModel{}
+	for _, contact := range allContacts {
+		hasMatch := false
+		for _, siteContactID := range siteContactIDs {
+			if siteContactID == contact.ContactID {
 				hasMatch = true
 				break
 			}

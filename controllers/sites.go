@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
-	"github.com/apexskier/httpauth"
 )
 
 type sitesController struct {
@@ -60,11 +60,25 @@ func (controller *sitesController) editGet(rw http.ResponseWriter, req *http.Req
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	// Get all of the contacts to display in the table.
+	var contacts database.Contacts
+	err = contacts.GetContacts(controller.DB)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	// Also get the site contacts to display in a table.
+	err = site.GetSiteContacts(controller.DB, siteID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	siteEdit := new(viewmodels.SitesEditViewModel)
 	viewmodels.MapSiteDBtoVM(site, siteEdit)
 
-	vm := viewmodels.EditSiteViewModel(siteEdit, isAuthenticated, user, make(map[string]string))
+	siteEdit.SelectedContacts = []int64{}
+
+	vm := viewmodels.EditSiteViewModel(siteEdit, contacts, isAuthenticated, user, make(map[string]string))
 	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
 
@@ -84,7 +98,12 @@ func (controller *sitesController) editPost(rw http.ResponseWriter, req *http.Re
 	valErrors := validateSiteForm(formSite)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.EditSiteViewModel(formSite, isAuthenticated, user, valErrors)
+		var contacts database.Contacts
+		err = contacts.GetContacts(controller.DB)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		vm := viewmodels.EditSiteViewModel(formSite, contacts, isAuthenticated, user, valErrors)
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
 
@@ -118,10 +137,17 @@ func (controller *sitesController) newGet(rw http.ResponseWriter, req *http.Requ
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	siteNew := new(viewmodels.SitesEditViewModel)
 	siteNew.IsActive = true
+	// Get all of the contacts to display in the table.
+	var contacts database.Contacts
+	err := contacts.GetContacts(controller.DB)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 	// These are strings in the ViewModel.
 	siteNew.PingIntervalSeconds = "30"
 	siteNew.TimeoutSeconds = "15"
-	vm := viewmodels.NewSiteViewModel(siteNew, isAuthenticated, user, make(map[string]string))
+	siteNew.SelectedContacts = []int64{}
+	vm := viewmodels.NewSiteViewModel(siteNew, contacts, isAuthenticated, user, make(map[string]string))
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
 
@@ -141,7 +167,12 @@ func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Req
 	valErrors := validateSiteForm(formSite)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.NewSiteViewModel(formSite, isAuthenticated, user, valErrors)
+		var contacts database.Contacts
+		err := contacts.GetContacts(controller.DB)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		vm := viewmodels.NewSiteViewModel(formSite, contacts, isAuthenticated, user, valErrors)
 		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
 
@@ -150,6 +181,14 @@ func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Req
 	err = site.CreateSite(controller.DB)
 	if err != nil {
 		return http.StatusInternalServerError, err
+	}
+
+	//Add any selected contacts
+	for _, contactSelID := range formSite.SelectedContacts {
+		err = site.AddContactToSite(controller.DB, contactSelID)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
 	}
 
 	// Refresh the pinger with the changes.
@@ -182,6 +221,9 @@ func (controller *sitesController) editContactsGet(rw http.ResponseWriter, req *
 	// Get all of the contacts to display in the table.
 	var contacts database.Contacts
 	err = contacts.GetContacts(controller.DB)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
 	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 	vm := viewmodels.SiteChangeContactsViewModel(site, contacts, isAuthenticated, user)

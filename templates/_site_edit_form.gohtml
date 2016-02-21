@@ -35,3 +35,34 @@
     <div class="error">{{ . }}</div>
   {{ end }}
 </div>
+
+<div class="form-group">
+  <label for="assignedContacts">Assigned Contacts</label>
+  <div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th class="col-md-1 text-center">Assigned?</th>
+        <th class="col-md-2">Name</th>
+        <th class="col-md-3">Email</th>
+        <th class="col-md-1 text-center">Email<br />Active?</th>
+        <th class="col-md-2">Text Number</th>
+        <th class="col-md-1 text-center">Text<br />Active?</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .AllContacts}}
+        {{if .IsAssigned}}<input type="hidden" name="siteContacts" value="{{.ContactID}}"> {{end}}
+        <tr>
+          <td class="text-center"><input type="checkbox" name="selectedContacts" id="selectedContacts" value="{{.ContactID}}" {{if .IsAssigned}}checked{{end}}></td>
+          <td>{{.Name}}</td>
+          <td>{{.EmailAddress}}</td>
+          <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
+          <td>{{.SmsNumber}}</td>
+          <td class="text-center">{{if .SmsActive}}Y{{else}}N{{end}}</td>
+        </tr>
+      {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
