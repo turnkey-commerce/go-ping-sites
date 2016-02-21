@@ -2,9 +2,7 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 	"text/template"
-	"unicode/utf8"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
@@ -127,12 +125,7 @@ func validateUserForm(user *viewmodels.UsersEditViewModel, allowMissingPassword 
 	_, err := govalidator.ValidateStruct(user)
 	valErrors = govalidator.ErrorsByField(err)
 
-	if !allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(user.Password)) < 6 {
-		valErrors["Password"] = "Password must be at least 6 characters in length"
-	} else if allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(user.Password)) < 6 &&
-		utf8.RuneCountInString(strings.TrimSpace(user.Password)) > 0 {
-		valErrors["Password"] = "Password must be at least 6 characters in length"
-	}
+	validatePassword(allowMissingPassword, user.Password, valErrors)
 
 	return valErrors
 }

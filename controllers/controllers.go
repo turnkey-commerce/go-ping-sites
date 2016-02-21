@@ -37,6 +37,14 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	rc.DB = db
 	router.Handle("/reports", authorizeRole(appHandler(rc.get), authorizer, "user"))
 
+	pc := new(profileController)
+	pc.template = templates.Lookup("profile.gohtml")
+	pc.authorizer = authorizer
+	pc.authBackend = authBackend
+	pc.DB = db
+	router.Handle("/profile", authorizeRole(appHandler(pc.get), authorizer, "user")).Methods("GET")
+	router.Handle("/profile", authorizeRole(appHandler(pc.post), authorizer, "user")).Methods("POST")
+
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.gohtml")
 	ac.authorizer = authorizer

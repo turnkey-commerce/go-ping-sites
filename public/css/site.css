@@ -21,7 +21,9 @@
 }
 
 .navbar-custom .navbar-brand {
-    color:#eeeeee;
+    color:#e6f2ff;
+    font-weight: bold;
+    font-size: x-large;
 }
 .navbar-custom .navbar-toggle {
     background-color:#eeeeee;

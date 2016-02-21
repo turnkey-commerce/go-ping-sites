@@ -13,7 +13,7 @@ type SitesEditViewModel struct {
 	SiteID              int64   `valid:"-"`
 	Name                string  `valid:"ascii,required"`
 	IsActive            bool    `valid:"-"`
-	URL                 string  `valid:"ascii,required"`
+	URL                 string  `valid:"url,required"`
 	PingIntervalSeconds string  `valid:"int,required"`
 	TimeoutSeconds      string  `valid:"int,required"`
 	SelectedContacts    []int64 `valid:"-"`

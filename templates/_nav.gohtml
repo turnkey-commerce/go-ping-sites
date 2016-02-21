@@ -14,12 +14,15 @@
       <ul class="nav navbar-nav">
         <li {{if eq .Active "home"}}class="active"{{end}}><a href="/">Dashboard</a></li>
         <li {{if eq .Active "reports"}}class="active"{{end}}><a href="/reports">Reports</a></li>
-        <li {{if eq .Active "settings"}}class="active"{{end}}><a href="/settings">Settings</a></li>
+        {{if eq .User.Role "admin"}}
+          <li {{if eq .Active "settings"}}class="active"{{end}}><a href="/settings">Settings</a></li>
+        {{end}}
+        <li {{if eq .Active "profile"}}class="active"{{end}}><a href="/profile">Profile</a></li>
         <li {{if eq .Active "about"}}class="active"{{end}}><a href="/about">About</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         {{if .IsAuthenticated}}
-          <p class="navbar-text">Logged in as {{.User.Username}}</p>
+          <p class="navbar-text"><i>Logged in as {{.User.Username}}</i></p>
           <li><a href="/logout">Logout</a></li>
         {{else}}
           <li><a href="/login">Login</a></li>
