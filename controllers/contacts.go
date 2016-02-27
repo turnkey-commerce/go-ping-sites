@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
-	"github.com/apexskier/httpauth"
 )
 
 type contactsController struct {
@@ -150,6 +150,8 @@ func validateContactForm(contact *viewmodels.ContactsEditViewModel) (valErrors m
 
 	_, err := govalidator.ValidateStruct(contact)
 	valErrors = govalidator.ErrorsByField(err)
+
+	validateContact(contact, valErrors)
 
 	return valErrors
 }

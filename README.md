@@ -1,7 +1,7 @@
-# GoPingSites 
+# GoPingSites
 [![Build Status](https://travis-ci.org/turnkey-commerce/go-ping-sites.svg?branch=master)](https://travis-ci.org/turnkey-commerce/go-ping-sites)
 
-GoPingSites is intended to be a tool to monitor multiple websites, written in Go.
+GoPingSites is a tool to monitor multiple websites, written in Go.
 ## Steps to setup locally
 1. Use the make distribute command to build the project and will copy the necessary runtime files to $GOPATH/dist/go-ping-sites.
 ```
@@ -38,3 +38,5 @@ New Database, creating Schema...
 Seeding initial sites with db-seed.toml ...
 ```
 It will recreate a new one once you rerun go-ping-sites, based on the settings in db-seed.toml.
+
+For more information on how to use the site please refer to the [User Guide](https://github.com/turnkey-commerce/go-ping-sites/wiki/User-Guide).

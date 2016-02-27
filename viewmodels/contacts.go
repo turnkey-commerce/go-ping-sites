@@ -1,16 +1,16 @@
 package viewmodels
 
 import (
-	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
 // ContactsEditViewModel holds the required information about the Contacts to choose for editing.
 type ContactsEditViewModel struct {
 	ContactID    int64  `valid:"-"`
 	Name         string `valid:"ascii,required"`
-	EmailAddress string `valid:"email,required"`
-	SmsNumber    string `valid:"alphanum,required"`
+	EmailAddress string `valid:"email"`
+	SmsNumber    string `valid:"-"`
 	SmsActive    bool   `valid:"-"`
 	EmailActive  bool   `valid:"-"`
 }
