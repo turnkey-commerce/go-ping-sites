@@ -225,8 +225,7 @@ func TestCreateUniqueSite(t *testing.T) {
 	}
 }
 
-// TestCreateSiteAndContacts tests creating a site and adding a new contacts
-// in the database and then retrieving it.
+// TestUpdateSiteStatus tests updating the up/down status of the site.
 func TestUpdateSiteStatus(t *testing.T) {
 	db, err := database.InitializeTestDB("")
 	if err != nil {
@@ -264,6 +263,13 @@ func TestUpdateSiteStatus(t *testing.T) {
 		t.Fatal("Failed to update site status:", err)
 	}
 
+	// Update the first ping time of the site.
+	firstPingTime := time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC)
+	err = s.UpdateSiteFirstPing(db, firstPingTime)
+	if err != nil {
+		t.Fatal("Failed to update first ping time:", err)
+	}
+
 	err = updatedSite.GetSite(db, s.SiteID)
 	if err != nil {
 		t.Fatal("Failed to retrieve updated site:", err)
@@ -272,6 +278,11 @@ func TestUpdateSiteStatus(t *testing.T) {
 	if updatedSite.IsSiteUp != true {
 		t.Errorf("Site status should be up.")
 	}
+
+	if updatedSite.FirstPing != firstPingTime {
+		t.Errorf("Site first ping time %s does not match input %s.", updatedSite.FirstPing, firstPingTime)
+	}
+
 }
 
 // TestCreateAndGetUnattachedContacts tests the creation of contacts not associated with a site.

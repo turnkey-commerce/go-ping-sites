@@ -18,6 +18,7 @@ type Site struct {
 	IsSiteUp            bool
 	LastStatusChange    time.Time
 	LastPing            time.Time
+	FirstPing           time.Time
 	Contacts            []Contact
 	Pings               []Ping
 }
@@ -65,8 +66,9 @@ func (s *Site) CreateSite(db *sql.DB) error {
 	// Set site to initially be up, as is the assumption when the pinging first starts.
 	s.IsSiteUp = true
 	result, err := db.Exec(
-		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds,
+			IsSiteUp, LastStatusChange, LastPing, FirstPing)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
@@ -75,6 +77,7 @@ func (s *Site) CreateSite(db *sql.DB) error {
 		s.IsSiteUp,
 		s.LastStatusChange,
 		s.LastPing,
+		s.FirstPing,
 	)
 	if err != nil {
 		return err
@@ -123,24 +126,42 @@ func (s *Site) UpdateSiteStatus(db *sql.DB, isSiteUp bool) error {
 	return nil
 }
 
+//UpdateSiteFirstPing updates the up/down status and last status change of a Site.
+func (s *Site) UpdateSiteFirstPing(db *sql.DB, firstPingTime time.Time) error {
+	_, err := db.Exec(
+		`UPDATE Sites SET FirstPing = $1
+			WHERE SiteId = $2`,
+		firstPingTime,
+		s.SiteID,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // GetSite gets the site details for a given site.
 func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites WHERE SiteID = $1`, siteID).
+		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing FROM Sites
+		WHERE SiteID = $1`, siteID).
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds,
-		&s.IsSiteUp, &s.LastStatusChange, &s.LastPing)
+		&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-const getActiveSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-	TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites WHERE IsActive = $1
+const getActiveSitesQueryString string = `SELECT SiteID, Name, IsActive, URL,
+	PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing,
+	FirstPing FROM Sites WHERE IsActive = $1
 	ORDER BY Name`
 
-const getAllSitesQueryString string = `SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-	TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing FROM Sites
+const getAllSitesQueryString string = `SELECT SiteID, Name, IsActive, URL,
+  PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing,
+	FirstPing FROM Sites
 	ORDER BY Name`
 
 // GetSites gets all of the sites without contacts.
@@ -169,14 +190,16 @@ func (s *Sites) GetSites(db *sql.DB, activeOnly bool, withContacts bool) error {
 		var IsSiteUp bool
 		var LastStatusChange time.Time
 		var LastPing time.Time
+		var FirstPing time.Time
 		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
-			&IsSiteUp, &LastStatusChange, &LastPing)
+			&IsSiteUp, &LastStatusChange, &LastPing, &FirstPing)
 		if err != nil {
 			return err
 		}
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
-			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing}
+			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing,
+			FirstPing: FirstPing}
 		if withContacts {
 			err = site.GetSiteContacts(db, site.SiteID)
 			if err != nil {

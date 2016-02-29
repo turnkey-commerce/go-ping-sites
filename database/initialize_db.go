@@ -69,13 +69,6 @@ func InitializeDB(dbPath string, seedFile string) (*sql.DB, error) {
 		if err != nil {
 			return nil, err
 		}
-		// If a seed config file exists then use it to seed the initial DB.
-		if _, err := os.Stat(seedFile); err == nil {
-			err = seedInitialSites(db, seedFile)
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	err = upgradeDB(db)
@@ -86,6 +79,17 @@ func InitializeDB(dbPath string, seedFile string) (*sql.DB, error) {
 	_, err = db.Exec("PRAGMA foreign_keys = ON;")
 	if err != nil {
 		return nil, err
+	}
+
+	// Do the seeding, if applicable, after the upgrade to avoid schema issues.
+	if newDB {
+		// If a seed config file exists then use it to seed the initial DB.
+		if _, err := os.Stat(seedFile); err == nil {
+			err = seedInitialSites(db, seedFile)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return db, nil
@@ -146,15 +150,30 @@ func seedInitialSites(db *sql.DB, seedFile string) error {
 }
 
 // upgradeStatements is used to upgrade the DB from the initial state that
-// was created in the createStatements.  This ensures that all DB's are at
-// the same level.
+// was created in the createStatements. If new statements are added then then
+// databaseVersion constant should be incremented below by 1.
 const upgradeStatements = `
 	CREATE INDEX IF NOT EXISTS pings_timerequest_httpstatuscode
 	ON pings (TimeRequest, HttpStatusCode);
+	ALTER TABLE "Sites" ADD COLUMN "FirstPing" TIMESTAMP;
 `
+
+// If new upgrade statements are added then this must be incremented by 1.
+const databaseVersion int32 = 2
 
 //upgradeDB applies any upgrades since the initial schema of the DB.
 func upgradeDB(db *sql.DB) error {
+	// first check if upgrade is necessary
+	var currentVersion int32
+	err := db.QueryRow("PRAGMA user_version;").Scan(&currentVersion)
+	if err != nil {
+		return err
+	}
+
+	if currentVersion == databaseVersion {
+		return nil
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -167,6 +186,12 @@ func upgradeDB(db *sql.DB) error {
 	}
 
 	tx.Commit()
+	_, err = db.Exec(fmt.Sprintf("PRAGMA user_version = %d", databaseVersion))
+	if err != nil {
+		return err
+	}
+
+	log.Println("Upgraded database to version ", databaseVersion)
 	return nil
 }
 
