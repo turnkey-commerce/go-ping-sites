@@ -156,6 +156,7 @@ const upgradeStatements = `
 	CREATE INDEX IF NOT EXISTS pings_timerequest_httpstatuscode
 	ON pings (TimeRequest, HttpStatusCode);
 	ALTER TABLE "Sites" ADD COLUMN "FirstPing" TIMESTAMP;
+	UPDATE Sites SET FirstPing = '0001-01-01 00:00:00+00:00' WHERE FirstPing IS NULL;
 `
 
 // If new upgrade statements are added then this must be incremented by 1.
