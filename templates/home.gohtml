@@ -28,13 +28,14 @@
               <tr class="{{.CSSClass}}">
                 <td>{{.Name}}</td>
                 <td class="text-{{.CSSClass}}">{{.Status}}</td>
-                <td>{{.HowLong}}</td>
+                <td>{{.HowLong}}{{if .HasNoStatusChanges}}<b>*</b>{{end}}</td>
                 <td>{{.LastChecked}}</td>
               </tr>
             {{end}}
           </tbody>
         </table>
-        <i><div id="divLocal" style="font-style: italic;"></i>
+        {{if .HasSiteWithNoStatusChanges}}<p><b>*</b>Since GoPingSites first pinged this site</p>{{end}}
+        <p><i><div id="divLocal" style="font-style: italic;"></i></p>
       </div>
     </div>
   </div>

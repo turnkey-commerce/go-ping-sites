@@ -186,11 +186,12 @@ func upgradeDB(db *sql.DB) error {
 		return err
 	}
 
-	tx.Commit()
 	_, err = db.Exec(fmt.Sprintf("PRAGMA user_version = %d", databaseVersion))
 	if err != nil {
+		tx.Rollback()
 		return err
 	}
+	tx.Commit()
 
 	log.Println("Upgraded database to version ", databaseVersion)
 	return nil

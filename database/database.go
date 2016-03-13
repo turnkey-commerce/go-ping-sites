@@ -383,6 +383,27 @@ func (p Ping) CreatePing(db *sql.DB) error {
 	return nil
 }
 
+// GetFirstPing gets the earliest ping for a given site based on the recorded pings.
+func (s *Site) GetFirstPing(db *sql.DB) (time.Time, error) {
+	var firstPing *time.Time
+	// The query is done with the aggregate MIN in the where clause because it doesn't
+	//  work in the select clause with the timestamp type.
+	err := db.QueryRow(`SELECT TimeRequest
+		FROM Pings
+		WHERE SiteID = $1 AND TimeRequest = (Select MIN(TimeRequest) FROM Pings
+		WHERE SiteID = $1)`, s.SiteID).Scan(&firstPing)
+	if err != nil {
+		emptyTime := time.Time{}
+		if err == sql.ErrNoRows {
+			// This case isn't considered an error if it's an empty Ping table for this site.
+			return emptyTime, nil
+		}
+		return emptyTime, err
+	}
+
+	return *firstPing, nil
+}
+
 // GetSitePings gets the pings for a given site for a given time interval.
 func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
 	rows, err := db.Query(`SELECT SiteID, TimeRequest, Duration, HttpStatusCode, TimedOut

@@ -29,7 +29,7 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	hc.template = templates.Lookup("home.gohtml")
 	hc.authorizer = authorizer
 	hc.DB = db
-	router.Handle("/", authorizeRole(http.HandlerFunc(hc.get), authorizer, "user"))
+	router.Handle("/", authorizeRole(appHandler(hc.get), authorizer, "user"))
 
 	rc := new(reportsController)
 	rc.template = templates.Lookup("reports.gohtml")

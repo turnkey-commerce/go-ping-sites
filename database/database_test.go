@@ -33,6 +33,17 @@ func TestCreateDb(t *testing.T) {
 	if len(sites) != 2 {
 		t.Error("There should be two active sites loaded.")
 	}
+
+	// Verify that GetFirstPing doesn't throw an error with empty Pings
+	firstPing, err := sites[0].GetFirstPing(db)
+	if err != nil {
+		t.Error("GetFirstPing shouldn't throw error if empty pings: ", err)
+	}
+
+	zeroTime := time.Time{}
+	if firstPing != zeroTime {
+		t.Error("GetFirstPing should return a zero time for an empty ping table, but returned: ", err)
+	}
 }
 
 // TestCreateSiteAndContacts tests creating a site and adding new contacts
@@ -391,6 +402,15 @@ func TestCreatePings(t *testing.T) {
 
 	if saved.LastPing != p2.TimeRequest {
 		t.Error("Last Ping on site does not match input:\n", saved.LastPing, p1.TimeRequest)
+	}
+
+	//Get the first ping for the site.
+	firstping, err := s.GetFirstPing(db)
+	if err != nil {
+		t.Fatal("Failed to retrieve first ping for the site:", err)
+	}
+	if firstping != p2.TimeRequest {
+		t.Error("First Ping on site does not match input:\n", firstping, p2.TimeRequest)
 	}
 
 	// Create a third ping with conflicting times should error.
