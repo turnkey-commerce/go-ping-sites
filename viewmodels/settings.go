@@ -1,15 +1,15 @@
 package viewmodels
 
 import (
-	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
 // SiteEditViewModel holds the required information about the site to choose for editing.
 type SiteEditViewModel struct {
 	SiteID              int64
 	Name                string
-	IsActive            string
+	IsActive            bool
 	URL                 string
 	PingIntervalSeconds int
 	TimeoutSeconds      int
@@ -45,11 +45,7 @@ func GetSettingsViewModel(sites database.Sites, isAuthenticated bool, user httpa
 		siteVM.PingIntervalSeconds = site.PingIntervalSeconds
 		siteVM.TimeoutSeconds = site.TimeoutSeconds
 		siteVM.NumContacts = len(site.Contacts)
-		if site.IsActive {
-			siteVM.IsActive = "Y"
-		} else {
-			siteVM.IsActive = "N"
-		}
+		siteVM.IsActive = site.IsActive
 		result.Sites = append(result.Sites, *siteVM)
 	}
 

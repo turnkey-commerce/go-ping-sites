@@ -201,6 +201,22 @@ func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer Curren
 	return isAuthenticated, user
 }
 
+// displayBool allows for colored display of Y/N in the templates.
+func displayBool(input bool) string {
+	if input {
+		return "<span class=\"text-success\">Y<span>"
+	}
+	return "<span class=\"text-danger\">N<span>"
+}
+
+// displayActiveRow allows for light display of inactive rows in tables.
+func displayActiveClass(input bool) string {
+	if input {
+		return "class=\"text-active\""
+	}
+	return "class=\"text-inactive\""
+}
+
 // PopulateTemplates loads and parses all of the templates in the templates directory
 func PopulateTemplates(templatePath string) *template.Template {
 	result := template.New("templates")
@@ -218,6 +234,11 @@ func PopulateTemplates(templatePath string) *template.Template {
 		}
 	}
 
-	result.ParseFiles(*templatePaths...)
+	var funcMap = template.FuncMap{
+		"displayBool":        displayBool,
+		"displayActiveClass": displayActiveClass,
+	}
+
+	result.Funcs(funcMap).ParseFiles(*templatePaths...)
 	return result
 }

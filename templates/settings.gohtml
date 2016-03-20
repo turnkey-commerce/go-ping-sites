@@ -27,10 +27,10 @@
           </thead>
           <tbody>
             {{range .Sites}}
-              <tr>
+              <tr {{.IsActive | displayActiveClass}}>
                 <td><a href="/settings/sites/{{.SiteID}}" title="Site Details"><span class="glyphicon glyphicon-info-sign"></span></a>&nbsp;&nbsp;<a href="/settings/sites/{{.SiteID}}/edit" title="Edit Site"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
-                <td class="text-center">{{.IsActive}}</td>
+                <td class="text-center">{{.IsActive | displayBool}}</td>
                 <td><a href="{{.URL}}" target="_blank">{{.URL}}<a/></td>
                 <td class="text-center">{{.PingIntervalSeconds}}</td>
                 <td class="text-center">{{.TimeoutSeconds}}</td>

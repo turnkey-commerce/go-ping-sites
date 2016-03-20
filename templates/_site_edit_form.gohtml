@@ -53,13 +53,13 @@
     <tbody>
       {{range .AllContacts}}
         {{if .IsAssigned}}<input type="hidden" name="siteContacts" value="{{.ContactID}}"> {{end}}
-        <tr>
+        <tr {{.IsAssigned | displayActiveClass}}>
           <td class="text-center"><input type="checkbox" name="selectedContacts" id="selectedContacts" value="{{.ContactID}}" {{if .IsAssigned}}checked{{end}}></td>
           <td>{{.Name}}</td>
           <td>{{.EmailAddress}}</td>
-          <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
+          <td class="text-center">{{.EmailActive | displayBool}}</td>
           <td>{{.SmsNumber}}</td>
-          <td class="text-center">{{if .SmsActive}}Y{{else}}N{{end}}</td>
+          <td class="text-center">{{.SmsActive | displayBool}}</td>
         </tr>
       {{end}}
     </tbody>

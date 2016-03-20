@@ -28,9 +28,9 @@
                 <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
                 <td>{{.EmailAddress}}</td>
-                <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
+                <td class="text-center">{{.EmailActive | displayBool}}</td>
                 <td>{{.SmsNumber}}</td>
-                <td class="text-center">{{if .SmsActive}}Y{{else}}N{{end}}</td>
+                <td class="text-center">{{.SmsActive | displayBool}}</td>
               </tr>
             {{end}}
           </tbody>

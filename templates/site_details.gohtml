@@ -18,7 +18,7 @@
           </div>
           <div class="row">
             <div class="col-sm-2"><b>Active?</b></div>
-            <div class="col-sm-5">{{if .Site.IsActive}}Y{{else}}N{{end}}</div>
+            <div class="col-sm-5">{{.Site.IsActive | displayBool}}</div>
           </div>
           <div class="row">
             <div class="col-sm-2"><b>Ping Rate (secs)</b></div>
@@ -48,9 +48,9 @@
                 <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a></td>
                 <td>{{.Name}}</td>
                 <td>{{.EmailAddress}}</td>
-                <td class="text-center">{{if .EmailActive}}Y{{else}}N{{end}}</td>
+                <td class="text-center">{{.EmailActive | displayBool}}</td>
                 <td>{{.SmsNumber}}</td>
-                <td class="text-center">{{if .SmsActive}}Y{{else}}N{{end}}</td>
+                <td class="text-center">{{.SmsActive | displayBool}}</td>
               </tr>
             {{end}}
           </tbody>
