@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/turnkey-commerce/go-ping-sites",
-	"GoVersion": "go1.5",
+	"GoVersion": "go1.6",
 	"Packages": [
 		"./..."
 	],
@@ -28,24 +28,12 @@
 			"Rev": "e91c57bcc918671f042bb1722841946bd376dcde"
 		},
 		{
-			"ImportPath": "github.com/golang/snappy",
-			"Rev": "1963d058044b19e16595f80d5050fa54e2070438"
-		},
-		{
-			"ImportPath": "github.com/gorilla/context",
-			"Rev": "1c83b3eabd45b6d76072b66b746c20815fb2872d"
-		},
-		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
 		},
 		{
 			"ImportPath": "github.com/gorilla/schema",
 			"Rev": "14c555599c2a4f493c1e13fd1ea6fdf721739028"
-		},
-		{
-			"ImportPath": "github.com/gorilla/securecookie",
-			"Rev": "e95799a481bbcc3d01c2ad5178524cb8bec9f370"
 		},
 		{
 			"ImportPath": "github.com/gorilla/sessions",
@@ -69,13 +57,14 @@
 			"Rev": "1f22c0103821b9390939b6776727195525381532"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/blowfish",
-			"Rev": "1f22c0103821b9390939b6776727195525381532"
-		},
-		{
 			"ImportPath": "gopkg.in/mgo.v2",
 			"Comment": "r2015.12.06",
 			"Rev": "e30de8ac9ae3b30df7065f766c71f88bba7d4e49"
+		},
+		{
+			"ImportPath": "gopkg.in/natefinch/lumberjack.v2",
+			"Comment": "v1.0-21-g514cbda",
+			"Rev": "514cbda263a734ae8caac038dadf05f8f3f9f738"
 		}
 	]
 }

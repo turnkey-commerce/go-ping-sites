@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 var logFile = "pinger.log"
@@ -19,15 +21,29 @@ func GetLogContent() (string, error) {
 }
 
 // CreatePingerLog creates the log file used by Pinger and Notifier
-func CreatePingerLog(logFilePath string) error {
+func CreatePingerLog(logFilePath string, reinitializeLog bool) error {
 	if logFilePath != "" {
 		logFile = logFilePath
 	}
-	pingerLog, err := os.Create(logFile)
-	if err != nil {
-		log.Println("Error creating pinger log", err)
-		return err
+	mustCreate := false
+	if reinitializeLog {
+		mustCreate = true
+	} else {
+		if _, err := os.Stat(logFile); os.IsNotExist(err) {
+			mustCreate = true
+		}
 	}
-	log.SetOutput(pingerLog)
+	if mustCreate {
+		_, err := os.Create(logFile)
+		if err != nil {
+			return err
+		}
+	}
+	log.SetOutput(&lumberjack.Logger{
+		Filename:   logFile,
+		MaxSize:    200, // MB
+		MaxBackups: 3,
+		MaxAge:     28, //days
+	})
 	return nil
 }

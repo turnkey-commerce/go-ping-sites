@@ -22,7 +22,7 @@ func TestNewNotifier(t *testing.T) {
 
 // TestNotify tests calling the Notifications successfully.
 func TestNotify(t *testing.T) {
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	site := getTestSite()
 	n := notifier.NewNotifier(site, "Site 1 responding OK", "Site 1 Up", notifier.SendEmailMock, notifier.SendSmsMock)
 	n.Notify()

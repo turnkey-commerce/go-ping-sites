@@ -29,7 +29,10 @@ func main() {
 	var err error
 	// Setup the main db.
 	var db *sql.DB
-	pinger.CreatePingerLog("")
+	err = pinger.CreatePingerLog("", false)
+	if err != nil {
+		fatalError("Failed to initialize logging:", err)
+	}
 	startLog("Starting go-ping-sites version " + version + ", website on port " +
 		config.Settings.Website.HTTPPort + "...")
 	db, err = database.InitializeDB("go-ping-sites.db", "db-seed.toml")

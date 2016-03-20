@@ -16,7 +16,7 @@ import (
 // TestNewPinger tests building the pinger object.
 func TestNewPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 
@@ -43,7 +43,7 @@ func TestNewPinger(t *testing.T) {
 // TestStartEmptySitesPinger verifies that proper reporting is done for the case of no active sites.
 func TestStartEmptySitesPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetEmptySitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -62,7 +62,7 @@ func TestStartEmptySitesPinger(t *testing.T) {
 // an error.
 func TestStartPingerErrorWithGetSites(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -81,7 +81,7 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 func TestStartAndRestartPinger(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -118,7 +118,7 @@ func TestStartAndRestartPinger(t *testing.T) {
 func TestUpdateSiteSettings(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -139,7 +139,7 @@ func TestUpdateSiteSettings(t *testing.T) {
 func TestUpdateSiteSettingsError(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -164,7 +164,7 @@ func TestUpdateSiteSettingsError(t *testing.T) {
 func TestInternetAccessError(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
-	pinger.CreatePingerLog("")
+	pinger.CreatePingerLog("", true)
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLBadInternetAccessMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -226,7 +226,7 @@ func TestGetSites(t *testing.T) {
 
 func TestCreatePingerLogError(t *testing.T) {
 	var logFile = "/bogusFilePath/pinger.log"
-	err := pinger.CreatePingerLog(logFile)
+	err := pinger.CreatePingerLog(logFile, true)
 	if err == nil {
 		t.Error("Creation of pinger log should throw error for bad path.")
 	}
