@@ -4,9 +4,10 @@ import "github.com/apexskier/httpauth"
 
 // ProfileEditViewModel holds the required information about the user to edit their profile.
 type ProfileEditViewModel struct {
-	Email    string `valid:"email,required"`
-	Password string `valid:"-"`
-	Username string `valid:""`
+	Email     string `valid:"email,required"`
+	Password  string `valid:"-"`
+	Password2 string `valid:"-"`
+	Username  string `valid:""`
 }
 
 // ProfileViewModel holds the view information for the profile.gohtml template
@@ -35,6 +36,7 @@ func EditProfileViewModel(formProfile *ProfileEditViewModel, isAuthenticated boo
 	profileVM := new(ProfileEditViewModel)
 	profileVM.Email = formProfile.Email
 	profileVM.Password = formProfile.Password
+	profileVM.Password2 = formProfile.Password2
 	profileVM.Username = user.Username
 
 	result.User = *profileVM

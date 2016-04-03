@@ -67,7 +67,7 @@ func validateProfileForm(user *viewmodels.ProfileEditViewModel, allowMissingPass
 	_, err := govalidator.ValidateStruct(user)
 	valErrors = govalidator.ErrorsByField(err)
 
-	validatePassword(allowMissingPassword, user.Password, valErrors)
+	validatePassword(allowMissingPassword, user.Password, user.Password2, valErrors)
 
 	return valErrors
 }

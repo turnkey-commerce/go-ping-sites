@@ -8,12 +8,15 @@ import (
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
 
-func validatePassword(allowMissingPassword bool, password string, valErrors map[string]string) {
+func validatePassword(allowMissingPassword bool, password string, password2 string, valErrors map[string]string) {
 	if !allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(password)) < 6 {
-		valErrors["Password"] = "Password must be at least 6 characters in length"
+		valErrors["Password"] = "Password must be at least 6 characters in length."
 	} else if allowMissingPassword && utf8.RuneCountInString(strings.TrimSpace(password)) < 6 &&
 		utf8.RuneCountInString(strings.TrimSpace(password)) > 0 {
-		valErrors["Password"] = "Password must be at least 6 characters in length"
+		valErrors["Password"] = "Password must be at least 6 characters in length."
+	}
+	if password != password2 {
+		valErrors["Password2"] = "Repeated Password must be the same as Password."
 	}
 }
 

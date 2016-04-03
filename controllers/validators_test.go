@@ -40,6 +40,16 @@ func TestValidatePasswordValid(t *testing.T) {
 	u.Username = "jack"
 	u.Email = "jack@example.com"
 	u.Password = "long enough"
+	u.Password2 = "long enough2"
+	valErrors = validateUserForm(u, false)
+	if !strings.Contains(valErrors["Password2"], "Repeated Password must be the same as Password.") {
+		t.Error("Password Validation should show error for short password.")
+	}
+
+	u.Username = "jack"
+	u.Email = "jack@example.com"
+	u.Password = "long enough"
+	u.Password2 = "long enough"
 	valErrors = validateUserForm(u, false)
 	if len(valErrors) > 0 {
 		t.Error("No errors should be flagged for the set of inputs.")

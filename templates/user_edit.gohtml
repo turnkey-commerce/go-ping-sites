@@ -28,6 +28,13 @@
             {{ end }}
           </div>
           <div class="form-group">
+            <label for="password">Repeat Password (leave blank for no change)</label>
+            <input type="password" class="form-control" name="password2" id="password2">
+            {{ with .Errors.Password2 }}
+              <div class="error">{{ . }}</div>
+            {{ end }}
+          </div>
+          <div class="form-group">
             <label for="Email">Email</label>
             <input type="email" class="form-control" name="email" id="email" value="{{.User.Email}}">
             {{ with .Errors.Email }}
