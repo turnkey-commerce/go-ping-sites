@@ -193,7 +193,7 @@ func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Req
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		var contacts database.Contacts
-		err := contacts.GetContacts(controller.DB)
+		err = contacts.GetContacts(controller.DB)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}

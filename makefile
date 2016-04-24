@@ -25,5 +25,5 @@ run: default
 	cd $(DIST_PATH)$(CMDSEP)go-ping-sites
 
 distribute: clean default
-	cp $(SRC_PATH)$(PATHSEP)config$(PATHSEP)config.toml $(DIST_PATH)$(PATHSEP)config.toml
-	cp $(SRC_PATH)$(PATHSEP)database$(PATHSEP)db-seed.toml $(DIST_PATH)$(PATHSEP)db-seed.toml
+	cp $(SRC_PATH)$(PATHSEP)config$(PATHSEP)config.toml $(DIST_PATH)$(PATHSEP)config_sample.toml
+	cp $(SRC_PATH)$(PATHSEP)database$(PATHSEP)db-seed.toml $(DIST_PATH)$(PATHSEP)db-seed_sample.toml
