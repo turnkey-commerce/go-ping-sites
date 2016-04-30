@@ -4,21 +4,21 @@
 GoPingSites is a tool to monitor multiple websites, written in Go.
 ## Steps to setup locally
 1. Use the make distribute command to build the project and will copy the necessary runtime files to $GOPATH/dist/go-ping-sites.
-```
-> make distribute
-```
+  ```
+  > make distribute
+  ```
 2. Go to the directory $GOPATH/dist/go-ping-sites.
-```
-> cd $GOPATH/dist/go-ping-sites
-```
+  ```
+  > cd $GOPATH/dist/go-ping-sites
+  ```
 3. Copy the config_sample.toml to config.toml and optionally copy db-seed_sample.toml to db-seed.toml.
 4. Edit the config.toml for your email/text settings and db-seed.toml to setup the initial sites for the application.
 5. Run the application.
-```
-> go-ping-sites
-```
-6. Browse to localhost:8000 and login as admin with the password adminpassword.
-7. Go to Settings and click the "Users" link to edit the admin user with a new passsword.
+  ```
+  > go-ping-sites
+  ```
+6. Browse to localhost:8000 and login as the **admin** user with the password **adminpassword**.
+7. Go to the **Profile** tab and provide a new password for the admin account.
 
 ## Rebuilding the application
 You can rebuild the application again without deleting the current configuration and database by just using the make without the distribute argument.
