@@ -86,9 +86,8 @@ func TestStartAndRestartPinger(t *testing.T) {
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	// Sleep to allow running the tests before stopping.
-	time.Sleep(3 * time.Second)
-	p.Stop()
-	// Test Restart after stop
+	time.Sleep(5 * time.Second)
+	p.Stop() // Test Restart after stop
 	p.Start()
 	p.Stop()
 

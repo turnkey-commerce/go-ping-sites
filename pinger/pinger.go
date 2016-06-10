@@ -136,78 +136,71 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 		case <-stop:
 			log.Println("Stopping ", s.Name)
 			return
-		default:
-			if !s.IsActive {
-				log.Println(s.Name, "Paused")
-				pause(s.PingIntervalSeconds)
+		case <-time.After(time.Duration(s.PingIntervalSeconds) * time.Second):
+			// Do nothing
+		}
+		if !s.IsActive {
+			log.Println(s.Name, "Paused")
+			continue
+		}
+		_, statusCode, responseTime, err := requestURL(s.URL, s.TimeoutSeconds)
+		log.Println(s.Name, "Pinged")
+		// Record ping informaton.
+		p := database.Ping{SiteID: s.SiteID, TimeRequest: time.Now()}
+		if err != nil {
+			// Check if the error is due to the Internet not being Accessible
+			if _, ok := err.(InternetAccessError); ok {
+				log.Println(s.Name, "Unable to determine site status -", err)
 				continue
 			}
-			_, statusCode, responseTime, err := requestURL(s.URL, s.TimeoutSeconds)
-			log.Println(s.Name, "Pinged")
-			// Record ping informaton.
-			p := database.Ping{SiteID: s.SiteID, TimeRequest: time.Now()}
-			if err != nil {
-				// Check if the error is due to the Internet not being Accessible
-				if _, ok := err.(InternetAccessError); ok {
-					log.Println(s.Name, "Unable to determine site status -", err)
-					pause(s.PingIntervalSeconds)
-					continue
-				}
-				log.Println(s.Name, "Error", err)
-				if siteWasUp {
-					statusChange = true
-					partialSubject = "Site is Down"
-					partialDetails = "Site is down, Error is " + err.Error()
-				}
-				siteWasUp = false
-			} else if statusCode != 200 {
-				log.Println(s.Name, "Error - HTTP Status Code is", statusCode)
-				if siteWasUp {
-					statusChange = true
-					partialSubject = "Site is Down"
-					partialDetails = "Site is down, HTTP Status Code is " + strconv.Itoa(statusCode) + "."
-				}
-				siteWasUp = false
-			} else { // if no errors site is up.
-				if !siteWasUp {
-					statusChange = true
-					partialSubject = "Site is Up"
-					partialDetails = fmt.Sprintf("Site is now up, response time was %v.", responseTime)
-				}
-				siteWasUp = true
+			log.Println(s.Name, "Error", err)
+			if siteWasUp {
+				statusChange = true
+				partialSubject = "Site is Down"
+				partialDetails = "Site is down, Error is " + err.Error()
 			}
-			// Save the ping details
-			p.Duration = int(responseTime.Nanoseconds() / 1e6)
-			p.HTTPStatusCode = statusCode
-			p.TimedOut = false
-			// Save ping to db.
-			err = p.CreatePing(db)
+			siteWasUp = false
+		} else if statusCode != 200 {
+			log.Println(s.Name, "Error - HTTP Status Code is", statusCode)
+			if siteWasUp {
+				statusChange = true
+				partialSubject = "Site is Down"
+				partialDetails = "Site is down, HTTP Status Code is " + strconv.Itoa(statusCode) + "."
+			}
+			siteWasUp = false
+		} else { // if no errors site is up.
+			if !siteWasUp {
+				statusChange = true
+				partialSubject = "Site is Up"
+				partialDetails = fmt.Sprintf("Site is now up, response time was %v.", responseTime)
+			}
+			siteWasUp = true
+		}
+		// Save the ping details
+		p.Duration = int(responseTime.Nanoseconds() / 1e6)
+		p.HTTPStatusCode = statusCode
+		p.TimedOut = false
+		// Save ping to db.
+		err = p.CreatePing(db)
+		if err != nil {
+			log.Println("Error saving to ping to db:", err)
+		}
+		// Do the notifications if applicable
+		if statusChange {
+			// Update the site Status
+			err = s.UpdateSiteStatus(db, siteWasUp)
 			if err != nil {
-				log.Println("Error saving to ping to db:", err)
+				log.Println("Error updating site status:", err)
 			}
 			// Do the notifications if applicable
-			if statusChange {
-				// Update the site Status
-				err = s.UpdateSiteStatus(db, siteWasUp)
-				if err != nil {
-					log.Println("Error updating site status:", err)
-				}
-				// Do the notifications if applicable
-				subject := s.Name + ": " + partialSubject
-				details := s.Name + " at " + s.URL + ": " + partialDetails
-				log.Println("Will notify status change for", s.Name+":", details)
+			subject := s.Name + ": " + partialSubject
+			details := s.Name + " at " + s.URL + ": " + partialDetails
+			log.Println("Will notify status change for", s.Name+":", details)
 
-				n := notifier.NewNotifier(s, details, subject, sendEmail, sendSms)
-				n.Notify()
-			}
-			pause(s.PingIntervalSeconds)
+			n := notifier.NewNotifier(s, details, subject, sendEmail, sendSms)
+			n.Notify()
 		}
 	}
-}
-
-// pause for the passed number of seconds
-func pause(numSeconds int) {
-	time.Sleep(time.Duration(numSeconds) * time.Second)
 }
 
 // RequestURL provides the implementation of the URLRequester type for runtime usage.
