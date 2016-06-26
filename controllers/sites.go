@@ -8,6 +8,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -84,6 +85,7 @@ func (controller *sitesController) editGet(rw http.ResponseWriter, req *http.Req
 	siteEdit.SelectedContacts = selectedContacts
 
 	vm := viewmodels.EditSiteViewModel(siteEdit, contacts, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
 
@@ -94,6 +96,8 @@ func (controller *sitesController) editPost(rw http.ResponseWriter, req *http.Re
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formSite := new(viewmodels.SitesEditViewModel)
 	err = decoder.Decode(formSite, req.PostForm)
 	if err != nil {
@@ -109,6 +113,7 @@ func (controller *sitesController) editPost(rw http.ResponseWriter, req *http.Re
 			return http.StatusInternalServerError, err
 		}
 		vm := viewmodels.EditSiteViewModel(formSite, contacts, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
 
@@ -169,10 +174,11 @@ func (controller *sitesController) newGet(rw http.ResponseWriter, req *http.Requ
 		return http.StatusInternalServerError, err
 	}
 	// These are strings in the ViewModel.
-	siteNew.PingIntervalSeconds = "30"
+	siteNew.PingIntervalSeconds = "60"
 	siteNew.TimeoutSeconds = "15"
 	siteNew.SelectedContacts = []int64{}
 	vm := viewmodels.NewSiteViewModel(siteNew, contacts, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
 
@@ -183,6 +189,8 @@ func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Req
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formSite := new(viewmodels.SitesEditViewModel)
 	err = decoder.Decode(formSite, req.PostForm)
 	if err != nil {
@@ -198,6 +206,7 @@ func (controller *sitesController) newPost(rw http.ResponseWriter, req *http.Req
 			return http.StatusInternalServerError, err
 		}
 		vm := viewmodels.NewSiteViewModel(formSite, contacts, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
 

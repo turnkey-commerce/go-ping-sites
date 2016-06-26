@@ -6,6 +6,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
@@ -45,6 +46,7 @@ func (controller *usersController) editGet(rw http.ResponseWriter, req *http.Req
 	userEdit.Role = editUser.Role
 	userEdit.Username = editUser.Username
 	vm := viewmodels.EditUserViewModel(userEdit, controller.roles, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
 
@@ -55,6 +57,8 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formUser := new(viewmodels.UsersEditViewModel)
 	err = decoder.Decode(formUser, req.PostForm)
 	if err != nil {
@@ -65,6 +69,7 @@ func (controller *usersController) editPost(rw http.ResponseWriter, req *http.Re
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.EditUserViewModel(formUser, controller.roles, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
 
@@ -82,6 +87,7 @@ func (controller *usersController) newGet(rw http.ResponseWriter, req *http.Requ
 	userEdit := new(viewmodels.UsersEditViewModel)
 	userEdit.Role = "user"
 	vm := viewmodels.NewUserViewModel(userEdit, controller.roles, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
 
@@ -92,6 +98,8 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formUser := new(viewmodels.UsersEditViewModel)
 	err = decoder.Decode(formUser, req.PostForm)
 	if err != nil {
@@ -102,6 +110,7 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.NewUserViewModel(formUser, controller.roles, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
 

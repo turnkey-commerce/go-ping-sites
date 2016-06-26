@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/apexskier/httpauth"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/turnkey-commerce/go-ping-sites/pinger"
 )
@@ -23,6 +24,11 @@ type CurrentUserGetter interface {
 func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend,
 	roles map[string]httpauth.Role, templates *template.Template, pinger *pinger.Pinger,
 	version string) {
+
+	// setup CSRF protection for the post requests.
+	// TODO: parameterize the secure bool and key in the configuration.
+	CSRF := csrf.Protect([]byte("aLongKeytoSecureTheCSRF"),
+		csrf.Secure(false))
 	router := mux.NewRouter()
 
 	hc := new(homeController)
@@ -114,7 +120,8 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/sites/{siteID}/edit", authorizeRole(appHandler(stc.editPost), authorizer, "admin")).Methods("POST")
 
-	http.Handle("/", router)
+	// Wrap the router in the CSRF protection.
+	http.Handle("/", CSRF(router))
 
 	http.HandleFunc("/img/", serveResource)
 	http.HandleFunc("/css/", serveResource)

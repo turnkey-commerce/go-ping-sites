@@ -43,17 +43,19 @@
           </div>
           <div class="form-group">
             <label for="Role">Role</label>
-            {{ $role := .User.Role}}
+            <!-- {{ $role := .User.Role}}
             <select name="role" id="role" class="form-control">
               <option value=""{{if eq $role ""}} selected{{end}}>No role</option>
               {{ range $key, $val := .Roles }}<option value="{{ $key }}"{{ if eq $role $key }} selected{{ end }}>{{$key}}</option>{{ end }}
             </select>
             {{ with .Errors.Role }}
               <div class="error">{{ . }}</div>
-            {{ end }}
+            {{ end }} -->
+            <p>{{.User.Role}}</p>
           </div>
           <button type="submit" class="btn btn-primary ladda-button" data-style="expand-left"><span class="ladda-label">Submit Changes</span></button>
           &nbsp;&nbsp;<button type="button" class="btn btn-secondary" onclick="window.history.go(-1); return false;" >Cancel</button>
+          {{ .CsrfField }}
         </form>
       </div>
     </div>

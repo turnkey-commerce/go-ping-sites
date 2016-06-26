@@ -7,6 +7,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )
@@ -28,6 +29,7 @@ func (controller *profileController) get(rw http.ResponseWriter, req *http.Reque
 	userEdit := new(viewmodels.ProfileEditViewModel)
 	userEdit.Email = editUser.Email
 	vm := viewmodels.EditProfileViewModel(userEdit, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.template.Execute(rw, vm)
 }
 
@@ -38,6 +40,8 @@ func (controller *profileController) post(rw http.ResponseWriter, req *http.Requ
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formUser := new(viewmodels.ProfileEditViewModel)
 	err = decoder.Decode(formUser, req.PostForm)
 	if err != nil {
@@ -48,6 +52,7 @@ func (controller *profileController) post(rw http.ResponseWriter, req *http.Requ
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.EditProfileViewModel(formUser, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.template.Execute(rw, vm)
 	}
 

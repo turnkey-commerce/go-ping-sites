@@ -5,6 +5,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"html/template"
 )
 
 // SitesEditViewModel holds the required information about the Sites to choose for editing.
@@ -48,6 +49,7 @@ type SiteViewModel struct {
 	Contacts    []database.Contact
 	AllContacts []SitesAllContactsViewModel
 	Nav         NavViewModel
+	CsrfField   template.HTML
 }
 
 // GetSiteDetailsViewModel populates the items required by the site_details.gohtml view

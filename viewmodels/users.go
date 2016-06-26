@@ -1,6 +1,9 @@
 package viewmodels
 
-import "github.com/apexskier/httpauth"
+import (
+	"github.com/apexskier/httpauth"
+	"html/template"
+)
 
 // UsersEditViewModel holds the required information about the site to choose for editing.
 type UsersEditViewModel struct {
@@ -21,11 +24,12 @@ type UsersViewModel struct {
 
 // UserViewModel holds the view information for the user_edit.gohtml template
 type UserViewModel struct {
-	Errors map[string]string
-	Title  string
-	User   UsersEditViewModel
-	Nav    NavViewModel
-	Roles  map[string]httpauth.Role
+	Errors    map[string]string
+	Title     string
+	User      UsersEditViewModel
+	Nav       NavViewModel
+	Roles     map[string]httpauth.Role
+	CsrfField template.HTML
 }
 
 // GetUsersViewModel populates the items required by the settings.gohtml view

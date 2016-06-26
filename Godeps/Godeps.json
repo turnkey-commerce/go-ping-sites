@@ -28,6 +28,11 @@
 			"Rev": "e91c57bcc918671f042bb1722841946bd376dcde"
 		},
 		{
+			"ImportPath": "github.com/gorilla/csrf",
+			"Comment": "v1.4-5-g4642ecf",
+			"Rev": "4642ecf016ef548770875073f867ea02b4385f69"
+		},
+		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
 		},

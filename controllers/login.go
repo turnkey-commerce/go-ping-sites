@@ -5,6 +5,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/gorilla/csrf"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 	"github.com/apexskier/httpauth"
 )
@@ -18,6 +19,7 @@ type loginController struct {
 func (controller *loginController) get(rw http.ResponseWriter, req *http.Request) {
 	messages := controller.authorizer.Messages(rw, req)
 	vm := viewmodels.GetLoginViewModel(messages)
+	vm.CsrfField = csrf.TemplateField(req)
 	controller.template.Execute(rw, vm)
 }
 

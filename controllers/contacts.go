@@ -8,6 +8,7 @@ import (
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -58,6 +59,7 @@ func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.
 	contactEdit.SmsActive = contact.SmsActive
 
 	vm := viewmodels.EditContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
 
@@ -68,6 +70,8 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formContact := new(viewmodels.ContactsEditViewModel)
 	err = decoder.Decode(formContact, req.PostForm)
 	if err != nil {
@@ -78,6 +82,7 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
 
@@ -111,6 +116,7 @@ func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.R
 	contactEdit.EmailActive = false
 	contactEdit.SmsActive = false
 	vm := viewmodels.NewContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
 
@@ -121,6 +127,8 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	}
 
 	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
 	formContact := new(viewmodels.ContactsEditViewModel)
 	err = decoder.Decode(formContact, req.PostForm)
 	if err != nil {
@@ -131,6 +139,7 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
 		vm := viewmodels.NewContactViewModel(formContact, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
 

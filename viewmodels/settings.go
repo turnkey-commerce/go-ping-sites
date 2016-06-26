@@ -3,6 +3,7 @@ package viewmodels
 import (
 	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
+	"html/template"
 )
 
 // SiteEditViewModel holds the required information about the site to choose for editing.
@@ -18,10 +19,11 @@ type SiteEditViewModel struct {
 
 // SettingsViewModel holds the view information for the settings.gohtml template
 type SettingsViewModel struct {
-	Error error
-	Title string
-	Sites []SiteEditViewModel
-	Nav   NavViewModel
+	Error     error
+	Title     string
+	Sites     []SiteEditViewModel
+	Nav       NavViewModel
+	CsrfField template.HTML
 }
 
 // GetSettingsViewModel populates the items required by the settings.gohtml view

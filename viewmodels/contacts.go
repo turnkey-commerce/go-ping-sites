@@ -1,6 +1,8 @@
 package viewmodels
 
 import (
+	"html/template"
+
 	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 )
@@ -25,10 +27,11 @@ type ContactsViewModel struct {
 
 // ContactViewModel holds the view information for the contact_edit.gohtml template
 type ContactViewModel struct {
-	Errors  map[string]string
-	Title   string
-	Contact ContactsEditViewModel
-	Nav     NavViewModel
+	Errors    map[string]string
+	Title     string
+	Contact   ContactsEditViewModel
+	Nav       NavViewModel
+	CsrfField template.HTML
 }
 
 // GetContactsViewModel populates the items required by the contacts.gohtml view

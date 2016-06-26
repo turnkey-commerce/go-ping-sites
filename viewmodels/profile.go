@@ -1,6 +1,10 @@
 package viewmodels
 
-import "github.com/apexskier/httpauth"
+import (
+	"html/template"
+
+	"github.com/apexskier/httpauth"
+)
 
 // ProfileEditViewModel holds the required information about the user to edit their profile.
 type ProfileEditViewModel struct {
@@ -12,10 +16,11 @@ type ProfileEditViewModel struct {
 
 // ProfileViewModel holds the view information for the profile.gohtml template
 type ProfileViewModel struct {
-	Errors map[string]string
-	Title  string
-	User   ProfileEditViewModel
-	Nav    NavViewModel
+	Errors    map[string]string
+	Title     string
+	User      ProfileEditViewModel
+	Nav       NavViewModel
+	CsrfField template.HTML
 }
 
 // EditProfileViewModel populates the items required by the profile.gohtml view
