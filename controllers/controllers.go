@@ -23,12 +23,10 @@ type CurrentUserGetter interface {
 // Register the handlers for a given route.
 func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend,
 	roles map[string]httpauth.Role, templates *template.Template, pinger *pinger.Pinger,
-	version string) {
+	version string, cookieKey []byte, secureCookie bool) {
 
 	// setup CSRF protection for the post requests.
-	// TODO: parameterize the secure bool and key in the configuration.
-	CSRF := csrf.Protect([]byte("aLongKeytoSecureTheCSRF"),
-		csrf.Secure(false))
+	CSRF := csrf.Protect(cookieKey, csrf.Secure(secureCookie))
 	router := mux.NewRouter()
 
 	hc := new(homeController)

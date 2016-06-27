@@ -52,15 +52,19 @@ func main() {
 		fatalError("Failed to create Auth Backend: ", err)
 	}
 
+	cookieKey := []byte(config.Settings.Website.CookieKey)
+	// TODO: Get this setting from config...
+	secureCookie := false
+
 	roles = getRoles()
-	authorizer, err = httpauth.NewAuthorizer(authBackend, []byte(config.Settings.Website.CookieKey), "user", roles)
+	authorizer, err = httpauth.NewAuthorizer(authBackend, cookieKey, "user", roles)
 	createDefaultUser()
 	// Start the Pinger
 	p := pinger.NewPinger(db, pinger.GetSites, pinger.RequestURL, notifier.SendEmail, notifier.SendSms)
 	p.Start()
 	// Start the web server.
 	templates := controllers.PopulateTemplates("templates")
-	controllers.Register(db, authorizer, authBackend, roles, templates, p, version)
+	controllers.Register(db, authorizer, authBackend, roles, templates, p, version, cookieKey, secureCookie)
 	err = http.ListenAndServe(":"+config.Settings.Website.HTTPPort, nil) // set listen port
 	if err != nil {
 		fatalError("ListenAndServe: ", err)
