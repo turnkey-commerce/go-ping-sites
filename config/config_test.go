@@ -52,4 +52,8 @@ func TestWebsiteConfiguration(t *testing.T) {
 	if websiteSettings.CookieKey != "CookieEncryptionKey" {
 		t.Error("Config Website HTTPPort mismatch:\n", websiteSettings.CookieKey)
 	}
+
+	if websiteSettings.SecureHTTPS != false {
+		t.Error("Config Website SecureHTTPS mismatch:\n", websiteSettings.SecureHTTPS)
+	}
 }

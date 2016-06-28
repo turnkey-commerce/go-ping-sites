@@ -53,8 +53,7 @@ func main() {
 	}
 
 	cookieKey := []byte(config.Settings.Website.CookieKey)
-	// TODO: Get this setting from config...
-	secureCookie := false
+	secureCookie := config.Settings.Website.SecureHTTPS
 
 	roles = getRoles()
 	authorizer, err = httpauth.NewAuthorizer(authBackend, cookieKey, "user", roles)

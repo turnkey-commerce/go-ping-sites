@@ -22,8 +22,9 @@ var Settings struct {
 		Number     string `valid:"-"`
 	}
 	Website struct {
-		HTTPPort  string `valid:"int,required"`
-		CookieKey string `valid:"ascii,required"`
+		HTTPPort    string `valid:"int,required"`
+		CookieKey   string `valid:"ascii,required"`
+		SecureHTTPS bool   `valid:"bool"`
 	}
 }
 

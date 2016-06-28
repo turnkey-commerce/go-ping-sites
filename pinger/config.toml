@@ -15,3 +15,5 @@
 [Website]
 	HTTPPort  = "8000"
 	CookieKey = "CookieEncryptionKey"
+  # Recommended to set true if HTTPS is available for the site (true or false)
+	SecureHTTPS = false
