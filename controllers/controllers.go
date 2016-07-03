@@ -79,12 +79,14 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	uc.getTemplate = templates.Lookup("users.gohtml")
 	uc.editTemplate = templates.Lookup("user_edit.gohtml")
 	uc.newTemplate = templates.Lookup("user_new.gohtml")
+	uc.deleteTemplate = templates.Lookup("user_delete.gohtml")
 	uc.authorizer = authorizer
 	uc.authBackend = authBackend
 	uc.roles = roles
 	settingsSub.Handle("/users", authorizeRole(appHandler(uc.get), authorizer, "admin"))
 	settingsSub.Handle("/users/{username}/edit", authorizeRole(appHandler(uc.editGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/users/{username}/edit", authorizeRole(appHandler(uc.editPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/users/{username}/delete", authorizeRole(appHandler(uc.deleteGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/users/new", authorizeRole(appHandler(uc.newGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/users/new", authorizeRole(appHandler(uc.newPost), authorizer, "admin")).Methods("POST")
 

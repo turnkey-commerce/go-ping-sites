@@ -13,12 +13,13 @@ import (
 )
 
 type usersController struct {
-	getTemplate  *template.Template
-	editTemplate *template.Template
-	newTemplate  *template.Template
-	authorizer   httpauth.Authorizer
-	authBackend  httpauth.AuthBackend
-	roles        map[string]httpauth.Role
+	getTemplate    *template.Template
+	editTemplate   *template.Template
+	newTemplate    *template.Template
+	deleteTemplate *template.Template
+	authorizer     httpauth.Authorizer
+	authBackend    httpauth.AuthBackend
+	roles          map[string]httpauth.Role
 }
 
 func (controller *usersController) get(rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -125,6 +126,24 @@ func (controller *usersController) newPost(rw http.ResponseWriter, req *http.Req
 	}
 	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
+}
+
+func (controller *usersController) deleteGet(rw http.ResponseWriter, req *http.Request) (int, error) {
+	vars := mux.Vars(req)
+	username := vars["username"]
+	// Get the user to delete for confirmation
+	deleteUser, err := controller.authBackend.User(username)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+	userDelete := new(viewmodels.UsersEditViewModel)
+	userDelete.Email = deleteUser.Email
+	userDelete.Role = deleteUser.Role
+	userDelete.Username = deleteUser.Username
+	vm := viewmodels.DeleteUserViewModel(userDelete, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
+	return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 }
 
 // validateUserForm checks the inputs for errors

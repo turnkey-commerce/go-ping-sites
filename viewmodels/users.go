@@ -109,3 +109,28 @@ func NewUserViewModel(formUser *UsersEditViewModel, roles map[string]httpauth.Ro
 
 	return result
 }
+
+// DeleteUserViewModel populates the items required by the user_delete.gohtml view
+func DeleteUserViewModel(formUser *UsersEditViewModel, isAuthenticated bool,
+	user httpauth.UserData, errors map[string]string) UserViewModel {
+	nav := NavViewModel{
+		Active:          "settings",
+		IsAuthenticated: isAuthenticated,
+		User:            user,
+	}
+
+	result := UserViewModel{
+		Title:  "Go Ping Sites - Settings - Delete User",
+		Nav:    nav,
+		Errors: errors,
+	}
+
+	userVM := new(UsersEditViewModel)
+	userVM.Username = formUser.Username
+	userVM.Email = formUser.Email
+	userVM.Role = formUser.Role
+
+	result.User = *userVM
+
+	return result
+}
