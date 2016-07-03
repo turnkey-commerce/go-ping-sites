@@ -1,0 +1,37 @@
+language: go
+
+go:
+    - tip
+    - 1.6
+    - 1.5
+    - 1.4
+
+install:
+    - go get golang.org/x/crypto/bcrypt
+    - go get github.com/gorilla/mux
+    - go get github.com/gorilla/sessions
+    - go get github.com/go-sql-driver/mysql
+    - go get gopkg.in/mgo.v2
+    - go get github.com/lib/pq
+    - go get github.com/mattn/go-sqlite3
+    - go get github.com/syndtr/goleveldb/leveldb
+
+before_script:
+    - mysql -e 'create database httpauth_test;'
+    - psql -c 'create database httpauth_test;' -U postgres
+
+services:
+    - mongodb
+
+before_install:
+    - go get github.com/axw/gocov/gocov
+    - go get github.com/mattn/goveralls
+    - go get golang.org/x/tools/cmd/cover
+
+script:
+    - $HOME/gopath/bin/goveralls -repotoken HQ2GKw3BZ02GdvxTWqMKVZ68iKBdE5OLR
+
+git:
+    depth: 3
+
+sudo: false

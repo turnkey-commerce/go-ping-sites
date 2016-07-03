@@ -1,0 +1,12 @@
+files
+data
+auth
+usage
+auth_test.gob
+auth.gob
+server
+mongodbtest
+pgdbtest
+test.ldb
+gobfile_test.gob
+httpauth_test_sqlite.db

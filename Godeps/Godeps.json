@@ -1,31 +1,35 @@
 {
 	"ImportPath": "github.com/turnkey-commerce/go-ping-sites",
 	"GoVersion": "go1.6",
-	"Packages": [
-		"./..."
-	],
+	"GodepVersion": "v74",
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
-			"Comment": "v0.1.0-21-g056c9bc",
-			"Rev": "056c9bc7be7190eaa7715723883caffa5f8fa3e4"
+			"Comment": "v0.2.0-9-gf0aeabc",
+			"Rev": "f0aeabca5a127c4078abb8c8d64298b147264b55"
 		},
 		{
 			"ImportPath": "github.com/apexskier/httpauth",
-			"Rev": "ebf3d4012e34655bfe2aa7848867ad0b608e0b77"
+			"Comment": "v1.3.2-8-g4c628e7",
+			"Rev": "4c628e7cce0d7d65dc3f8f7edf7333fc9aa0e2b0"
 		},
 		{
 			"ImportPath": "github.com/asaskevich/govalidator",
-			"Comment": "v2-45-g1295808",
-			"Rev": "129580890d97de923d9d9aec06cb1aa771812aff"
+			"Comment": "v4-6-gdf81827",
+			"Rev": "df81827fdd59d8b4fb93d8910b286ab7a3919520"
 		},
 		{
 			"ImportPath": "github.com/dustin/go-humanize",
-			"Rev": "8929fe90cee4b2cb9deb468b51fb34eba64d1bf0"
+			"Rev": "fef948f2d241bd1fd0631108ecc2c9553bae60bf"
 		},
 		{
-			"ImportPath": "github.com/erikstmartin/go-testdb",
-			"Rev": "e91c57bcc918671f042bb1722841946bd376dcde"
+			"ImportPath": "github.com/golang/snappy",
+			"Rev": "d9eb7a3d35ec988b8585d4a0068e462c27d28380"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Comment": "v1.1-4-gaed02d1",
+			"Rev": "aed02d124ae4a0e94fea4541c8effd05bf0c8296"
 		},
 		{
 			"ImportPath": "github.com/gorilla/csrf",
@@ -34,37 +38,111 @@
 		},
 		{
 			"ImportPath": "github.com/gorilla/mux",
-			"Rev": "9c068cf16d982f8bd444b8c352acbeec34c4fe5b"
+			"Comment": "v1.1-13-g9fa818a",
+			"Rev": "9fa818a44c2bf1396a17f9d5a3c0f6dd39d2ff8e"
 		},
 		{
 			"ImportPath": "github.com/gorilla/schema",
-			"Rev": "14c555599c2a4f493c1e13fd1ea6fdf721739028"
+			"Rev": "8aac656cd31cfb73a9dfd142494864fa0b84f723"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Comment": "v1.1-2-gff35634",
+			"Rev": "ff356348f74133a59d3e93aa24b5b4551b6fe90d"
 		},
 		{
 			"ImportPath": "github.com/gorilla/sessions",
-			"Rev": "99b16d2edd22458c541b3640ce83689b08a05c20"
+			"Rev": "56ba4b0a11da87516629a57408a5f7e4c8ea7b0b"
 		},
 		{
 			"ImportPath": "github.com/mattn/go-sqlite3",
-			"Comment": "v1.1.0-27-g5651a9d",
-			"Rev": "5651a9d9d49ec25811d08220ee972080378d52ea"
+			"Comment": "v1.1.0-69-g38ee283",
+			"Rev": "38ee283dabf11c9cbdb968eebd79b1fa7acbabe6"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.7.0-5-ga2d6902",
+			"Rev": "a2d6902c6d2a2f194eb3fb474981ab7867c81505"
 		},
 		{
 			"ImportPath": "github.com/sfreiberg/gotwilio",
-			"Rev": "b7230c284bd0c1614c94d00b9998c49f9a2737d8"
+			"Rev": "f024bbefe80fdb7bcc8c43b6add05dae97744e0e"
 		},
 		{
 			"ImportPath": "github.com/syndtr/goleveldb/leveldb",
-			"Rev": "5acacf6e72d3aeaf26dd3d3f163c635d3ef1e6e6"
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/cache",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/comparer",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/errors",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/filter",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/iterator",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/journal",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/memdb",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/opt",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/storage",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/table",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
+		},
+		{
+			"ImportPath": "github.com/syndtr/goleveldb/leveldb/util",
+			"Rev": "ab8b5dcf1042e818ab68e770d465112a899b668e"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/bcrypt",
-			"Rev": "1f22c0103821b9390939b6776727195525381532"
+			"Rev": "811831de4c4dd03a0b8737233af3b36852386373"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "811831de4c4dd03a0b8737233af3b36852386373"
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2",
-			"Comment": "r2015.12.06",
-			"Rev": "e30de8ac9ae3b30df7065f766c71f88bba7d4e49"
+			"Comment": "r2016.02.04-4-g29cc868",
+			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/bson",
+			"Comment": "r2016.02.04-4-g29cc868",
+			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/sasl",
+			"Comment": "r2016.02.04-4-g29cc868",
+			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
+			"Comment": "r2016.02.04-4-g29cc868",
+			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
 		},
 		{
 			"ImportPath": "gopkg.in/natefinch/lumberjack.v2",
