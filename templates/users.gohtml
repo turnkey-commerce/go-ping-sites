@@ -23,7 +23,8 @@
           <tbody>
             {{range .Users}}
               <tr>
-                <td><a href="/settings/users/{{.Username}}/edit" title="Edit User"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td><a href="/settings/users/{{.Username}}/edit" title="Edit User"><span class="glyphicon glyphicon-edit"></span></a>
+                    &nbsp;&nbsp;<a href="/settings/users/{{.Username}}/delete" title="Delete User"><span class="glyphicon glyphicon-remove"></span><a></td>
                 <td>{{.Username}}</td>
                 <td>{{.Email}}</td>
                 <td>{{.Role}}</td>

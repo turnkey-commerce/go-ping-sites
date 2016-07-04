@@ -96,12 +96,15 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	cc.getTemplate = templates.Lookup("contacts.gohtml")
 	cc.editTemplate = templates.Lookup("contact_edit.gohtml")
 	cc.newTemplate = templates.Lookup("contact_new.gohtml")
+	cc.deleteTemplate = templates.Lookup("contact_delete.gohtml")
 	cc.authorizer = authorizer
 	cc.pinger = pinger
 	cc.DB = db
 	settingsSub.Handle("/contacts", authorizeRole(appHandler(cc.get), authorizer, "admin"))
 	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(appHandler(cc.editGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/contacts/{contactID}/edit", authorizeRole(appHandler(cc.editPost), authorizer, "admin")).Methods("POST")
+	settingsSub.Handle("/contacts/{contactID}/delete", authorizeRole(appHandler(cc.deleteGet), authorizer, "admin")).Methods("GET")
+	settingsSub.Handle("/contacts/{contactID}/delete", authorizeRole(appHandler(cc.deletePost), authorizer, "admin")).Methods("POST")
 	settingsSub.Handle("/contacts/new", authorizeRole(appHandler(cc.newGet), authorizer, "admin")).Methods("GET")
 	settingsSub.Handle("/contacts/new", authorizeRole(appHandler(cc.newPost), authorizer, "admin")).Methods("POST")
 

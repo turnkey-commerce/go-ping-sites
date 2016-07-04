@@ -25,7 +25,8 @@
           <tbody>
             {{range .Contacts}}
               <tr>
-                <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a></td>
+                <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a>
+                &nbsp;&nbsp;<a href="/settings/contacts/{{.ContactID}}/delete" title="Delete Contact"><span class="glyphicon glyphicon-remove"></span><a></td></td>
                 <td>{{.Name}}</td>
                 <td>{{.EmailAddress}}</td>
                 <td class="text-center">{{.EmailActive | displayBool}}</td>

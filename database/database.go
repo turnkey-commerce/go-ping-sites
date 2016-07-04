@@ -283,6 +283,35 @@ func (c *Contact) UpdateContact(db *sql.DB) error {
 	return nil
 }
 
+// DeleteContact deletes the contact from the DB.
+func (c *Contact) DeleteContact(db *sql.DB) error {
+	// Do in a transaction because we have to first delete the contact on the sites.
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(
+		`DELETE FROM SiteContacts WHERE ContactID = $1`,
+		c.ContactID,
+	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	_, err = db.Exec(
+		`DELETE FROM Contacts WHERE ContactID = $1;`,
+		c.ContactID,
+	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
 // GetContact gets the contact details for a given contact.
 func (c *Contact) GetContact(db *sql.DB, contactID int64) error {
 	err := db.QueryRow(`SELECT ContactID, Name, EmailAddress, SmsNumber, SmsActive,

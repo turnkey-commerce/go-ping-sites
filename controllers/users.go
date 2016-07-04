@@ -161,10 +161,11 @@ func (controller *usersController) deletePost(rw http.ResponseWriter, req *http.
 		return http.StatusInternalServerError, err
 	}
 
-	valErrors := validateUserForm(formUser, true)
+	isAuthenticated, currentUser := getCurrentUser(rw, req, controller.authorizer)
+
+	valErrors := validateDeleteUserForm(formUser, currentUser.Username)
 	if len(valErrors) > 0 {
-		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.DeleteUserViewModel(formUser, isAuthenticated, user, valErrors)
+		vm := viewmodels.DeleteUserViewModel(formUser, isAuthenticated, currentUser, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 	}
@@ -187,6 +188,20 @@ func validateUserForm(user *viewmodels.UsersEditViewModel, allowMissingPassword 
 	valErrors = govalidator.ErrorsByField(err)
 
 	validatePassword(allowMissingPassword, user.Password, user.Password2, valErrors)
+
+	return valErrors
+}
+
+// validateUserForm checks the inputs for errors
+func validateDeleteUserForm(user *viewmodels.UsersEditViewModel, currentUser string) (valErrors map[string]string) {
+	valErrors = make(map[string]string)
+
+	_, err := govalidator.ValidateStruct(user)
+	valErrors = govalidator.ErrorsByField(err)
+
+	if currentUser == user.Username {
+		valErrors["Username"] = "Can't delete currently logged-in user."
+	}
 
 	return valErrors
 }

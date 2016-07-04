@@ -203,6 +203,89 @@ func TestCreateSiteAndContacts(t *testing.T) {
 	}
 }
 
+// TestDeleteContacts tests creating a site and two contacts
+// in the database and then deleting one of the contacts.
+func TestDeleteContact(t *testing.T) {
+	db, err := database.InitializeTestDB("")
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+
+	// First create a site to associate with the contacts.
+	// Note: SiteID is ignored for create but is used in the test comparison
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true}
+	err = s.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
+	}
+
+	// Create first contact - ContactID is for referencing the contact get test
+	c := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
+		SmsActive: false, EmailActive: false, ContactID: 1}
+	err = c.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new contact:", err)
+	}
+	// Associate to the site ID
+	err = s.AddContactToSite(db, c.ContactID)
+	if err != nil {
+		t.Fatal("Failed to associate contact with site:", err)
+	}
+
+	// Create second contact
+	c2 := database.Contact{Name: "Jill Contact", EmailAddress: "jill@test.com", SmsNumber: "5125551213",
+		SmsActive: false, EmailActive: false}
+	err = c2.CreateContact(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
+	}
+	// Associate the contact to the site
+	err = s.AddContactToSite(db, c2.ContactID)
+	if err != nil {
+		t.Error("Failed to associate contact2 with site:", err)
+	}
+
+	err = s.GetSiteContacts(db, s.SiteID)
+	if err != nil {
+		t.Error("Failed to retrieve site contacts:", err)
+	}
+	if len(s.Contacts) != 2 {
+		t.Error("There should two contacts before deletion.")
+	}
+
+	// Delete the second contact
+	err = c2.DeleteContact(db)
+	if err != nil {
+		t.Fatal("Failed to delete contact 2:", err)
+	}
+
+	// Verify that it was deleted OK and not associated with the site, and
+	// that contact1 is still there.
+	err = s.GetSiteContacts(db, s.SiteID)
+	if err != nil {
+		t.Error("Failed to retrieve site contacts:", err)
+	}
+
+	if len(s.Contacts) != 1 {
+		t.Error("There should only be one contact for the site after deletion.")
+	}
+	if !reflect.DeepEqual(c, s.Contacts[0]) {
+		t.Error("Remaining contact not equal to input:\n", s.Contacts[0], c)
+	}
+
+	// Also verify that the contacts are correct.
+	var contacts database.Contacts
+	err = contacts.GetContacts(db)
+	if err != nil {
+		t.Fatal("Failed to get all contacts.", err)
+	}
+
+	if len(contacts) != 1 {
+		t.Error("There should only be one contact in the DB after deletion.")
+	}
+}
+
 // TestCreateUniqueSite tests that the same URL and Site Name can't be entered twice.
 func TestCreateUniqueSite(t *testing.T) {
 	var err error

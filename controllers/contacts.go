@@ -17,12 +17,13 @@ import (
 )
 
 type contactsController struct {
-	DB           *sql.DB
-	getTemplate  *template.Template
-	editTemplate *template.Template
-	newTemplate  *template.Template
-	authorizer   httpauth.Authorizer
-	pinger       *pinger.Pinger
+	DB             *sql.DB
+	getTemplate    *template.Template
+	editTemplate   *template.Template
+	newTemplate    *template.Template
+	deleteTemplate *template.Template
+	authorizer     httpauth.Authorizer
+	pinger         *pinger.Pinger
 }
 
 func (controller *contactsController) get(rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -149,6 +150,75 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
+	return http.StatusSeeOther, nil
+}
+
+func (controller *contactsController) deleteGet(rw http.ResponseWriter, req *http.Request) (int, error) {
+	vars := mux.Vars(req)
+	contactID, err := strconv.ParseInt(vars["contactID"], 10, 64)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	// Get the contact to edit
+	contact := new(database.Contact)
+	err = contact.GetContact(controller.DB, contactID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+	contactDelete := new(viewmodels.ContactsEditViewModel)
+	contactDelete.Name = contact.Name
+	contactDelete.ContactID = contact.ContactID
+	contactDelete.EmailAddress = contact.EmailAddress
+	vm := viewmodels.EditContactViewModel(contactDelete, isAuthenticated, user, make(map[string]string))
+	vm.CsrfField = csrf.TemplateField(req)
+	return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
+}
+
+func (controller *contactsController) deletePost(rw http.ResponseWriter, req *http.Request) (int, error) {
+	err := req.ParseForm()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
+	formContact := new(viewmodels.ContactsEditViewModel)
+	err = decoder.Decode(formContact, req.PostForm)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	valErrors := validateContactForm(formContact)
+	if len(valErrors) > 0 {
+		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
+		return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
+	}
+
+	// Get the contact to delete
+	contact := new(database.Contact)
+	err = contact.GetContact(controller.DB, formContact.ContactID)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	mapContacts(contact, formContact)
+	err = contact.DeleteContact(controller.DB)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	// Refresh the pinger with the changes.
+	// TODO: Check whether this contact is associated with any active site first.
+	err = controller.pinger.UpdateSiteSettings()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
 }
