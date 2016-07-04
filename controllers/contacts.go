@@ -116,7 +116,14 @@ func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.R
 	contactEdit := new(viewmodels.ContactsEditViewModel)
 	contactEdit.EmailActive = false
 	contactEdit.SmsActive = false
-	vm := viewmodels.NewContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
+	// Get all of the sites to display in the sites-to-assign table.
+	var sites database.Sites
+	err := sites.GetSites(controller.DB, true, false)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	vm := viewmodels.NewContactViewModel(contactEdit, sites, isAuthenticated,
+		user, make(map[string]string))
 	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
@@ -139,7 +146,14 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.NewContactViewModel(formContact, isAuthenticated, user, valErrors)
+		// Get all of the sites to display in the sites-to-assign table.
+		var sites database.Sites
+		err = sites.GetSites(controller.DB, true, false)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		vm := viewmodels.NewContactViewModel(formContact, sites, isAuthenticated,
+			user, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
@@ -150,6 +164,20 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
+
+	//Add contact to any selected sites
+	for _, siteSelID := range formContact.SelectedSites {
+		var site database.Site
+		err = site.GetSite(controller.DB, siteSelID)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		err = site.AddContactToSite(controller.DB, contact.ContactID)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+	}
+
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
 }
