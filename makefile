@@ -12,6 +12,7 @@ DIST_PATH=$(GOPATH)$(PATHSEP)dist$(PATHSEP)go-ping-sites
 SRC_PATH=$(GOPATH)$(PATHSEP)src$(PATHSEP)github.com$(PATHSEP)turnkey-commerce$(PATHSEP)go-ping-sites
 
 default:
+	$(eval export GO15VENDOREXPERIMENT = 1)
 	go install -ldflags "-X main.version=1.1.0" -v
 	-mkdir $(DIST_PATH)
 	cp $(GOPATH)$(PATHSEP)bin$(PATHSEP)$(EXE_NAME) $(DIST_PATH)$(PATHSEP)$(EXE_NAME)

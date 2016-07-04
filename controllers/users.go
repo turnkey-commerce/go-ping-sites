@@ -146,6 +146,39 @@ func (controller *usersController) deleteGet(rw http.ResponseWriter, req *http.R
 	return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 }
 
+func (controller *usersController) deletePost(rw http.ResponseWriter, req *http.Request) (int, error) {
+	err := req.ParseForm()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	decoder := schema.NewDecoder()
+	// Ignore unknown keys to prevent errors from the CSRF token.
+	decoder.IgnoreUnknownKeys(true)
+	formUser := new(viewmodels.UsersEditViewModel)
+	err = decoder.Decode(formUser, req.PostForm)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	valErrors := validateUserForm(formUser, true)
+	if len(valErrors) > 0 {
+		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
+		vm := viewmodels.DeleteUserViewModel(formUser, isAuthenticated, user, valErrors)
+		vm.CsrfField = csrf.TemplateField(req)
+		return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
+	}
+
+	var user httpauth.UserData
+	user.Username = formUser.Username
+	err = controller.authorizer.DeleteUser(user.Username)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	http.Redirect(rw, req, "/settings/users", http.StatusSeeOther)
+	return http.StatusSeeOther, nil
+}
+
 // validateUserForm checks the inputs for errors
 func validateUserForm(user *viewmodels.UsersEditViewModel, allowMissingPassword bool) (valErrors map[string]string) {
 	valErrors = make(map[string]string)

@@ -21,10 +21,12 @@
           <div class="form-group">
             <label for="Email">Email</label>
             <p>{{.User.Email}}</p>
+            <input type="hidden" name="email" value="{{.User.Email}}">
           </div>
           <div class="form-group">
             <label for="Role">Role</label>
             <p>{{.User.Role}}</p>
+            <input type="hidden" name="role" value="{{.User.Role}}">
           </div>
           <button type="submit" class="btn btn-danger ladda-button" data-style="expand-left"><span class="ladda-label">Delete User</span></button>
           &nbsp;&nbsp;<button type="button" class="btn btn-secondary" onclick="window.location.href='/settings/users'; return false;" >Cancel</button>
