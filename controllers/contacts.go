@@ -174,6 +174,13 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 		}
 	}
 
+	// Refresh the pinger with the changes.
+	// TODO: Check whether this contact has been added to any site first.
+	err = controller.pinger.UpdateSiteSettings()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
 	http.Redirect(rw, req, "/settings/contacts", http.StatusSeeOther)
 	return http.StatusSeeOther, nil
 }
