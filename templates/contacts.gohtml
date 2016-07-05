@@ -16,10 +16,10 @@
             <tr>
               <th class="col-md-1"><a href="/settings/contacts/new" title="Add Contact"><span class="glyphicon glyphicon-plus"></span></a></th>
               <th class="col-md-2">Name</th>
-              <th class="col-md-3">Email</th>
               <th class="col-md-1 text-center">Email<br />Active?</th>
-              <th class="col-md-2">Text Number</th>
+              <th class="col-md-3">Email</th>
               <th class="col-md-1 text-center">Text<br />Active?</th>
+              <th class="col-md-2">Text Number</th>
             </tr>
           </thead>
           <tbody>
@@ -28,10 +28,10 @@
                 <td><a href="/settings/contacts/{{.ContactID}}/edit" title="Edit Contact"><span class="glyphicon glyphicon-edit"></span></a>
                 &nbsp;&nbsp;<a href="/settings/contacts/{{.ContactID}}/delete" title="Delete Contact"><span class="glyphicon glyphicon-remove"></span><a></td></td>
                 <td>{{.Name}}</td>
-                <td>{{.EmailAddress}}</td>
                 <td class="text-center">{{.EmailActive | displayBool}}</td>
-                <td>{{.SmsNumber}}</td>
+                <td>{{.EmailAddress}}</td>
                 <td class="text-center">{{.SmsActive | displayBool}}</td>
+                <td>{{.SmsNumber}}</td>
               </tr>
             {{end}}
           </tbody>

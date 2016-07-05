@@ -116,14 +116,12 @@ func (controller *contactsController) newGet(rw http.ResponseWriter, req *http.R
 	contactEdit := new(viewmodels.ContactsEditViewModel)
 	contactEdit.EmailActive = false
 	contactEdit.SmsActive = false
-	// Get all of the sites to display in the sites-to-assign table.
-	var sites database.Sites
-	err := sites.GetSites(controller.DB, true, false)
+	sites, err := getAllSites(controller)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	vm := viewmodels.NewContactViewModel(contactEdit, sites, isAuthenticated,
-		user, make(map[string]string))
+	vm := viewmodels.NewContactViewModel(contactEdit, sites, true,
+		isAuthenticated, user, make(map[string]string))
 	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 }
@@ -146,14 +144,12 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		// Get all of the sites to display in the sites-to-assign table.
-		var sites database.Sites
-		err = sites.GetSites(controller.DB, true, false)
-		if err != nil {
+		sites, errGet := getAllSites(controller)
+		if errGet != nil {
 			return http.StatusInternalServerError, err
 		}
-		vm := viewmodels.NewContactViewModel(formContact, sites, isAuthenticated,
-			user, valErrors)
+		vm := viewmodels.NewContactViewModel(formContact, sites, false,
+			isAuthenticated, user, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.newTemplate.Execute(rw, vm)
 	}
@@ -269,4 +265,14 @@ func mapContacts(contact *database.Contact, formContact *viewmodels.ContactsEdit
 	contact.EmailActive = formContact.EmailActive
 	contact.SmsNumber = formContact.SmsNumber
 	contact.SmsActive = formContact.SmsActive
+}
+
+func getAllSites(controller *contactsController) (database.Sites, error) {
+	// Get all of the sites to display in the sites-to-assign table.
+	var sites database.Sites
+	err := sites.GetSites(controller.DB, false, false)
+	if err != nil {
+		return nil, err
+	}
+	return sites, nil
 }

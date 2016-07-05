@@ -104,7 +104,8 @@ func EditContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bo
 
 // NewContactViewModel populates the items required by the user_contact.gohtml view
 func NewContactViewModel(formContact *ContactsEditViewModel, allSites database.Sites,
-	isAuthenticated bool, user httpauth.UserData, errors map[string]string) ContactViewModel {
+	selectAllSites bool, isAuthenticated bool, user httpauth.UserData,
+	errors map[string]string) ContactViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -126,20 +127,26 @@ func NewContactViewModel(formContact *ContactsEditViewModel, allSites database.S
 	contactVM.SmsActive = formContact.SmsActive
 
 	result.Contact = *contactVM
-	result.AllSites = PopulateAllSitesVM(allSites, formContact.SelectedSites)
+	result.AllSites = PopulateAllSitesVM(allSites, formContact.SelectedSites,
+		selectAllSites)
 
 	return result
 }
 
 // PopulateAllSitesVM returns the view model for all of the sites
-func PopulateAllSitesVM(allSites database.Sites, selectedSiteIDs []int64) []ContactsAllSitesViewModel {
+func PopulateAllSitesVM(allSites database.Sites, selectedSiteIDs []int64,
+	selectAllSites bool) []ContactsAllSitesViewModel {
 	var allSitesVM = []ContactsAllSitesViewModel{}
 	for _, site := range allSites {
 		hasMatch := false
-		for _, siteID := range selectedSiteIDs {
-			if siteID == site.SiteID {
-				hasMatch = true
-				break
+		if selectAllSites {
+			hasMatch = true
+		} else {
+			for _, siteID := range selectedSiteIDs {
+				if siteID == site.SiteID {
+					hasMatch = true
+					break
+				}
 			}
 		}
 		siteVM := ContactsAllSitesViewModel{

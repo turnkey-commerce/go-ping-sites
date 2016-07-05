@@ -7,13 +7,6 @@
   {{ end }}
 </div>
 <div class="form-group">
-  <label for="emailAddress">Email</label>
-  <input type="email" class="form-control" name="emailAddress" id="emailAddress" value="{{.Contact.EmailAddress}}">
-  {{ with .Errors.EmailAddress }}
-    <div class="error">{{ . }}</div>
-  {{ end }}
-</div>
-<div class="form-group">
   <label for="emailActive">
     <input type="checkbox" name="emailActive" id="emailActive" {{if .Contact.EmailActive}}checked{{end}}>
     Email Active?
@@ -23,18 +16,26 @@
   {{ end }}
 </div>
 <div class="form-group">
-  <label for="smsNumber">Text Message Number</label>
-  <input type="text" class="form-control" name="smsNumber" id="smsNumber" value="{{.Contact.SmsNumber}}">
-  {{ with .Errors.SmsNumber }}
+  <label for="emailAddress">Email</label>
+  <input type="email" class="form-control" name="emailAddress" id="emailAddress" value="{{.Contact.EmailAddress}}">
+  {{ with .Errors.EmailAddress }}
     <div class="error">{{ . }}</div>
   {{ end }}
 </div>
+<hr>
 <div class="form-group">
   <label for="smsActive">
     <input type="checkbox" name="smsActive" id="smsActive" {{if .Contact.SmsActive}}checked{{end}}>
     Text Message Active?
   </label>
   {{ with .Errors.EmailActive }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="smsNumber">Text Message Number</label>
+  <input type="text" class="form-control" name="smsNumber" id="smsNumber" value="{{.Contact.SmsNumber}}">
+  {{ with .Errors.SmsNumber }}
     <div class="error">{{ . }}</div>
   {{ end }}
 </div>
