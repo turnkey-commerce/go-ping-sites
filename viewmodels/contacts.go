@@ -75,8 +75,8 @@ func GetContactsViewModel(contacts database.Contacts, isAuthenticated bool,
 }
 
 // EditContactViewModel populates the items required by the user_contact.gohtml view
-func EditContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bool,
-	user httpauth.UserData, errors map[string]string) ContactViewModel {
+func EditContactViewModel(formContact *ContactsEditViewModel, allSites database.Sites,
+	isAuthenticated bool, user httpauth.UserData, errors map[string]string) ContactViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -98,6 +98,8 @@ func EditContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bo
 	contactVM.SmsActive = formContact.SmsActive
 
 	result.Contact = *contactVM
+	result.AllSites = PopulateAllSitesVM(allSites, formContact.SelectedSites,
+		false)
 
 	return result
 }

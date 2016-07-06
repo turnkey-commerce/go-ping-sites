@@ -58,8 +58,17 @@ func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.
 	contactEdit.SmsNumber = contact.SmsNumber
 	contactEdit.EmailActive = contact.EmailActive
 	contactEdit.SmsActive = contact.SmsActive
+	contactEdit.SelectedSites, err = getContactSiteIDs(controller, contact)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	vm := viewmodels.EditContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
+	sites, errGet := getAllSites(controller)
+	if errGet != nil {
+		return http.StatusInternalServerError, errGet
+	}
+
+	vm := viewmodels.EditContactViewModel(contactEdit, sites, isAuthenticated, user, make(map[string]string))
 	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
@@ -82,7 +91,12 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		sites, errGet := getAllSites(controller)
+		if errGet != nil {
+			return http.StatusInternalServerError, err
+		}
+		vm := viewmodels.EditContactViewModel(formContact, sites, isAuthenticated,
+			user, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
@@ -202,7 +216,9 @@ func (controller *contactsController) deleteGet(rw http.ResponseWriter, req *htt
 	contactDelete.Name = contact.Name
 	contactDelete.ContactID = contact.ContactID
 	contactDelete.EmailAddress = contact.EmailAddress
-	vm := viewmodels.EditContactViewModel(contactDelete, isAuthenticated, user, make(map[string]string))
+	var noSites = []database.Site{}
+	vm := viewmodels.EditContactViewModel(contactDelete, noSites, isAuthenticated,
+		user, make(map[string]string))
 	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 }
@@ -225,7 +241,9 @@ func (controller *contactsController) deletePost(rw http.ResponseWriter, req *ht
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		var noSites = []database.Site{}
+		vm := viewmodels.EditContactViewModel(formContact, noSites, isAuthenticated,
+			user, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 	}
@@ -282,4 +300,17 @@ func getAllSites(controller *contactsController) (database.Sites, error) {
 		return nil, err
 	}
 	return sites, nil
+}
+
+func getContactSiteIDs(controller *contactsController, contact *database.Contact) ([]int64, error) {
+	// Get the site ID's for a given contact
+	siteIDs := []int64{}
+	err := contact.GetContactSites(controller.DB)
+	if err != nil {
+		return nil, err
+	}
+	for _, site := range contact.Sites {
+		siteIDs = append(siteIDs, site.SiteID)
+	}
+	return siteIDs, nil
 }

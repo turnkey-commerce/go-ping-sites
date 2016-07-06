@@ -31,6 +31,7 @@ type Contact struct {
 	SmsNumber    string
 	SmsActive    bool
 	EmailActive  bool
+	Sites        []Site
 }
 
 // Sites is a slice of sites
@@ -147,7 +148,7 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing FROM Sites
 		WHERE SiteID = $1`, siteID).
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds,
-		&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing)
+			&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing)
 	if err != nil {
 		return err
 	}
@@ -242,6 +243,43 @@ func (s *Site) GetSiteContacts(db *sql.DB, siteID int64) error {
 	return nil
 }
 
+// GetContactSites gets the collection of sites for a given contact.
+func (c *Contact) GetContactSites(db *sql.DB) error {
+	rows, err := db.Query(`SELECT s.SiteID, Name, IsActive, URL, PingIntervalSeconds,
+		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing
+		FROM Sites s JOIN SiteContacts sc ON s.SiteID = sc.SiteID WHERE sc.ContactID = $1
+		ORDER BY Name`, c.ContactID)
+	if err != nil {
+		return err
+	}
+	// nil out the slice in case it is rereading it from the DB.
+	c.Sites = nil
+	defer rows.Close()
+	for rows.Next() {
+		var SiteID int64
+		var Name string
+		var IsActive bool
+		var URL string
+		var PingIntervalSeconds int
+		var TimeoutSeconds int
+		var IsSiteUp bool
+		var LastStatusChange time.Time
+		var LastPing time.Time
+		var FirstPing time.Time
+		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds,
+			&TimeoutSeconds, &IsSiteUp, &LastStatusChange, &LastPing, &FirstPing)
+		if err != nil {
+			return err
+		}
+		c.Sites = append(c.Sites, Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
+			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
+			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing,
+			FirstPing: FirstPing})
+	}
+
+	return nil
+}
+
 // CreateContact inserts a new contact in the DB.
 func (c *Contact) CreateContact(db *sql.DB) error {
 	result, err := db.Exec(
@@ -317,7 +355,7 @@ func (c *Contact) GetContact(db *sql.DB, contactID int64) error {
 	err := db.QueryRow(`SELECT ContactID, Name, EmailAddress, SmsNumber, SmsActive,
 		EmailActive FROM Contacts WHERE ContactID = $1`, contactID).
 		Scan(&c.ContactID, &c.Name, &c.EmailAddress, &c.SmsNumber, &c.SmsActive,
-		&c.EmailActive)
+			&c.EmailActive)
 	if err != nil {
 		return err
 	}

@@ -39,4 +39,30 @@
     <div class="error">{{ . }}</div>
   {{ end }}
 </div>
+<!-- List sites that can be assigned to the new contact -->
+<div class="form-group">
+  <label for="assignedContacts">Assign Contact to Sites</label>
+  <div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th class="col-md-1 text-center">Assign?</th>
+        <th class="col-md-2">Site</th>
+        <th class="col-md-1 text-center">Active?</th>
+        <th class="col-md-3">URL</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .AllSites}}
+        <tr>
+          <td class="text-center"><input type="checkbox" name="selectedSites" id="selectedSites" value="{{.SiteID}}" {{if .IsAssigned}}checked{{end}}></td>
+          <td>{{.Name}}</td>
+          <td class="text-center">{{.IsActive | displayBool}}</td>
+          <td>{{.URL}}</td>
+        </tr>
+      {{end}}
+    </tbody>
+  </table>
+  </div>
+</div>
 {{ .CsrfField }}
