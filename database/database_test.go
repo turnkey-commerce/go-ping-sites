@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -416,6 +417,8 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to get all contacts.", err)
 	}
+
+	fmt.Println("Contacts ", contacts)
 
 	// Verify the first contact was Loaded as the last in list by sort order
 	if !reflect.DeepEqual(c, contacts[1]) {

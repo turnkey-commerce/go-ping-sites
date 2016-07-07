@@ -114,6 +114,30 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 		return http.StatusInternalServerError, err
 	}
 
+	contactSiteIDS, getErr := getContactSiteIDs(controller, contact)
+	if getErr != nil {
+		return http.StatusInternalServerError, getErr
+	}
+	//Loop selected ones first and if it's not already in the site then add it.
+	for _, siteSelID := range formContact.SelectedSites {
+		if !int64InSlice(int64(siteSelID), contactSiteIDS) {
+			err = addContactToSite(controller, contact.ContactID, siteSelID)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		}
+	}
+
+	// Loop existing contact sites and if it's not in the selected items then remove it.
+	for _, contactSiteID := range contactSiteIDS {
+		if !int64InSlice(int64(contactSiteID), formContact.SelectedSites) {
+			err = removeContactFromSite(controller, contact.ContactID, contactSiteID)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		}
+	}
+
 	// Refresh the pinger with the changes.
 	// TODO: Check whether this contact is associated with any active site first.
 	err = controller.pinger.UpdateSiteSettings()
@@ -177,12 +201,7 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 
 	//Add contact to any selected sites
 	for _, siteSelID := range formContact.SelectedSites {
-		var site database.Site
-		err = site.GetSite(controller.DB, siteSelID)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		err = site.AddContactToSite(controller.DB, contact.ContactID)
+		err = addContactToSite(controller, contact.ContactID, siteSelID)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -313,4 +332,30 @@ func getContactSiteIDs(controller *contactsController, contact *database.Contact
 		siteIDs = append(siteIDs, site.SiteID)
 	}
 	return siteIDs, nil
+}
+
+func addContactToSite(controller *contactsController, contactID int64, siteID int64) error {
+	var site database.Site
+	err := site.GetSite(controller.DB, siteID)
+	if err != nil {
+		return err
+	}
+	err = site.AddContactToSite(controller.DB, contactID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func removeContactFromSite(controller *contactsController, contactID int64, siteID int64) error {
+	var site database.Site
+	err := site.GetSite(controller.DB, siteID)
+	if err != nil {
+		return err
+	}
+	err = site.RemoveContactFromSite(controller.DB, contactID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

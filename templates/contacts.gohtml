@@ -20,6 +20,7 @@
               <th class="col-md-3">Email</th>
               <th class="col-md-1 text-center">Text<br />Active?</th>
               <th class="col-md-2">Text Number</th>
+              <th class="col-md-1 text-center">#<br />Sites</th>
             </tr>
           </thead>
           <tbody>
@@ -32,6 +33,7 @@
                 <td>{{.EmailAddress}}</td>
                 <td class="text-center">{{.SmsActive | displayBool}}</td>
                 <td>{{.SmsNumber}}</td>
+                <td class="text-center">{{.SiteCount}}</td>
               </tr>
             {{end}}
           </tbody>

@@ -16,6 +16,7 @@ type ContactsEditViewModel struct {
 	SmsActive     bool    `valid:"-"`
 	EmailActive   bool    `valid:"-"`
 	SelectedSites []int64 `valid:"-"`
+	SiteCount     int     `valid:"-"`
 }
 
 // ContactsViewModel holds the view information for the contacts.gohtml template
@@ -67,6 +68,7 @@ func GetContactsViewModel(contacts database.Contacts, isAuthenticated bool,
 		contactVM.EmailActive = contact.EmailActive
 		contactVM.SmsNumber = contact.SmsNumber
 		contactVM.SmsActive = contact.SmsActive
+		contactVM.SiteCount = contact.SiteCount
 
 		result.Contacts = append(result.Contacts, *contactVM)
 	}

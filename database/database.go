@@ -31,6 +31,7 @@ type Contact struct {
 	SmsNumber    string
 	SmsActive    bool
 	EmailActive  bool
+	SiteCount    int
 	Sites        []Site
 }
 
@@ -394,8 +395,10 @@ func (s Site) RemoveContactFromSite(db *sql.DB, contactID int64) error {
 
 // GetContacts gets all contacts
 func (c *Contacts) GetContacts(db *sql.DB) error {
-	rows, err := db.Query(`SELECT ContactID, Name, EmailAddress, SmsNumber, EmailActive, SmsActive
-		FROM Contacts
+	rows, err := db.Query(`SELECT Contacts.ContactID, Name, EmailAddress, SmsNumber,
+		EmailActive, SmsActive, count(Distinct SiteContacts.SiteID) AS SiteCount
+		FROM Contacts LEFT JOIN SiteContacts ON Contacts.ContactId = SiteContacts.ContactId
+		GROUP BY Contacts.ContactId, Name, EmailAddress, SmsNumber, EmailActive, SmsActive
 	  ORDER BY Name`)
 	if err != nil {
 		return err
@@ -409,13 +412,15 @@ func (c *Contacts) GetContacts(db *sql.DB) error {
 		var SmsNumber string
 		var EmailActive bool
 		var SmsActive bool
-		err = rows.Scan(&ContactID, &Name, &EmailAddress, &SmsNumber, &EmailActive, &SmsActive)
+		var SiteCount int
+		err = rows.Scan(&ContactID, &Name, &EmailAddress, &SmsNumber, &EmailActive,
+			&SmsActive, &SiteCount)
 		if err != nil {
 			return err
 		}
 		*c = append(*c, Contact{ContactID: ContactID, Name: Name,
 			EmailAddress: EmailAddress, SmsNumber: SmsNumber, EmailActive: EmailActive,
-			SmsActive: SmsActive})
+			SmsActive: SmsActive, SiteCount: SiteCount})
 	}
 
 	return nil
