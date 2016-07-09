@@ -3,7 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
-	"text/template"
+	"html/template"
 
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"

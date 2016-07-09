@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"strconv"
-	"text/template"
+	"html/template"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"

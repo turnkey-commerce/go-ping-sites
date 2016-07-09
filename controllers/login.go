@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strings"
-	"text/template"
+	"html/template"
 
 	"github.com/gorilla/csrf"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
