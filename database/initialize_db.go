@@ -199,7 +199,7 @@ func upgradeDB(db *sql.DB) error {
 
 const testDb string = "./test.db"
 
-// InitializeTestDB is for test packages to initalize a DB for integration testing.
+// InitializeTestDB is for test packages to initialize a DB for integration testing.
 func InitializeTestDB(seedFile string) (*sql.DB, error) {
 	var db *sql.DB
 	err := deleteDb(testDb)
@@ -215,7 +215,7 @@ func InitializeTestDB(seedFile string) (*sql.DB, error) {
 
 const reportDB string = "./report_test.db"
 
-// InitializeReportDB is for test packages to initalize a Report DB for integration testing.
+// InitializeReportDB is for test packages to initialize a Report DB for integration testing.
 func InitializeReportDB() (*sql.DB, error) {
 	var db *sql.DB
 	db, err := InitializeDB(reportDB, "")

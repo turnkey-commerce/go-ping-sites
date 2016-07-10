@@ -3,8 +3,8 @@ package viewmodels
 import (
 	"strconv"
 
-	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/apexskier/httpauth"
+	"github.com/turnkey-commerce/go-ping-sites/database"
 )
 
 // ReportViewModel holds the view information for the report.gohtml template

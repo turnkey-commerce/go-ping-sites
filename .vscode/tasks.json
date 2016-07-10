@@ -1,0 +1,22 @@
+{
+    "version": "0.1.0",
+    "command": "cmd",
+    "isShellCommand": true,
+    "showOutput": "always",
+    "args": ["/C"],
+
+    "tasks": [
+        {
+            "taskName": "test",
+            "suppressTaskName": true,
+            "args": ["go", "test", "./config", "./controllers", "./database", "./notifier", "./pinger", "./viewmodels"],
+            "isTestCommand": true
+        },
+        {
+            "taskName": "build",
+            "suppressTaskName": true,
+            "args": ["make"],
+            "isBuildCommand": true
+        }
+    ]
+}

@@ -695,6 +695,9 @@ func TestReport(t *testing.T) {
 	}
 	defer db.Close()
 	report, err := database.GetYTDReports(db)
+	if err != nil {
+		t.Fatal("Failed to get report:", err)
+	}
 	site := "Example.com"
 	if report[site][0].PingsUp != 2875 {
 		t.Errorf("PingsUp should be 2875, got %d", report[site][0].PingsUp)

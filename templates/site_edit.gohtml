@@ -15,7 +15,7 @@
           <input type="hidden" name="siteID" value="{{.Site.SiteID}}">
           {{template "_site_edit_form.gohtml" .}}
           <button type="submit" class="btn btn-primary ladda-button" data-style="expand-left"><span class="ladda-label">Submit Changes</span></button>
-          &nbsp;&nbsp;<button type="button" class="btn btn-secondary" onclick="window.history.go(-1); return false;" >Cancel</button>
+          &nbsp;&nbsp;<button type="button" class="btn btn-secondary" onclick="window.location.href='/settings'; return false;" >Cancel</button>
         </form>
       </div>
     </div>
