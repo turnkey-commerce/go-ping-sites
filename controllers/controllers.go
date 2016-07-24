@@ -3,10 +3,10 @@ package controllers
 import (
 	"bufio"
 	"database/sql"
+	"html/template"
 	"net/http"
 	"os"
 	"strings"
-	"text/template"
 
 	"github.com/apexskier/httpauth"
 	"github.com/gorilla/csrf"
@@ -213,7 +213,7 @@ func getCurrentUser(rw http.ResponseWriter, req *http.Request, authorizer Curren
 }
 
 // displayBool allows for colored display of Y/N in the templates.
-func displayBool(input bool) string {
+func displayBool(input bool) template.HTML {
 	if input {
 		return "<span class=\"text-success\">Y<span>"
 	}
@@ -221,7 +221,7 @@ func displayBool(input bool) string {
 }
 
 // displayActiveRow allows for light display of inactive rows in tables.
-func displayActiveClass(input bool) string {
+func displayActiveClass(input bool) template.HTMLAttr {
 	if input {
 		return "class=\"text-active\""
 	}

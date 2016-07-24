@@ -1,5 +1,6 @@
 # GoPingSites
 [![Build Status](https://travis-ci.org/turnkey-commerce/go-ping-sites.svg?branch=master)](https://travis-ci.org/turnkey-commerce/go-ping-sites)
+ [![Go Report Card](https://goreportcard.com/badge/github.com/turnkey-commerce/go-ping-sites)](https://goreportcard.com/report/github.com/turnkey-commerce/go-ping-sites) 
 
 GoPingSites is a tool to monitor multiple websites, written in Go.
 ## Steps to setup locally

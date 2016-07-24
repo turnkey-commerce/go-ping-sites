@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"database/sql"
+	"html/template"
 	"net/http"
-	"text/template"
 
+	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
-	"github.com/apexskier/httpauth"
 )
 
 type settingsController struct {

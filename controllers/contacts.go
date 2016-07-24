@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"strconv"
-	"text/template"
+	"html/template"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
@@ -58,8 +58,17 @@ func (controller *contactsController) editGet(rw http.ResponseWriter, req *http.
 	contactEdit.SmsNumber = contact.SmsNumber
 	contactEdit.EmailActive = contact.EmailActive
 	contactEdit.SmsActive = contact.SmsActive
+	contactEdit.SelectedSites, err = getContactSiteIDs(controller, contact)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
 
-	vm := viewmodels.EditContactViewModel(contactEdit, isAuthenticated, user, make(map[string]string))
+	sites, errGet := getAllSites(controller)
+	if errGet != nil {
+		return http.StatusInternalServerError, errGet
+	}
+
+	vm := viewmodels.EditContactViewModel(contactEdit, sites, isAuthenticated, user, make(map[string]string))
 	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 }
@@ -82,7 +91,12 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		sites, errGet := getAllSites(controller)
+		if errGet != nil {
+			return http.StatusInternalServerError, err
+		}
+		vm := viewmodels.EditContactViewModel(formContact, sites, isAuthenticated,
+			user, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.editTemplate.Execute(rw, vm)
 	}
@@ -98,6 +112,30 @@ func (controller *contactsController) editPost(rw http.ResponseWriter, req *http
 	err = contact.UpdateContact(controller.DB)
 	if err != nil {
 		return http.StatusInternalServerError, err
+	}
+
+	contactSiteIDS, getErr := getContactSiteIDs(controller, contact)
+	if getErr != nil {
+		return http.StatusInternalServerError, getErr
+	}
+	//Loop selected ones first and if it's not already in the site then add it.
+	for _, siteSelID := range formContact.SelectedSites {
+		if !int64InSlice(int64(siteSelID), contactSiteIDS) {
+			err = addContactToSite(controller, contact.ContactID, siteSelID)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		}
+	}
+
+	// Loop existing contact sites and if it's not in the selected items then remove it.
+	for _, contactSiteID := range contactSiteIDS {
+		if !int64InSlice(int64(contactSiteID), formContact.SelectedSites) {
+			err = removeContactFromSite(controller, contact.ContactID, contactSiteID)
+			if err != nil {
+				return http.StatusInternalServerError, err
+			}
+		}
 	}
 
 	// Refresh the pinger with the changes.
@@ -163,12 +201,7 @@ func (controller *contactsController) newPost(rw http.ResponseWriter, req *http.
 
 	//Add contact to any selected sites
 	for _, siteSelID := range formContact.SelectedSites {
-		var site database.Site
-		err = site.GetSite(controller.DB, siteSelID)
-		if err != nil {
-			return http.StatusInternalServerError, err
-		}
-		err = site.AddContactToSite(controller.DB, contact.ContactID)
+		err = addContactToSite(controller, contact.ContactID, siteSelID)
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -202,7 +235,9 @@ func (controller *contactsController) deleteGet(rw http.ResponseWriter, req *htt
 	contactDelete.Name = contact.Name
 	contactDelete.ContactID = contact.ContactID
 	contactDelete.EmailAddress = contact.EmailAddress
-	vm := viewmodels.EditContactViewModel(contactDelete, isAuthenticated, user, make(map[string]string))
+	var noSites = []database.Site{}
+	vm := viewmodels.EditContactViewModel(contactDelete, noSites, isAuthenticated,
+		user, make(map[string]string))
 	vm.CsrfField = csrf.TemplateField(req)
 	return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 }
@@ -225,7 +260,9 @@ func (controller *contactsController) deletePost(rw http.ResponseWriter, req *ht
 	valErrors := validateContactForm(formContact)
 	if len(valErrors) > 0 {
 		isAuthenticated, user := getCurrentUser(rw, req, controller.authorizer)
-		vm := viewmodels.EditContactViewModel(formContact, isAuthenticated, user, valErrors)
+		var noSites = []database.Site{}
+		vm := viewmodels.EditContactViewModel(formContact, noSites, isAuthenticated,
+			user, valErrors)
 		vm.CsrfField = csrf.TemplateField(req)
 		return http.StatusOK, controller.deleteTemplate.Execute(rw, vm)
 	}
@@ -282,4 +319,43 @@ func getAllSites(controller *contactsController) (database.Sites, error) {
 		return nil, err
 	}
 	return sites, nil
+}
+
+func getContactSiteIDs(controller *contactsController, contact *database.Contact) ([]int64, error) {
+	// Get the site ID's for a given contact
+	siteIDs := []int64{}
+	err := contact.GetContactSites(controller.DB)
+	if err != nil {
+		return nil, err
+	}
+	for _, site := range contact.Sites {
+		siteIDs = append(siteIDs, site.SiteID)
+	}
+	return siteIDs, nil
+}
+
+func addContactToSite(controller *contactsController, contactID int64, siteID int64) error {
+	var site database.Site
+	err := site.GetSite(controller.DB, siteID)
+	if err != nil {
+		return err
+	}
+	err = site.AddContactToSite(controller.DB, contactID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func removeContactFromSite(controller *contactsController, contactID int64, siteID int64) error {
+	var site database.Site
+	err := site.GetSite(controller.DB, siteID)
+	if err != nil {
+		return err
+	}
+	err = site.RemoveContactFromSite(controller.DB, contactID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

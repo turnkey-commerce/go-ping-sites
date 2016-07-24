@@ -1,13 +1,13 @@
 package controllers
 
 import (
+	"html/template"
 	"net/http"
 	"strings"
-	"text/template"
 
+	"github.com/apexskier/httpauth"
 	"github.com/gorilla/csrf"
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
-	"github.com/apexskier/httpauth"
 )
 
 type loginController struct {

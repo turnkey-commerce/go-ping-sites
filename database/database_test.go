@@ -1,6 +1,7 @@
 package database_test
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -284,6 +285,10 @@ func TestDeleteContact(t *testing.T) {
 	if len(contacts) != 1 {
 		t.Error("There should only be one contact in the DB after deletion.")
 	}
+
+	if contacts[0].SiteCount != 1 {
+		t.Error("Site count should be 1.")
+	}
 }
 
 // TestCreateUniqueSite tests that the same URL and Site Name can't be entered twice.
@@ -389,7 +394,7 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 
 	// Create first contact
 	c := database.Contact{Name: "Joe Contact", EmailAddress: "joe@test.com", SmsNumber: "5125551212",
-		SmsActive: false, EmailActive: false}
+		SmsActive: false, EmailActive: false, SiteCount: 0}
 	err = c.CreateContact(db)
 	if err != nil {
 		t.Fatal("Failed to create new contact:", err)
@@ -397,7 +402,7 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 
 	// Create second contact
 	c2 := database.Contact{Name: "Jack Contact", EmailAddress: "jack@test.com", SmsNumber: "5125551213",
-		SmsActive: false, EmailActive: false}
+		SmsActive: false, EmailActive: false, SiteCount: 0}
 	err = c2.CreateContact(db)
 	if err != nil {
 		t.Fatal("Failed to create new contact:", err)
@@ -416,6 +421,8 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 	if err != nil {
 		t.Fatal("Failed to get all contacts.", err)
 	}
+
+	fmt.Println("Contacts ", contacts)
 
 	// Verify the first contact was Loaded as the last in list by sort order
 	if !reflect.DeepEqual(c, contacts[1]) {
@@ -614,6 +621,33 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 		t.Error("Second saved contact not equal to input:\n", sites[1].Contacts[0], c1)
 	}
 
+	// Verify that the first contact can get both related sites
+	err = c1.GetContactSites(db)
+	if err != nil {
+		t.Error("Error getting the sites for the first contact.")
+	}
+	if s1.URL != c1.Sites[0].URL {
+		t.Error("First contact's first site not as expected:\n", c1.Sites[0].URL, s1.URL)
+	}
+	if s2.URL != c1.Sites[1].URL {
+		t.Error("First contact's second site not as expected:\n", c1.Sites[1].URL, s2.URL)
+	}
+	if len(c1.Sites) != 2 {
+		t.Error("First contact should have two associated site.")
+	}
+
+	// Verify that the second contact can get the only related sites
+	err = c2.GetContactSites(db)
+	if err != nil {
+		t.Error("Error getting the site for the second contact.")
+	}
+	if s1.URL != c2.Sites[0].URL {
+		t.Error("Second contact's first site not as expected:\n", c2.Sites[0].URL, s1.URL)
+	}
+	if len(c2.Sites) != 1 {
+		t.Error("Second contact should only have one associated site.")
+	}
+
 	// Test for just the active sites without the contacts
 	var sitesNoContacts database.Sites
 	err = sitesNoContacts.GetSites(db, true, false)
@@ -661,6 +695,9 @@ func TestReport(t *testing.T) {
 	}
 	defer db.Close()
 	report, err := database.GetYTDReports(db)
+	if err != nil {
+		t.Fatal("Failed to get report:", err)
+	}
 	site := "Example.com"
 	if report[site][0].PingsUp != 2875 {
 		t.Errorf("PingsUp should be 2875, got %d", report[site][0].PingsUp)

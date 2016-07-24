@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"net/http"
-	"text/template"
+	"html/template"
 
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )

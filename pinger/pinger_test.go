@@ -206,6 +206,9 @@ func TestGetSites(t *testing.T) {
 	}
 
 	sites, err = pinger.GetSites(db)
+	if err != nil {
+		t.Fatal("Failed to get sites:", err)
+	}
 	// Verify the first site was Loaded with proper attributes.
 	if !reflect.DeepEqual(s1.URL, sites[0].URL) || !reflect.DeepEqual(s1.IsActive, sites[0].IsActive) ||
 		!reflect.DeepEqual(s1.Name, sites[0].Name) || !reflect.DeepEqual(s1.PingIntervalSeconds,

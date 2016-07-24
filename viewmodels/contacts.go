@@ -16,6 +16,7 @@ type ContactsEditViewModel struct {
 	SmsActive     bool    `valid:"-"`
 	EmailActive   bool    `valid:"-"`
 	SelectedSites []int64 `valid:"-"`
+	SiteCount     int     `valid:"-"`
 }
 
 // ContactsViewModel holds the view information for the contacts.gohtml template
@@ -67,6 +68,7 @@ func GetContactsViewModel(contacts database.Contacts, isAuthenticated bool,
 		contactVM.EmailActive = contact.EmailActive
 		contactVM.SmsNumber = contact.SmsNumber
 		contactVM.SmsActive = contact.SmsActive
+		contactVM.SiteCount = contact.SiteCount
 
 		result.Contacts = append(result.Contacts, *contactVM)
 	}
@@ -75,8 +77,8 @@ func GetContactsViewModel(contacts database.Contacts, isAuthenticated bool,
 }
 
 // EditContactViewModel populates the items required by the user_contact.gohtml view
-func EditContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bool,
-	user httpauth.UserData, errors map[string]string) ContactViewModel {
+func EditContactViewModel(formContact *ContactsEditViewModel, allSites database.Sites,
+	isAuthenticated bool, user httpauth.UserData, errors map[string]string) ContactViewModel {
 	nav := NavViewModel{
 		Active:          "settings",
 		IsAuthenticated: isAuthenticated,
@@ -98,6 +100,8 @@ func EditContactViewModel(formContact *ContactsEditViewModel, isAuthenticated bo
 	contactVM.SmsActive = formContact.SmsActive
 
 	result.Contact = *contactVM
+	result.AllSites = PopulateAllSitesVM(allSites, formContact.SelectedSites,
+		false)
 
 	return result
 }

@@ -3,7 +3,7 @@ package controllers
 import (
 	"database/sql"
 	"net/http"
-	"text/template"
+	"html/template"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
