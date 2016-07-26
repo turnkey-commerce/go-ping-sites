@@ -6,7 +6,7 @@
 			"type": "go",
 			"request": "launch",
 			"mode": "test",
-			"program": "./database",
+			"program": "${workspaceRoot}/database",
 			"env": {},
 			"args": []
 		},
@@ -14,11 +14,11 @@
 			"name": "Launch main.go",
 			"type": "go",
 			"request": "launch",
-			"mode": "exec",
-			"program": "./go-ping-sites",
+			"mode": "debug",
+			"program": "${workspaceRoot}",
 			"env": {},
 			"args": []
-		},
+		}
 		
 	]
 }
