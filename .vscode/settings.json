@@ -1,0 +1,5 @@
+// Place your settings in this file to overwrite default and user settings.
+{
+    // Pick 'gofmt', 'goimports' or 'goreturns' to run on format.
+    "go.formatTool": "gofmt"
+}

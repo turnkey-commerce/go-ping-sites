@@ -3,6 +3,17 @@
  [![Go Report Card](https://goreportcard.com/badge/github.com/turnkey-commerce/go-ping-sites)](https://goreportcard.com/report/github.com/turnkey-commerce/go-ping-sites) 
 
 GoPingSites is a tool to monitor multiple websites, written in Go.
+
+Features include:
+* Setup multiple sites to monitor with a configurable ping frequency for each site.
+* Setup multiple contacts (per site) to notify about downtime and when service is restored.
+* Notifications optionally sent via email and/or text messaging.
+* Easy web user interface for dashboard, configurations, and uptime reports.
+* History saved to a SQLite database.
+* Easy installation and production deployment.
+
+![Dashboard Page](https://github.com/turnkey-commerce/go-ping-sites/blob/master/screenshots/dashboard.png)
+
 ## Steps to setup locally
 1. Use the make distribute command to build the project and will copy the necessary runtime files to $GOPATH/dist/go-ping-sites.
 

@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"net/http"
 	"html/template"
+	"net/http"
 
 	"github.com/turnkey-commerce/go-ping-sites/viewmodels"
 )

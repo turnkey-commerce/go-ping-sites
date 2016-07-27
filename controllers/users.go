@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	"net/http"
 	"html/template"
+	"net/http"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"

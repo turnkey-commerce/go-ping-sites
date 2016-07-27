@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"database/sql"
+	"html/template"
 	"net/http"
 	"strconv"
-	"html/template"
 
 	"github.com/apexskier/httpauth"
 	"github.com/asaskevich/govalidator"
