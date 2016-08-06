@@ -58,7 +58,9 @@ func TestCreateSiteAndContacts(t *testing.T) {
 
 	// First create a site to associate with the contacts.
 	// Note: SiteID is ignored for create but is used in the test comparison
-	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true}
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true, ContentExpected: "Expected Content",
+		ContentUnexpected: "Unexpected Content"}
 	err = s.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create new site:", err)

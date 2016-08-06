@@ -13,15 +13,15 @@ import (
 // It seems better to put it in the code rather than an external file to
 // prevent accidental changes by the users.
 const createStatements = `CREATE TABLE "Sites" (
-	"SiteId"	             INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+	"SiteId"	           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 	"Name"	               TEXT NOT NULL UNIQUE,
 	"IsActive"	           INTEGER NOT NULL DEFAULT 1,
-	"URL"	                 TEXT NOT NULL UNIQUE,
+	"URL"	               TEXT NOT NULL UNIQUE,
 	"PingIntervalSeconds"  INTEGER NOT NULL DEFAULT 60,
-	"TimeoutSeconds"	     INTEGER NOT NULL DEFAULT 30,
+	"TimeoutSeconds"	   INTEGER NOT NULL DEFAULT 30,
 	"IsSiteUp"             INTEGER NOT NULL DEFAULT 1,
 	"LastStatusChange"     TIMESTAMP,
-	"LastPing"						 TIMESTAMP
+	"LastPing"             TIMESTAMP
 );
 
 CREATE TABLE "SiteContacts" (
@@ -152,15 +152,20 @@ func seedInitialSites(db *sql.DB, seedFile string) error {
 // upgradeStatements is used to upgrade the DB from the initial state that
 // was created in the createStatements. If new statements are added then then
 // databaseVersion constant should be incremented below by 1.
-const upgradeStatements = `
+const upgradeStatements1 = `
 	CREATE INDEX IF NOT EXISTS pings_timerequest_httpstatuscode
 	ON pings (TimeRequest, HttpStatusCode);
 	ALTER TABLE "Sites" ADD COLUMN "FirstPing" TIMESTAMP;
 	UPDATE Sites SET FirstPing = '0001-01-01 00:00:00+00:00' WHERE FirstPing IS NULL;
 `
 
+const upgradeStatements2 = `
+	ALTER TABLE "Sites" ADD COLUMN "ContentExpected"    TEXT NOT NULL DEFAULT '';
+	ALTER TABLE "Sites" ADD COLUMN "ContentNotExpected" TEXT NOT NULL DEFAULT '';
+`
+
 // If new upgrade statements are added then this must be incremented by 1.
-const databaseVersion int32 = 2
+const databaseVersion int32 = 3
 
 //upgradeDB applies any upgrades since the initial schema of the DB.
 func upgradeDB(db *sql.DB) error {
@@ -180,10 +185,20 @@ func upgradeDB(db *sql.DB) error {
 		return err
 	}
 
-	_, err = db.Exec(upgradeStatements)
-	if err != nil {
-		tx.Rollback()
-		return err
+	if currentVersion < 2 {
+		_, err = db.Exec(upgradeStatements1)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if currentVersion < 3 {
+		_, err = db.Exec(upgradeStatements2)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	_, err = db.Exec(fmt.Sprintf("PRAGMA user_version = %d", databaseVersion))

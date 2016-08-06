@@ -16,6 +16,8 @@ type Site struct {
 	PingIntervalSeconds int
 	TimeoutSeconds      int
 	IsSiteUp            bool
+	ContentExpected     string
+	ContentUnexpected   string
 	LastStatusChange    time.Time
 	LastPing            time.Time
 	FirstPing           time.Time
