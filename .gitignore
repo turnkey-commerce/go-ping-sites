@@ -27,3 +27,4 @@ cover.out
 *.out
 database/test.db
 pinger/test.db
+*.db

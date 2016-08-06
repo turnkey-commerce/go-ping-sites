@@ -161,7 +161,7 @@ const upgradeStatements1 = `
 
 const upgradeStatements2 = `
 	ALTER TABLE "Sites" ADD COLUMN "ContentExpected"    TEXT NOT NULL DEFAULT '';
-	ALTER TABLE "Sites" ADD COLUMN "ContentNotExpected" TEXT NOT NULL DEFAULT '';
+	ALTER TABLE "Sites" ADD COLUMN "ContentUnexpected" TEXT NOT NULL DEFAULT '';
 `
 
 // If new upgrade statements are added then this must be incremented by 1.

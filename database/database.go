@@ -71,8 +71,9 @@ func (s *Site) CreateSite(db *sql.DB) error {
 	s.IsSiteUp = true
 	result, err := db.Exec(
 		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds,
-			IsSiteUp, LastStatusChange, LastPing, FirstPing)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			IsSiteUp, LastStatusChange, LastPing, FirstPing, ContentExpected,
+			ContentUnexpected)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
@@ -82,6 +83,8 @@ func (s *Site) CreateSite(db *sql.DB) error {
 		s.LastStatusChange,
 		s.LastPing,
 		s.FirstPing,
+		s.ContentExpected,
+		s.ContentUnexpected,
 	)
 	if err != nil {
 		return err
@@ -99,13 +102,16 @@ func (s *Site) CreateSite(db *sql.DB) error {
 func (s *Site) UpdateSite(db *sql.DB) error {
 	_, err := db.Exec(
 		`Update Sites SET Name = $1, URL = $2, IsActive = $3,
-		  PingIntervalSeconds = $4, TimeoutSeconds = $5
-			WHERE SiteId = $6`,
+		  	PingIntervalSeconds = $4, TimeoutSeconds = $5, 
+		  	ContentExpected = $6, ContentUnexpected = $7
+			WHERE SiteId = $8`,
 		s.Name,
 		s.URL,
 		s.IsActive,
 		s.PingIntervalSeconds,
 		s.TimeoutSeconds,
+		s.ContentExpected,
+		s.ContentUnexpected,
 		s.SiteID,
 	)
 	if err != nil {
@@ -148,10 +154,13 @@ func (s *Site) UpdateSiteFirstPing(db *sql.DB, firstPingTime time.Time) error {
 // GetSite gets the site details for a given site.
 func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing FROM Sites
+		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing,
+		ContentExpected, ContentUnExpected
+		FROM Sites
 		WHERE SiteID = $1`, siteID).
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds,
-			&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing)
+			&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing, &s.ContentExpected,
+			&s.ContentUnexpected)
 	if err != nil {
 		return err
 	}
@@ -160,12 +169,14 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 
 const getActiveSitesQueryString string = `SELECT SiteID, Name, IsActive, URL,
 	PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing,
-	FirstPing FROM Sites WHERE IsActive = $1
+	FirstPing, ContentExpected, ContentUnexpected
+	FROM Sites WHERE IsActive = $1
 	ORDER BY Name`
 
 const getAllSitesQueryString string = `SELECT SiteID, Name, IsActive, URL,
   PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing,
-	FirstPing FROM Sites
+	FirstPing, ContentExpected, ContentUnexpected
+	FROM Sites
 	ORDER BY Name`
 
 // GetSites gets all of the sites without contacts.
@@ -195,15 +206,19 @@ func (s *Sites) GetSites(db *sql.DB, activeOnly bool, withContacts bool) error {
 		var LastStatusChange time.Time
 		var LastPing time.Time
 		var FirstPing time.Time
+		var ContentExpected string
+		var ContentUnexpected string
 		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
-			&IsSiteUp, &LastStatusChange, &LastPing, &FirstPing)
+			&IsSiteUp, &LastStatusChange, &LastPing, &FirstPing, &ContentExpected,
+			&ContentUnexpected)
 		if err != nil {
 			return err
 		}
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
 			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing,
-			FirstPing: FirstPing}
+			FirstPing: FirstPing, ContentExpected: ContentExpected,
+			ContentUnexpected: ContentUnexpected}
 		if withContacts {
 			err = site.GetSiteContacts(db, site.SiteID)
 			if err != nil {
