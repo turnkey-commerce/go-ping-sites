@@ -35,6 +35,20 @@
     <div class="error">{{ . }}</div>
   {{ end }}
 </div>
+<div class="form-group">
+  <label for="contentExpected">HTML Content Must Contain (optional)</label>
+  <input type="text" class="form-control" name="contentExpected" id="contentExpected" value="{{.Site.ContentExpected}}">
+  {{ with .Errors.ContentExpected }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
+<div class="form-group">
+  <label for="contenUnexpected">HTML Content Must <b>Not</b> Contain (optional)</label>
+  <input type="text" class="form-control" name="contentUnexpected" id="contentUnexpected" value="{{.Site.ContentUnexpected}}">
+  {{ with .Errors.ContentUnexpected }}
+    <div class="error">{{ . }}</div>
+  {{ end }}
+</div>
 
 <div class="form-group">
   <label for="assignedContacts">Assigned Contacts</label>
