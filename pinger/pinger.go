@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -143,9 +144,9 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 			log.Println(s.Name, "Paused")
 			continue
 		}
-		_, statusCode, responseTime, err := requestURL(s.URL, s.TimeoutSeconds)
+		bodyContent, statusCode, responseTime, err := requestURL(s.URL, s.TimeoutSeconds)
 		log.Println(s.Name, "Pinged")
-		// Record ping informaton.
+		// Setup ping information for recording.
 		p := database.Ping{SiteID: s.SiteID, TimeRequest: time.Now()}
 		if err != nil {
 			// Check if the error is due to the Internet not being Accessible
@@ -160,7 +161,8 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				partialDetails = "Site is down, Error is " + err.Error()
 			}
 			siteWasUp = false
-		} else if statusCode != 200 {
+
+		} else if statusCode < 200 || statusCode > 299 { // Check if the status code is in the 2xx range.
 			log.Println(s.Name, "Error - HTTP Status Code is", statusCode)
 			if siteWasUp {
 				statusChange = true
@@ -168,13 +170,35 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 				partialDetails = "Site is down, HTTP Status Code is " + strconv.Itoa(statusCode) + "."
 			}
 			siteWasUp = false
-		} else { // if no errors site is up.
-			if !siteWasUp {
+
+		} else {
+			siteUp := true
+			// if the site settings require check the content.
+			if siteUp && s.ContentExpected != "" && !strings.Contains(bodyContent, s.ContentExpected) {
+				siteUp = false
+				log.Println(s.Name, "Error - required body content missing: ", s.ContentExpected)
+				if siteWasUp {
+					statusChange = true
+					partialSubject = "Site is Down"
+					partialDetails = "Site is Down, required body content missing: " + s.ContentExpected + "."
+				}
+			}
+			if siteUp && s.ContentExpected != "" && strings.Contains(bodyContent, s.ContentUnexpected) {
+				siteUp = false
+				log.Println(s.Name, "Error - body content content has excluded content: ", s.ContentUnexpected)
+				if siteWasUp {
+					statusChange = true
+					partialSubject = "Site is Down"
+					partialDetails = "Site is Down, body content content has excluded content: " + s.ContentUnexpected + "."
+				}
+			}
+			if siteUp && !siteWasUp {
 				statusChange = true
 				partialSubject = "Site is Up"
 				partialDetails = fmt.Sprintf("Site is now up, response time was %v.", responseTime)
+				siteWasUp = true
 			}
-			siteWasUp = true
+			siteWasUp = siteUp
 		}
 		// Save the ping details
 		p.Duration = int(responseTime.Nanoseconds() / 1e6)
