@@ -25,6 +25,4 @@ _testmain.go
 *.log
 cover.out
 *.out
-database/test.db
-pinger/test.db
-*.db
+**/*.db
