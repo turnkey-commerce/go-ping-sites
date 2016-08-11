@@ -183,7 +183,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 					partialDetails = "Site is Down, required body content missing: " + s.ContentExpected + "."
 				}
 			}
-			if siteUp && s.ContentExpected != "" && strings.Contains(bodyContent, s.ContentUnexpected) {
+			if siteUp && s.ContentUnexpected != "" && strings.Contains(bodyContent, s.ContentUnexpected) {
 				siteUp = false
 				log.Println(s.Name, "Error - body content content has excluded content: ", s.ContentUnexpected)
 				if siteWasUp {

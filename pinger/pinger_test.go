@@ -77,6 +77,32 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 	}
 }
 
+// TestContentCheck tests the content checks (Must Include and Must Not Include)
+func TestContentCheck(t *testing.T) {
+	// Fake db for testing.
+	db, _ := sql.Open("testdb", "")
+	pinger.CreatePingerLog("", true)
+	p := pinger.NewPinger(db, pinger.GetSitesContentMock, pinger.RequestURLContentMock,
+		notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+	// Sleep to allow running the tests before stopping.
+	time.Sleep(2 * time.Second)
+	p.Stop()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Error - body content content has excluded content:  Bad response text") {
+		t.Fatal("Failed to report excluded content.")
+	}
+
+	if !strings.Contains(results, "Error - required body content missing:  Good response text") {
+		t.Fatal("Failed to report missing required content.")
+	}
+}
+
 // TestStartAndRestartPinger starts up the pinger and then stops it after 3 seconds
 func TestStartAndRestartPinger(t *testing.T) {
 	// Fake db for testing.
