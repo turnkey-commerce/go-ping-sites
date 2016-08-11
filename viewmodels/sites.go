@@ -2,6 +2,7 @@ package viewmodels
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -120,9 +121,9 @@ func MapSiteVMtoDB(siteVM *SitesEditViewModel, site *database.Site) error {
 	site.SiteID = siteVM.SiteID
 	site.Name = siteVM.Name
 	site.IsActive = siteVM.IsActive
-	site.URL = siteVM.URL
-	site.ContentExpected = siteVM.ContentExpected
-	site.ContentUnexpected = siteVM.ContentUnexpected
+	site.URL = strings.TrimSpace(siteVM.URL)
+	site.ContentExpected = strings.TrimSpace(siteVM.ContentExpected)
+	site.ContentUnexpected = strings.TrimSpace(siteVM.ContentUnexpected)
 	// Conversion on these two is necessary because they are a string in the
 	// view model to allow the validation to work
 	pingInterval, err := strconv.Atoi(siteVM.PingIntervalSeconds)
