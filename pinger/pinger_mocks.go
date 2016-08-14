@@ -11,6 +11,11 @@ import (
 // hitCount is used to vary the outcome of the mock RequestURL
 var hitCount int
 
+// ResetHitCount sets the hitcount back to 0 for the tests.
+func ResetHitCount() {
+	hitCount = 0
+}
+
 // RequestURLMock is a mock of the URL request that pings the site.
 func RequestURLMock(url string, timeout int) (string, int, time.Duration, error) {
 	var responseTime = 300 * time.Millisecond

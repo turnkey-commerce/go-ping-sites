@@ -203,7 +203,7 @@ func ping(s database.Site, db *sql.DB, requestURL URLRequester,
 		// Save the ping details
 		p.Duration = int(responseTime.Nanoseconds() / 1e6)
 		p.HTTPStatusCode = statusCode
-		p.TimedOut = false
+		p.SiteDown = !siteWasUp
 		// Save ping to db.
 		err = p.CreatePing(db)
 		if err != nil {

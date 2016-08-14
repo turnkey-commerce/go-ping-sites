@@ -1,7 +1,6 @@
 package database_test
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -78,7 +77,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to retrieve new site:", err)
 	}
 	//Verify the saved site is same as the input.
-	if !compareSites(site, s) {
+	if !database.CompareSites(site, s) {
 		t.Error("New site saved not equal to input:\n", site, s)
 	}
 
@@ -108,7 +107,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to retrieve updated site:", err)
 	}
 	//Verify the saved site is same as the input.
-	if !compareSites(siteUpdated, sUpdate) {
+	if !database.CompareSites(siteUpdated, sUpdate) {
 		t.Error("Updated site saved not equal to input:\n", siteUpdated, sUpdate)
 	}
 
@@ -453,7 +452,7 @@ func TestCreatePings(t *testing.T) {
 
 	// Create a ping result
 	p1 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC),
-		Duration: 280, HTTPStatusCode: 200, TimedOut: false}
+		Duration: 280, HTTPStatusCode: 200, SiteDown: false}
 	err = p1.CreatePing(db)
 	if err != nil {
 		t.Fatal("Failed to create new ping:", err)
@@ -461,7 +460,7 @@ func TestCreatePings(t *testing.T) {
 
 	// Create a second ping result
 	p2 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC),
-		Duration: 290, HTTPStatusCode: 200, TimedOut: false}
+		Duration: 290, HTTPStatusCode: 200, SiteDown: true}
 	err = p2.CreatePing(db)
 	if err != nil {
 		t.Fatal("Failed to create new ping:", err)
@@ -506,7 +505,7 @@ func TestCreatePings(t *testing.T) {
 
 	// Create a third ping with conflicting times should error.
 	p3 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC),
-		Duration: 300, HTTPStatusCode: 200, TimedOut: false}
+		Duration: 300, HTTPStatusCode: 200, SiteDown: false}
 	err = p3.CreatePing(db)
 	if err == nil {
 		t.Fatal("Conflicting pings should throw error.")
@@ -595,12 +594,12 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	// Verify the first site was Loaded with proper attributes.
-	if !compareSites(s1, sites[0]) {
+	if !database.CompareSites(s1, sites[0]) {
 		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes.
-	if !compareSites(s2, sites[1]) {
+	if !database.CompareSites(s2, sites[1]) {
 		t.Fatal("Second saved site not equal to input:\n", sites[1], s2)
 	}
 
@@ -652,12 +651,12 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	// Verify the first site was Loaded with proper attributes and no contacts.
-	if !compareSites(s1, sitesNoContacts[0]) {
+	if !database.CompareSites(s1, sitesNoContacts[0]) {
 		t.Error("First saved site not equal to GetActiveSites results:\n", sitesNoContacts[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes and no contacts.
-	if !compareSites(s2, sitesNoContacts[1]) {
+	if !database.CompareSites(s2, sitesNoContacts[1]) {
 		t.Error("Second saved site not equal to GetActiveSites results:\n", sitesNoContacts[1], s2)
 	}
 
@@ -696,49 +695,4 @@ func TestReport(t *testing.T) {
 	if math.Abs(report[site][0].AvgResponse-37.397565) > .00001 {
 		t.Errorf("AvgResponse should be 37.397565, got %f", report[site][0].AvgResponse)
 	}
-}
-
-// compareSites is set up as function due to an issue in the DeepEqual with zero dates.
-func compareSites(s1 database.Site, s2 database.Site) bool {
-	if s1.URL != s2.URL {
-		fmt.Println("URL !=")
-		return false
-	} else if s1.ContentExpected != s2.ContentExpected {
-		fmt.Println("ContentExpected !=")
-		return false
-	} else if s1.ContentUnexpected != s2.ContentUnexpected {
-		fmt.Println("ContentUnexpected !=")
-		return false
-	} else if !s1.FirstPing.Equal(s2.FirstPing) {
-		fmt.Println("FirstPing !=")
-		return false
-	} else if s1.IsActive != s2.IsActive {
-		fmt.Println("IsActive !=")
-		return false
-	} else if s1.IsSiteUp != s2.IsSiteUp {
-		fmt.Println("IsSiteUp !=")
-		return false
-	} else if !s1.LastPing.Equal(s2.LastPing) {
-		fmt.Println("LastPing !=")
-		return false
-	} else if !s1.LastStatusChange.Equal(s2.LastStatusChange) {
-		fmt.Println("LastStatusChange !=")
-		return false
-	} else if s1.Name != s2.Name {
-		fmt.Println("Name !=")
-		return false
-	} else if s1.PingIntervalSeconds != s2.PingIntervalSeconds {
-		fmt.Println("PingIntervalSeconds !=")
-		return false
-	} else if s1.SiteID != s2.SiteID {
-		fmt.Println("SiteID !=")
-		return false
-	} else if s1.TimeoutSeconds != s2.TimeoutSeconds {
-		fmt.Println("TimeoutSeconds !=")
-		return false
-	} else if s1.URL != s2.URL {
-		fmt.Println("URL !=")
-		return false
-	}
-	return true
 }
