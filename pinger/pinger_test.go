@@ -2,7 +2,6 @@ package pinger_test
 
 import (
 	"database/sql"
-	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -44,6 +43,7 @@ func TestNewPinger(t *testing.T) {
 func TestStartEmptySitesPinger(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("", true)
+	pinger.ResetHitCount()
 	p := pinger.NewPinger(db, pinger.GetEmptySitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -63,6 +63,7 @@ func TestStartEmptySitesPinger(t *testing.T) {
 func TestStartPingerErrorWithGetSites(t *testing.T) {
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("", true)
+	pinger.ResetHitCount()
 	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -77,11 +78,38 @@ func TestStartPingerErrorWithGetSites(t *testing.T) {
 	}
 }
 
+// TestContentCheck tests the content checks (Must Include and Must Not Include)
+func TestContentCheck(t *testing.T) {
+	// Fake db for testing.
+	db, _ := sql.Open("testdb", "")
+	pinger.CreatePingerLog("", true)
+	p := pinger.NewPinger(db, pinger.GetSitesContentMock, pinger.RequestURLContentMock,
+		notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+	// Sleep to allow running the tests before stopping.
+	time.Sleep(2 * time.Second)
+	p.Stop()
+
+	results, err := pinger.GetLogContent()
+	if err != nil {
+		t.Fatal("Failed to get log results.", err)
+	}
+
+	if !strings.Contains(results, "Error - body content content has excluded content:  Bad response text") {
+		t.Fatal("Failed to report excluded content.")
+	}
+
+	if !strings.Contains(results, "Error - required body content missing:  Good response text") {
+		t.Fatal("Failed to report missing required content.")
+	}
+}
+
 // TestStartAndRestartPinger starts up the pinger and then stops it after 3 seconds
 func TestStartAndRestartPinger(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("", true)
+	pinger.ResetHitCount()
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -118,6 +146,7 @@ func TestUpdateSiteSettings(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("", true)
+	pinger.ResetHitCount()
 	p := pinger.NewPinger(db, pinger.GetSitesMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -139,6 +168,7 @@ func TestUpdateSiteSettingsError(t *testing.T) {
 	// Fake db for testing.
 	db, _ := sql.Open("testdb", "")
 	pinger.CreatePingerLog("", true)
+	pinger.ResetHitCount()
 	p := pinger.NewPinger(db, pinger.GetSitesErrorMock, pinger.RequestURLMock,
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
@@ -191,7 +221,7 @@ func TestGetSites(t *testing.T) {
 	defer db.Close()
 
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.test.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+		PingIntervalSeconds: 1, TimeoutSeconds: 30}
 	err = s1.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create new site:", err)
@@ -199,7 +229,7 @@ func TestGetSites(t *testing.T) {
 
 	// Create the second site.
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.example.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+		PingIntervalSeconds: 1, TimeoutSeconds: 30}
 	err = s2.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create second site:", err)
@@ -210,20 +240,73 @@ func TestGetSites(t *testing.T) {
 		t.Fatal("Failed to get sites:", err)
 	}
 	// Verify the first site was Loaded with proper attributes.
-	if !reflect.DeepEqual(s1.URL, sites[0].URL) || !reflect.DeepEqual(s1.IsActive, sites[0].IsActive) ||
-		!reflect.DeepEqual(s1.Name, sites[0].Name) || !reflect.DeepEqual(s1.PingIntervalSeconds,
-		sites[0].PingIntervalSeconds) || !reflect.DeepEqual(s1.TimeoutSeconds,
-		sites[0].TimeoutSeconds) || !reflect.DeepEqual(s1.SiteID, sites[0].SiteID) {
-		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
+	if !database.CompareSites(s1, sites[0]) {
+		t.Error("First saved site not equal to input:\n", sites[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes.
-	if !reflect.DeepEqual(s2.URL, sites[1].URL) || !reflect.DeepEqual(s2.IsActive, sites[1].IsActive) ||
-		!reflect.DeepEqual(s2.Name, sites[1].Name) || !reflect.DeepEqual(s2.PingIntervalSeconds,
-		sites[1].PingIntervalSeconds) || !reflect.DeepEqual(s2.TimeoutSeconds,
-		sites[1].TimeoutSeconds) || !reflect.DeepEqual(s2.SiteID, sites[1].SiteID) {
-		t.Fatal("First saved site not equal to input:\n", sites[1], s2)
+	if !database.CompareSites(s2, sites[1]) {
+		t.Error("Second saved site not equal to input:\n", sites[1], s2)
 	}
+}
+
+// TestGetSites tests the saving of the ping information to the DB.
+func TestSavePings(t *testing.T) {
+	db, err := database.InitializeTestDB("")
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+
+	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.github.com",
+		PingIntervalSeconds: 1, TimeoutSeconds: 30}
+	err = s1.CreateSite(db)
+	if err != nil {
+		t.Fatal("Failed to create new site:", err)
+	}
+
+	// For this test will pass the normal GetSites to use the DB...
+	pinger.ResetHitCount()
+	p := pinger.NewPinger(db, pinger.GetSites, pinger.RequestURLMock,
+		notifier.SendEmailMock, notifier.SendSmsMock)
+	p.Start()
+	// Sleep to allow running the tests before stopping.
+	time.Sleep(5 * time.Second)
+	p.Stop()
+
+	// Get the site pings since the test began and validate.
+	var saved database.Site
+	err = saved.GetSitePings(db, s1.SiteID, time.Now().Add(-10*time.Second), time.Now())
+	if err != nil {
+		t.Fatal("Failed to retrieve site pings:", err)
+	}
+
+	if !saved.Pings[0].SiteDown {
+		t.Error("First ping should show site down.")
+	}
+
+	if saved.Pings[3].SiteDown {
+		t.Error("Fourth ping should show site up.")
+	}
+
+	// Get the Site updates to make sure the status changes are being set.
+	err = saved.GetSite(db, s1.SiteID)
+	if err != nil {
+		t.Fatal("Failed to retrieve site updates:", err)
+	}
+
+	if saved.LastStatusChange.IsZero() {
+		t.Error("Last Status Change time not saved.")
+	}
+
+	if saved.LastPing.IsZero() {
+		t.Error("Last Ping time not saved.")
+	}
+
+	if !saved.IsSiteUp {
+		t.Error("Site should be saved as up.")
+	}
+
 }
 
 func TestCreatePingerLogError(t *testing.T) {

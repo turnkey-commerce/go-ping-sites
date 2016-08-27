@@ -11,6 +11,11 @@ import (
 // hitCount is used to vary the outcome of the mock RequestURL
 var hitCount int
 
+// ResetHitCount sets the hitcount back to 0 for the tests.
+func ResetHitCount() {
+	hitCount = 0
+}
+
 // RequestURLMock is a mock of the URL request that pings the site.
 func RequestURLMock(url string, timeout int) (string, int, time.Duration, error) {
 	var responseTime = 300 * time.Millisecond
@@ -22,6 +27,18 @@ func RequestURLMock(url string, timeout int) (string, int, time.Duration, error)
 		return "Hello", 200, responseTime, nil
 	}
 	return "Hello", 300, responseTime, nil
+}
+
+// RequestURLContentMock is a mock of the URL requests for checking content.
+func RequestURLContentMock(url string, timeout int) (string, int, time.Duration, error) {
+	var responseTime = 300 * time.Millisecond
+	// The hitCount allows to vary the response of the request.
+	if url == "http://www.github.com" {
+		return "Bad response text", 200, responseTime, nil
+	} else if url == "http://www.google.com" {
+		return "Good response text", 200, responseTime, nil
+	}
+	return "", 200, responseTime, nil
 }
 
 // RequestURLBadInternetAccessMock mocks the condition where the outgoing Internet connection is down.
@@ -51,6 +68,26 @@ func GetSitesMock(db *sql.DB) (database.Sites, error) {
 	s1.Contacts = append(s1.Contacts, c1, c2)
 	s2.Contacts = append(s2.Contacts, c1)
 	s3.Contacts = append(s3.Contacts, c1)
+
+	sites = append(sites, s1, s2, s3)
+	return sites, nil
+}
+
+// GetSitesContentMock is a mock of the SQL query to get the sites for testing content checks.
+func GetSitesContentMock(db *sql.DB) (database.Sites, error) {
+	var sites database.Sites
+	// Create the first site.
+	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
+		PingIntervalSeconds: 1, TimeoutSeconds: 1, IsSiteUp: true,
+		ContentExpected: "Good response text", ContentUnexpected: "Bad response text"}
+	// Create the second site.
+	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.github.com",
+		PingIntervalSeconds: 1, TimeoutSeconds: 1, IsSiteUp: true,
+		ContentExpected: "", ContentUnexpected: "Bad response text"}
+	// Create the third site.
+	s3 := database.Site{Name: "Test 3", IsActive: true, URL: "http://www.example.com",
+		PingIntervalSeconds: 1, TimeoutSeconds: 1, IsSiteUp: true,
+		ContentExpected: "Good response text", ContentUnexpected: "Bad response text"}
 
 	sites = append(sites, s1, s2, s3)
 	return sites, nil

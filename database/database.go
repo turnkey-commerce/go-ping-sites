@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 	// Import the sqlite3 package as blank.
 	_ "github.com/mattn/go-sqlite3"
@@ -16,6 +17,8 @@ type Site struct {
 	PingIntervalSeconds int
 	TimeoutSeconds      int
 	IsSiteUp            bool
+	ContentExpected     string
+	ContentUnexpected   string
 	LastStatusChange    time.Time
 	LastPing            time.Time
 	FirstPing           time.Time
@@ -47,7 +50,7 @@ type Ping struct {
 	TimeRequest    time.Time
 	Duration       int
 	HTTPStatusCode int
-	TimedOut       bool
+	SiteDown       bool
 }
 
 // Report contains information about performance where AvgResponse is the average
@@ -69,8 +72,9 @@ func (s *Site) CreateSite(db *sql.DB) error {
 	s.IsSiteUp = true
 	result, err := db.Exec(
 		`INSERT INTO Sites (Name, IsActive, URL, PingIntervalSeconds, TimeoutSeconds,
-			IsSiteUp, LastStatusChange, LastPing, FirstPing)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+			IsSiteUp, LastStatusChange, LastPing, FirstPing, ContentExpected,
+			ContentUnexpected)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
 		s.Name,
 		s.IsActive,
 		s.URL,
@@ -80,6 +84,8 @@ func (s *Site) CreateSite(db *sql.DB) error {
 		s.LastStatusChange,
 		s.LastPing,
 		s.FirstPing,
+		s.ContentExpected,
+		s.ContentUnexpected,
 	)
 	if err != nil {
 		return err
@@ -97,13 +103,16 @@ func (s *Site) CreateSite(db *sql.DB) error {
 func (s *Site) UpdateSite(db *sql.DB) error {
 	_, err := db.Exec(
 		`Update Sites SET Name = $1, URL = $2, IsActive = $3,
-		  PingIntervalSeconds = $4, TimeoutSeconds = $5
-			WHERE SiteId = $6`,
+		  	PingIntervalSeconds = $4, TimeoutSeconds = $5, 
+		  	ContentExpected = $6, ContentUnexpected = $7
+			WHERE SiteId = $8`,
 		s.Name,
 		s.URL,
 		s.IsActive,
 		s.PingIntervalSeconds,
 		s.TimeoutSeconds,
+		s.ContentExpected,
+		s.ContentUnexpected,
 		s.SiteID,
 	)
 	if err != nil {
@@ -146,10 +155,13 @@ func (s *Site) UpdateSiteFirstPing(db *sql.DB, firstPingTime time.Time) error {
 // GetSite gets the site details for a given site.
 func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 	err := db.QueryRow(`SELECT SiteID, Name, IsActive, URL, PingIntervalSeconds,
-		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing FROM Sites
+		TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing, FirstPing,
+		ContentExpected, ContentUnExpected
+		FROM Sites
 		WHERE SiteID = $1`, siteID).
 		Scan(&s.SiteID, &s.Name, &s.IsActive, &s.URL, &s.PingIntervalSeconds, &s.TimeoutSeconds,
-			&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing)
+			&s.IsSiteUp, &s.LastStatusChange, &s.LastPing, &s.FirstPing, &s.ContentExpected,
+			&s.ContentUnexpected)
 	if err != nil {
 		return err
 	}
@@ -158,12 +170,14 @@ func (s *Site) GetSite(db *sql.DB, siteID int64) error {
 
 const getActiveSitesQueryString string = `SELECT SiteID, Name, IsActive, URL,
 	PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing,
-	FirstPing FROM Sites WHERE IsActive = $1
+	FirstPing, ContentExpected, ContentUnexpected
+	FROM Sites WHERE IsActive = $1
 	ORDER BY Name`
 
 const getAllSitesQueryString string = `SELECT SiteID, Name, IsActive, URL,
   PingIntervalSeconds, TimeoutSeconds, IsSiteUp, LastStatusChange, LastPing,
-	FirstPing FROM Sites
+	FirstPing, ContentExpected, ContentUnexpected
+	FROM Sites
 	ORDER BY Name`
 
 // GetSites gets all of the sites without contacts.
@@ -193,15 +207,19 @@ func (s *Sites) GetSites(db *sql.DB, activeOnly bool, withContacts bool) error {
 		var LastStatusChange time.Time
 		var LastPing time.Time
 		var FirstPing time.Time
+		var ContentExpected string
+		var ContentUnexpected string
 		err = rows.Scan(&SiteID, &Name, &IsActive, &URL, &PingIntervalSeconds, &TimeoutSeconds,
-			&IsSiteUp, &LastStatusChange, &LastPing, &FirstPing)
+			&IsSiteUp, &LastStatusChange, &LastPing, &FirstPing, &ContentExpected,
+			&ContentUnexpected)
 		if err != nil {
 			return err
 		}
 		site := Site{SiteID: SiteID, Name: Name, IsActive: IsActive, URL: URL,
 			PingIntervalSeconds: PingIntervalSeconds, TimeoutSeconds: TimeoutSeconds,
 			IsSiteUp: IsSiteUp, LastStatusChange: LastStatusChange, LastPing: LastPing,
-			FirstPing: FirstPing}
+			FirstPing: FirstPing, ContentExpected: ContentExpected,
+			ContentUnexpected: ContentUnexpected}
 		if withContacts {
 			err = site.GetSiteContacts(db, site.SiteID)
 			if err != nil {
@@ -430,13 +448,13 @@ func (c *Contacts) GetContacts(db *sql.DB) error {
 func (p Ping) CreatePing(db *sql.DB) error {
 	var err error
 	_, err = db.Exec(
-		`INSERT INTO Pings (SiteID, TimeRequest, Duration, HttpStatusCode, TimedOut)
+		`INSERT INTO Pings (SiteID, TimeRequest, Duration, HttpStatusCode, SiteDown)
 			VALUES ($1, $2, $3, $4, $5)`,
 		p.SiteID,
 		p.TimeRequest,
 		p.Duration,
 		p.HTTPStatusCode,
-		p.TimedOut,
+		p.SiteDown,
 	)
 	if err != nil {
 		return err
@@ -478,7 +496,7 @@ func (s *Site) GetFirstPing(db *sql.DB) (time.Time, error) {
 
 // GetSitePings gets the pings for a given site for a given time interval.
 func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTime time.Time) error {
-	rows, err := db.Query(`SELECT SiteID, TimeRequest, Duration, HttpStatusCode, TimedOut
+	rows, err := db.Query(`SELECT SiteID, TimeRequest, Duration, HttpStatusCode, SiteDown
 		FROM Pings WHERE SiteID = $1 AND TimeRequest >= $2 AND TimeRequest <=$3
 		ORDER BY TimeRequest`, siteID, startTime, endTime)
 	if err != nil {
@@ -493,31 +511,32 @@ func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTi
 		var TimeRequest time.Time
 		var Duration int
 		var HTTPStatusCode int
-		var TimedOut bool
-		err = rows.Scan(&SiteID, &TimeRequest, &Duration, &HTTPStatusCode, &TimedOut)
+		var SiteDown bool
+		err = rows.Scan(&SiteID, &TimeRequest, &Duration, &HTTPStatusCode, &SiteDown)
 		if err != nil {
 			return err
 		}
 		s.Pings = append(s.Pings, Ping{SiteID: SiteID, TimeRequest: TimeRequest,
-			Duration: Duration, HTTPStatusCode: HTTPStatusCode, TimedOut: TimedOut})
+			Duration: Duration, HTTPStatusCode: HTTPStatusCode, SiteDown: SiteDown})
 	}
 
 	return nil
 }
 
-// GetYTDReports gets reports for the active sites
+// GetYTDReports gets reports for the active sites. Site status is based on the SiteDown
+// flag in the pings table.
 func GetYTDReports(db *sql.DB) (map[string]Reports, error) {
 	rows, err := db.Query(`
 	SELECT Name, Month, SUM(AvgResponse) AS AvgResponse, SUM(PingsUp) As PingsUp, SUM(PingsDown) as PingsDown
 	FROM(
 	select Name, strftime("%m", timeRequest) as 'month', AVG(duration) as AvgResponse, count(*) as PingsUp, 0 as PingsDown
 	     FROM pings INNER JOIN sites on sites.siteID = pings.siteID
-		   WHERE httpstatuscode = 200 AND timeRequest > date('now', 'start of year')
+		   WHERE sitedown = 0 AND timeRequest > date('now', 'start of year')
 		   group by strftime("%m", timeRequest), name
 	UNION ALL
 		   select Name, strftime("%m", timeRequest) as 'month', 0 as AvgResponse, 0 as PingsUp, count(*) as PingsDown
 	       from pings INNER JOIN sites on sites.siteID = pings.siteID
-		   WHERE httpstatuscode <> 200 AND timeRequest > date('now', 'start of year')
+		   WHERE siteDown = 1 AND timeRequest > date('now', 'start of year')
 		   group by strftime("%m", timeRequest), name
 	)
 	group by name, month
@@ -548,4 +567,49 @@ func GetYTDReports(db *sql.DB) (map[string]Reports, error) {
 	}
 
 	return ytdReports, nil
+}
+
+// CompareSites is set up as function due to an issue in the DeepEqual with zero dates.
+func CompareSites(s1 Site, s2 Site) bool {
+	if s1.URL != s2.URL {
+		fmt.Println("URL !=")
+		return false
+	} else if s1.ContentExpected != s2.ContentExpected {
+		fmt.Println("ContentExpected !=")
+		return false
+	} else if s1.ContentUnexpected != s2.ContentUnexpected {
+		fmt.Println("ContentUnexpected !=")
+		return false
+	} else if !s1.FirstPing.Equal(s2.FirstPing) {
+		fmt.Println("FirstPing !=")
+		return false
+	} else if s1.IsActive != s2.IsActive {
+		fmt.Println("IsActive !=")
+		return false
+	} else if s1.IsSiteUp != s2.IsSiteUp {
+		fmt.Println("IsSiteUp !=")
+		return false
+	} else if !s1.LastPing.Equal(s2.LastPing) {
+		fmt.Println("LastPing !=")
+		return false
+	} else if !s1.LastStatusChange.Equal(s2.LastStatusChange) {
+		fmt.Println("LastStatusChange !=")
+		return false
+	} else if s1.Name != s2.Name {
+		fmt.Println("Name !=")
+		return false
+	} else if s1.PingIntervalSeconds != s2.PingIntervalSeconds {
+		fmt.Println("PingIntervalSeconds !=")
+		return false
+	} else if s1.SiteID != s2.SiteID {
+		fmt.Println("SiteID !=")
+		return false
+	} else if s1.TimeoutSeconds != s2.TimeoutSeconds {
+		fmt.Println("TimeoutSeconds !=")
+		return false
+	} else if s1.URL != s2.URL {
+		fmt.Println("URL !=")
+		return false
+	}
+	return true
 }

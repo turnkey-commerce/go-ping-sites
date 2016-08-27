@@ -2,6 +2,7 @@ package viewmodels
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -17,6 +18,8 @@ type SitesEditViewModel struct {
 	URL                 string  `valid:"url,required"`
 	PingIntervalSeconds string  `valid:"int,required"`
 	TimeoutSeconds      string  `valid:"int,required"`
+	ContentExpected     string  `valid:"-"`
+	ContentUnexpected   string  `valid:"-"`
 	SelectedContacts    []int64 `valid:"-"`
 	SiteContacts        []int64 `valid:"-"`
 }
@@ -118,7 +121,9 @@ func MapSiteVMtoDB(siteVM *SitesEditViewModel, site *database.Site) error {
 	site.SiteID = siteVM.SiteID
 	site.Name = siteVM.Name
 	site.IsActive = siteVM.IsActive
-	site.URL = siteVM.URL
+	site.URL = strings.TrimSpace(siteVM.URL)
+	site.ContentExpected = strings.TrimSpace(siteVM.ContentExpected)
+	site.ContentUnexpected = strings.TrimSpace(siteVM.ContentUnexpected)
 	// Conversion on these two is necessary because they are a string in the
 	// view model to allow the validation to work
 	pingInterval, err := strconv.Atoi(siteVM.PingIntervalSeconds)
@@ -141,6 +146,8 @@ func MapSiteDBtoVM(site *database.Site, siteVM *SitesEditViewModel) {
 	siteVM.Name = site.Name
 	siteVM.IsActive = site.IsActive
 	siteVM.URL = site.URL
+	siteVM.ContentExpected = site.ContentExpected
+	siteVM.ContentUnexpected = site.ContentUnexpected
 	// Conversion on these two is necessary because they are a string in the
 	// view model to allow the validation to work
 	siteVM.PingIntervalSeconds = strconv.Itoa(site.PingIntervalSeconds)

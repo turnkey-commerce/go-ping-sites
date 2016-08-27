@@ -1,7 +1,6 @@
 package database_test
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 	"testing"
@@ -58,7 +57,9 @@ func TestCreateSiteAndContacts(t *testing.T) {
 
 	// First create a site to associate with the contacts.
 	// Note: SiteID is ignored for create but is used in the test comparison
-	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com", PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true}
+	s := database.Site{SiteID: 1, Name: "Test", IsActive: true, URL: "http://www.google.com",
+		PingIntervalSeconds: 60, TimeoutSeconds: 30, IsSiteUp: true, ContentExpected: "Expected Content",
+		ContentUnexpected: "Unexpected Content"}
 	err = s.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create new site:", err)
@@ -76,20 +77,24 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to retrieve new site:", err)
 	}
 	//Verify the saved site is same as the input.
-	if site.URL != s.URL || site.IsActive != s.IsActive || site.Name != s.Name ||
-		site.TimeoutSeconds != s.TimeoutSeconds || site.PingIntervalSeconds != s.PingIntervalSeconds ||
-		site.SiteID != s.SiteID {
+	if !database.CompareSites(site, s) {
 		t.Error("New site saved not equal to input:\n", site, s)
 	}
 
 	//Update the saved site
 	sUpdate := database.Site{SiteID: 1, Name: "Test Update", IsActive: false,
-		URL: "http://www.example.com", PingIntervalSeconds: 30, TimeoutSeconds: 15}
+		URL: "http://www.example.com", PingIntervalSeconds: 30, TimeoutSeconds: 15,
+		ContentExpected: "Updated Content", ContentUnexpected: "Updated Unexpected",
+		IsSiteUp: true,
+	}
 	site.Name = sUpdate.Name
 	site.URL = sUpdate.URL
 	site.IsActive = sUpdate.IsActive
 	site.PingIntervalSeconds = sUpdate.PingIntervalSeconds
 	site.TimeoutSeconds = sUpdate.TimeoutSeconds
+	site.ContentExpected = sUpdate.ContentExpected
+	site.ContentUnexpected = sUpdate.ContentUnexpected
+	site.IsSiteUp = sUpdate.IsSiteUp
 	err = site.UpdateSite(db)
 	if err != nil {
 		t.Fatal("Failed to update site:", err)
@@ -102,10 +107,7 @@ func TestCreateSiteAndContacts(t *testing.T) {
 		t.Fatal("Failed to retrieve updated site:", err)
 	}
 	//Verify the saved site is same as the input.
-	if siteUpdated.URL != sUpdate.URL || siteUpdated.IsActive != sUpdate.IsActive ||
-		siteUpdated.Name != sUpdate.Name || siteUpdated.TimeoutSeconds != sUpdate.TimeoutSeconds ||
-		siteUpdated.PingIntervalSeconds != sUpdate.PingIntervalSeconds ||
-		siteUpdated.SiteID != sUpdate.SiteID {
+	if !database.CompareSites(siteUpdated, sUpdate) {
 		t.Error("Updated site saved not equal to input:\n", siteUpdated, sUpdate)
 	}
 
@@ -422,8 +424,6 @@ func TestCreateAndGetUnattachedContacts(t *testing.T) {
 		t.Fatal("Failed to get all contacts.", err)
 	}
 
-	fmt.Println("Contacts ", contacts)
-
 	// Verify the first contact was Loaded as the last in list by sort order
 	if !reflect.DeepEqual(c, contacts[1]) {
 		t.Fatal("New contact saved not equal to input:\n", contacts[1], c)
@@ -452,7 +452,7 @@ func TestCreatePings(t *testing.T) {
 
 	// Create a ping result
 	p1 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 22, 00, time.UTC),
-		Duration: 280, HTTPStatusCode: 200, TimedOut: false}
+		Duration: 280, HTTPStatusCode: 200, SiteDown: false}
 	err = p1.CreatePing(db)
 	if err != nil {
 		t.Fatal("Failed to create new ping:", err)
@@ -460,7 +460,7 @@ func TestCreatePings(t *testing.T) {
 
 	// Create a second ping result
 	p2 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC),
-		Duration: 290, HTTPStatusCode: 200, TimedOut: false}
+		Duration: 290, HTTPStatusCode: 200, SiteDown: true}
 	err = p2.CreatePing(db)
 	if err != nil {
 		t.Fatal("Failed to create new ping:", err)
@@ -505,7 +505,7 @@ func TestCreatePings(t *testing.T) {
 
 	// Create a third ping with conflicting times should error.
 	p3 := database.Ping{SiteID: s.SiteID, TimeRequest: time.Date(2015, time.November, 10, 23, 22, 20, 00, time.UTC),
-		Duration: 300, HTTPStatusCode: 200, TimedOut: false}
+		Duration: 300, HTTPStatusCode: 200, SiteDown: false}
 	err = p3.CreatePing(db)
 	if err == nil {
 		t.Fatal("Conflicting pings should throw error.")
@@ -524,7 +524,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Create the first site.
 	s1 := database.Site{Name: "Test", IsActive: true, URL: "http://www.google.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+		PingIntervalSeconds: 60, TimeoutSeconds: 30, ContentExpected: "Expected 1",
+		ContentUnexpected: "Unexpected 1"}
 	err = s1.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create first site:", err)
@@ -534,7 +535,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	s2 := database.Site{Name: "Test 2", IsActive: true, URL: "http://www.test.com",
 		PingIntervalSeconds: 60, TimeoutSeconds: 30,
 		LastStatusChange: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
-		LastPing:         time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)}
+		LastPing:         time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+		ContentExpected:  "Expected 2", ContentUnexpected: "Unexpected 2"}
 	err = s2.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create second site:", err)
@@ -542,7 +544,8 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 	// Create a third site that is marked inactive.
 	s3 := database.Site{Name: "Test 3", IsActive: false, URL: "http://www.test3.com",
-		PingIntervalSeconds: 60, TimeoutSeconds: 30}
+		PingIntervalSeconds: 60, TimeoutSeconds: 30, ContentExpected: "Expected 3",
+		ContentUnexpected: "Unexpected 3"}
 	err = s3.CreateSite(db)
 	if err != nil {
 		t.Fatal("Failed to create third site:", err)
@@ -591,20 +594,12 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	// Verify the first site was Loaded with proper attributes.
-	if s1.URL != sites[0].URL || s1.IsActive != sites[0].IsActive ||
-		s1.Name != sites[0].Name || s1.PingIntervalSeconds != sites[0].PingIntervalSeconds ||
-		s1.TimeoutSeconds != sites[0].TimeoutSeconds || s1.SiteID != sites[0].SiteID ||
-		s1.IsSiteUp != sites[0].IsSiteUp || !sites[0].LastStatusChange.IsZero() ||
-		!sites[0].LastPing.IsZero() {
+	if !database.CompareSites(s1, sites[0]) {
 		t.Fatal("First saved site not equal to input:\n", sites[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes.
-	if s2.URL != sites[1].URL || s1.IsActive != sites[1].IsActive ||
-		s2.Name != sites[1].Name || s2.PingIntervalSeconds != sites[1].PingIntervalSeconds ||
-		s2.TimeoutSeconds != sites[1].TimeoutSeconds || s2.SiteID != sites[1].SiteID ||
-		s2.IsSiteUp != sites[1].IsSiteUp || s2.LastStatusChange != sites[1].LastStatusChange ||
-		s2.LastPing != sites[1].LastPing {
+	if !database.CompareSites(s2, sites[1]) {
 		t.Fatal("Second saved site not equal to input:\n", sites[1], s2)
 	}
 
@@ -656,20 +651,12 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 	}
 
 	// Verify the first site was Loaded with proper attributes and no contacts.
-	if s1.URL != sitesNoContacts[0].URL || s1.IsActive != sitesNoContacts[0].IsActive ||
-		s1.Name != sitesNoContacts[0].Name || s1.PingIntervalSeconds != sitesNoContacts[0].PingIntervalSeconds ||
-		s1.TimeoutSeconds != sitesNoContacts[0].TimeoutSeconds || s1.SiteID != sitesNoContacts[0].SiteID ||
-		s1.IsSiteUp != sitesNoContacts[0].IsSiteUp || !sitesNoContacts[0].LastStatusChange.IsZero() ||
-		!sitesNoContacts[0].LastPing.IsZero() || len(s2.Contacts) != 0 {
+	if !database.CompareSites(s1, sitesNoContacts[0]) {
 		t.Error("First saved site not equal to GetActiveSites results:\n", sitesNoContacts[0], s1)
 	}
 
 	// Verify the second site was Loaded with proper attributes and no contacts.
-	if s2.URL != sitesNoContacts[1].URL || s1.IsActive != sitesNoContacts[1].IsActive ||
-		s2.Name != sitesNoContacts[1].Name || s2.PingIntervalSeconds != sitesNoContacts[1].PingIntervalSeconds ||
-		s2.TimeoutSeconds != sitesNoContacts[1].TimeoutSeconds || s2.SiteID != sitesNoContacts[1].SiteID ||
-		s2.IsSiteUp != sitesNoContacts[1].IsSiteUp || s2.LastStatusChange != sitesNoContacts[1].LastStatusChange ||
-		s2.LastPing != sitesNoContacts[1].LastPing || len(s2.Contacts) != 0 {
+	if !database.CompareSites(s2, sitesNoContacts[1]) {
 		t.Error("Second saved site not equal to GetActiveSites results:\n", sitesNoContacts[1], s2)
 	}
 
