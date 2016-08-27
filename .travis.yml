@@ -5,6 +5,7 @@ gobuild_args: -x -ldflags "-X main.version=0.1.0"
 go:
   - 1.5
   - 1.6
+  - 1.7
   - tip
 
 env:
