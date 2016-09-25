@@ -271,7 +271,7 @@ func TestSavePings(t *testing.T) {
 		notifier.SendEmailMock, notifier.SendSmsMock)
 	p.Start()
 	// Sleep to allow running the tests before stopping.
-	time.Sleep(5 * time.Second)
+	time.Sleep(6 * time.Second)
 	p.Stop()
 
 	// Get the site pings since the test began and validate.
