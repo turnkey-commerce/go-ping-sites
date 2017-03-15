@@ -14,7 +14,7 @@ SRC_PATH=$(GOPATH)$(PATHSEP)src$(PATHSEP)github.com$(PATHSEP)turnkey-commerce$(P
 default:
 	$(eval export GO15VENDOREXPERIMENT = 1)
 	go install -ldflags "-X main.version=1.3.0" -v
-	-mkdir $(DIST_PATH)
+	-mkdir -p $(DIST_PATH)
 	cp $(GOPATH)$(PATHSEP)bin$(PATHSEP)$(EXE_NAME) $(DIST_PATH)$(PATHSEP)$(EXE_NAME)
 	cp -r $(SRC_PATH)$(PATHSEP)templates $(DIST_PATH)
 	cp -r $(SRC_PATH)$(PATHSEP)public $(DIST_PATH)
