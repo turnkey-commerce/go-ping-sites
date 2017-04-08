@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/apexskier/httpauth"
 	"github.com/turnkey-commerce/go-ping-sites/database"
@@ -18,7 +19,7 @@ type reportsController struct {
 
 func (controller *reportsController) get(rw http.ResponseWriter, req *http.Request) (int, error) {
 	// Get the YTD reports from the database
-	ytdReport, err := database.GetYTDReports(controller.DB)
+	ytdReport, err := database.GetYTDReports(controller.DB, time.Now().Year())
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 	"time"
 	// Import the sqlite3 package as blank.
 	_ "github.com/mattn/go-sqlite3"
@@ -525,22 +526,23 @@ func (s *Site) GetSitePings(db *sql.DB, siteID int64, startTime time.Time, endTi
 
 // GetYTDReports gets reports for the active sites. Site status is based on the SiteDown
 // flag in the pings table.
-func GetYTDReports(db *sql.DB) (map[string]Reports, error) {
+func GetYTDReports(db *sql.DB, year int) (map[string]Reports, error) {
+	yearStr := strconv.Itoa(year) + "-01-01"
 	rows, err := db.Query(`
 	SELECT Name, Month, SUM(AvgResponse) AS AvgResponse, SUM(PingsUp) As PingsUp, SUM(PingsDown) as PingsDown
 	FROM(
 	select Name, strftime("%m", timeRequest) as 'month', AVG(duration) as AvgResponse, count(*) as PingsUp, 0 as PingsDown
 	     FROM pings INNER JOIN sites on sites.siteID = pings.siteID
-		   WHERE sitedown = 0 AND timeRequest > date('now', 'start of year')
+		   WHERE sitedown = 0 AND timeRequest > date($1, 'start of year')
 		   group by strftime("%m", timeRequest), name
 	UNION ALL
 		   select Name, strftime("%m", timeRequest) as 'month', 0 as AvgResponse, 0 as PingsUp, count(*) as PingsDown
 	       from pings INNER JOIN sites on sites.siteID = pings.siteID
-		   WHERE siteDown = 1 AND timeRequest > date('now', 'start of year')
+		   WHERE siteDown = 1 AND timeRequest > date($1, 'start of year')
 		   group by strftime("%m", timeRequest), name
 	)
 	group by name, month
-	ORDER BY name, month`)
+	ORDER BY name, month`, yearStr)
 	if err != nil {
 		return nil, err
 	}
