@@ -571,6 +571,31 @@ func GetYTDReports(db *sql.DB, year int) (map[string]Reports, error) {
 	return ytdReports, nil
 }
 
+// GetReportYears returns the years where there is data for reports
+func GetReportYears(db *sql.DB) ([]int, error) {
+	rows, err := db.Query(`
+	SELECT DISTINCT strftime("%Y", timeRequest) as 'year'
+	FROM pings
+	ORDER BY year DESC`)
+	if err != nil {
+		return nil, err
+	}
+
+	years := make([]int, 0)
+	defer rows.Close()
+	for rows.Next() {
+		var Year int
+		err = rows.Scan(&Year)
+		if err != nil {
+			return nil, err
+		}
+
+		years = append(years, Year)
+	}
+
+	return years, nil
+}
+
 // CompareSites is set up as function due to an issue in the DeepEqual with zero dates.
 func CompareSites(s1 Site, s2 Site) bool {
 	if s1.URL != s2.URL {

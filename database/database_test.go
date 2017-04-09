@@ -674,6 +674,24 @@ func TestCreateAndGetMultipleSites(t *testing.T) {
 
 }
 
+func TestReportYear(t *testing.T) {
+	db, err := database.InitializeReportDB()
+	if err != nil {
+		t.Fatal("Failed to create database:", err)
+	}
+	defer db.Close()
+	years, err := database.GetReportYears(db)
+	if err != nil {
+		t.Fatal("Failed to get report years:", err)
+	}
+	if years[0] != 2017 {
+		t.Errorf("Report Year should be 2016, got %d", years[0])
+	}
+	if years[1] != 2016 {
+		t.Errorf("Report Year should be 2017, got %d", years[1])
+	}
+}
+
 // TestReports verifies the reading of the report from the DB.
 func TestReport(t *testing.T) {
 	db, err := database.InitializeReportDB()
