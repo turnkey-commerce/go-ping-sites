@@ -11,8 +11,21 @@
     {{end}}
     <div class="row">
       <div class="col-md-10 col-md-offset-1">
-        <h1>Reports</h1>
         <h2>Year to Date Summary</h2>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-2 col-md-offset-1">
+        <form action="" method="GET">
+          {{ $selectedYear := .SelectedYear}}
+          &nbsp;<select onchange="this.form.submit()" name="year" id="year" class="form-control">
+            {{ range .Years }}<option value="{{ . }}"{{ if eq $selectedYear . }} selected{{ end }}>{{ . }}</option>{{ end }}
+          </select>
+        </form>
+      </div>
+    <div>
+    <div class="row">
+      <div class="col-md-10 col-md-offset-1">
         {{range $key, $reports := .MonthlyData}}
            <h3 class="text-primary">{{ $key }}</h3>
            <p>YTD Uptime %: <b>{{ index $.YtdAvgUptime $key }}</b>

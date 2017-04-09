@@ -10,6 +10,8 @@ import (
 // ReportViewModel holds the view information for the report.gohtml template
 type ReportViewModel struct {
 	Title          string
+	SelectedYear   int
+	Years          []int
 	MonthlyData    map[string]MonthlytItems
 	YtdAvgResponse map[string]string
 	YtdAvgUptime   map[string]string
@@ -27,7 +29,7 @@ type ReportItemViewModel struct {
 }
 
 // GetReportViewModel populates the items required by the report.gohtml view
-func GetReportViewModel(reportData map[string]database.Reports, isAuthenticated bool, user httpauth.UserData, messages []string) ReportViewModel {
+func GetReportViewModel(selectedYear int, years []int, reportData map[string]database.Reports, isAuthenticated bool, user httpauth.UserData, messages []string) ReportViewModel {
 	nav := NavViewModel{
 		Active:          "reports",
 		IsAuthenticated: isAuthenticated,
@@ -74,6 +76,8 @@ func GetReportViewModel(reportData map[string]database.Reports, isAuthenticated 
 
 	result := ReportViewModel{
 		Title:          "Go Ping Sites - Reports",
+		SelectedYear:   selectedYear,
+		Years:          years,
 		Nav:            nav,
 		MonthlyData:    monthlyItems,
 		YtdAvgResponse: ytdAvgResponse,
