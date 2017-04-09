@@ -1,7 +1,10 @@
 {
 	"ImportPath": "github.com/turnkey-commerce/go-ping-sites",
-	"GoVersion": "go1.6",
-	"GodepVersion": "v74",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -21,6 +24,10 @@
 		{
 			"ImportPath": "github.com/dustin/go-humanize",
 			"Rev": "fef948f2d241bd1fd0631108ecc2c9553bae60bf"
+		},
+		{
+			"ImportPath": "github.com/erikstmartin/go-testdb",
+			"Rev": "8d10e4a1bae52cd8b81ffdec3445890d6dccab3d"
 		},
 		{
 			"ImportPath": "github.com/golang/snappy",
@@ -126,23 +133,28 @@
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2",
-			"Comment": "r2016.02.04-4-g29cc868",
-			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2/bson",
-			"Comment": "r2016.02.04-4-g29cc868",
-			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/json",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2/internal/sasl",
-			"Comment": "r2016.02.04-4-g29cc868",
-			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
-			"Comment": "r2016.02.04-4-g29cc868",
-			"Rev": "29cc868a5ca65f401ff318143f9408d02f4799cc"
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
 		},
 		{
 			"ImportPath": "gopkg.in/natefinch/lumberjack.v2",
