@@ -1,11 +1,11 @@
 language: go
 
-gobuild_args: -x -ldflags "-X main.version=1.3.1"
+gobuild_args: -x -ldflags "-X main.version=1.3.2"
 
 go:
-  - 1.6
-  - 1.7
-  - 1.8
+  - 1.13
+  - 1.14
+  - 1.15
   - tip
 
 env:
