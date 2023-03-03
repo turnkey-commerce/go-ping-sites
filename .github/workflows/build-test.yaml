@@ -1,4 +1,4 @@
-name: go-ping-sites build and test
+name: Build and Test
 
 on: [push]
 
