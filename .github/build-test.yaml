@@ -1,0 +1,21 @@
+name: go-ping-sites build and test
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.15
+
+      - name: Build
+        run: go build -v -ldflags "-X main.version=1.3.3"
+
+      - name: Test
+        run: go test -v ./...
