@@ -1,22 +1,43 @@
 {
-    "version": "0.1.0",
+    "version": "2.0.0",
     "command": "cmd",
-    "isShellCommand": true,
-    "showOutput": "always",
     "args": ["/C"],
 
     "tasks": [
         {
-            "taskName": "test",
-            "suppressTaskName": true,
-            "args": ["go", "test", "./config", "./controllers", "./database", "./notifier", "./pinger", "./viewmodels"],
-            "isTestCommand": true
+            "label": "test",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/C",
+                "go",
+                "test",
+                "./config",
+                "./controllers",
+                "./database",
+                "./notifier",
+                "./pinger",
+                "./viewmodels"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "_id": "test",
+                "isDefault": false
+            }
         },
         {
-            "taskName": "build",
-            "suppressTaskName": true,
-            "args": ["make"],
-            "isBuildCommand": true
+            "label": "build",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/C",
+                "make"
+            ],
+            "problemMatcher": [],
+            "group": {
+                "_id": "build",
+                "isDefault": false
+            }
         }
     ]
 }

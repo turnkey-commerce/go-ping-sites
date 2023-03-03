@@ -2,6 +2,8 @@ github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/apexskier/httpauth v1.3.3-0.20160411233833-4c628e7cce0d h1:ztG48vwXm1iPu+bAuhohG/E274IsXHzt9pFsS+yplb8=
 github.com/apexskier/httpauth v1.3.3-0.20160411233833-4c628e7cce0d/go.mod h1:aEHd6x648VCocEK0vTsPKkjJ1sBPab3Z4V4MJs9YZAE=
+github.com/asaskevich/govalidator v0.0.0-20160320112355-5208815a79dd h1:2gCxnMr8OXglzRqesbfKEMrJwplicd4+qWUyPqC2hKk=
+github.com/asaskevich/govalidator v0.0.0-20160320112355-5208815a79dd/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef h1:46PFijGLmAjMPwCCCo7Jf0W6f9slllCkkv7vyc1yOSg=
 github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef/go.mod h1:WaHUgvxTVq04UNunO+XhnAqY/wQc+bxr74GqbsZ/Jqw=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
