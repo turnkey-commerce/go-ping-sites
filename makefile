@@ -9,7 +9,7 @@ else
 endif
 PATHSEP=$(strip $(PATHSEP2))
 DIST_PATH=$(GOPATH)$(PATHSEP)dist$(PATHSEP)go-ping-sites
-SRC_PATH=$(GOPATH)$(PATHSEP)src$(PATHSEP)github.com$(PATHSEP)turnkey-commerce$(PATHSEP)go-ping-sites
+SRC_PATH=.
 
 default:
 	$(eval export GO15VENDOREXPERIMENT = 1)
