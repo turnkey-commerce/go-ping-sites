@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"embed"
 	"fmt"
 	"log"
 	"net/http"
@@ -24,6 +25,12 @@ var (
 	// Version is the Semver version of the application and should be passed in the build.
 	version = "No Version provided"
 )
+
+//go:embed public
+var publicFiles embed.FS
+
+//go:embed templates
+var templateFiles embed.FS
 
 func main() {
 	var err error
@@ -62,8 +69,8 @@ func main() {
 	p := pinger.NewPinger(db, pinger.GetSites, pinger.RequestURL, notifier.SendEmail, notifier.SendSms)
 	p.Start()
 	// Start the web server.
-	templates := controllers.PopulateTemplates("templates")
-	controllers.Register(db, authorizer, authBackend, roles, templates, p, version, cookieKey, secureCookie)
+	templates := controllers.PopulateTemplates(templateFiles)
+	controllers.Register(db, authorizer, authBackend, roles, templates, p, version, cookieKey, secureCookie, publicFiles)
 	err = http.ListenAndServe(":"+config.Settings.Website.HTTPPort, nil) // set listen port
 	if err != nil {
 		fatalError("ListenAndServe: ", err)

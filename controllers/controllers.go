@@ -3,9 +3,10 @@ package controllers
 import (
 	"bufio"
 	"database/sql"
+	"embed"
 	"html/template"
+	"io/fs"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/apexskier/httpauth"
@@ -23,7 +24,7 @@ type CurrentUserGetter interface {
 // Register the handlers for a given route.
 func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.AuthBackend,
 	roles map[string]httpauth.Role, templates *template.Template, pinger *pinger.Pinger,
-	version string, cookieKey []byte, secureCookie bool) {
+	version string, cookieKey []byte, secureCookie bool, publicFiles embed.FS) {
 
 	// setup CSRF protection for the post requests.
 	CSRF := csrf.Protect(cookieKey, csrf.Secure(secureCookie))
@@ -128,45 +129,47 @@ func Register(db *sql.DB, authorizer httpauth.Authorizer, authBackend httpauth.A
 	// Wrap the router in the CSRF protection.
 	http.Handle("/", CSRF(router))
 
-	http.HandleFunc("/img/", serveResource)
-	http.HandleFunc("/css/", serveResource)
-	http.HandleFunc("/js/", serveResource)
-	http.HandleFunc("/fonts/", serveResource)
+	http.HandleFunc("/img/", serveResource(publicFiles))
+	http.HandleFunc("/css/", serveResource(publicFiles))
+	http.HandleFunc("/js/", serveResource(publicFiles))
+	http.HandleFunc("/fonts/", serveResource(publicFiles))
 }
 
-func serveResource(w http.ResponseWriter, req *http.Request) {
-	path := "public" + req.URL.Path
-	var contentType string
-	if strings.HasSuffix(path, ".css") {
-		contentType = "text/css"
-	} else if strings.HasSuffix(path, ".png") {
-		contentType = "image/png"
-	} else if strings.HasSuffix(path, ".eot") {
-		contentType = "application/vnd.ms-fontobject"
-	} else if strings.HasSuffix(path, ".ttf") {
-		contentType = "application/font-sfnt"
-	} else if strings.HasSuffix(path, ".otf") {
-		contentType = "application/font-sfnt"
-	} else if strings.HasSuffix(path, ".woff") {
-		contentType = "application/font-woff"
-	} else if strings.HasSuffix(path, ".woff2") {
-		contentType = "application/font-woff2"
-	} else if strings.HasSuffix(path, ".js") {
-		contentType = "text/javascript"
-	} else {
-		contentType = "text/plain"
-	}
+func serveResource(publicFiles embed.FS) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		path := "public" + r.URL.Path
+		var contentType string
+		if strings.HasSuffix(path, ".css") {
+			contentType = "text/css"
+		} else if strings.HasSuffix(path, ".png") {
+			contentType = "image/png"
+		} else if strings.HasSuffix(path, ".eot") {
+			contentType = "application/vnd.ms-fontobject"
+		} else if strings.HasSuffix(path, ".ttf") {
+			contentType = "application/font-sfnt"
+		} else if strings.HasSuffix(path, ".otf") {
+			contentType = "application/font-sfnt"
+		} else if strings.HasSuffix(path, ".woff") {
+			contentType = "application/font-woff"
+		} else if strings.HasSuffix(path, ".woff2") {
+			contentType = "application/font-woff2"
+		} else if strings.HasSuffix(path, ".js") {
+			contentType = "text/javascript"
+		} else {
+			contentType = "text/plain"
+		}
 
-	f, err := os.Open(path)
+		f, err := publicFiles.Open(path)
 
-	if err == nil {
-		defer f.Close()
-		w.Header().Add("Content-Type", contentType)
+		if err == nil {
+			defer f.Close()
+			w.Header().Add("Content-Type", contentType)
 
-		br := bufio.NewReader(f)
-		br.WriteTo(w)
-	} else {
-		w.WriteHeader(404)
+			br := bufio.NewReader(f)
+			br.WriteTo(w)
+		} else {
+			w.WriteHeader(404)
+		}
 	}
 }
 
@@ -230,27 +233,32 @@ func displayActiveClass(input bool) template.HTMLAttr {
 }
 
 // PopulateTemplates loads and parses all of the templates in the templates directory
-func PopulateTemplates(templatePath string) *template.Template {
+func PopulateTemplates(templateFiles embed.FS) *template.Template {
 	result := template.New("templates")
-
-	basePath := templatePath
-	templateFolder, _ := os.Open(basePath)
-	defer templateFolder.Close()
-
-	templatePathsRaw, _ := templateFolder.Readdir(-1)
-	templatePaths := new([]string)
-	for _, pathInfo := range templatePathsRaw {
-		if !pathInfo.IsDir() {
-			*templatePaths = append(*templatePaths,
-				basePath+"/"+pathInfo.Name())
-		}
-	}
 
 	var funcMap = template.FuncMap{
 		"displayBool":        displayBool,
 		"displayActiveClass": displayActiveClass,
 	}
 
-	result.Funcs(funcMap).ParseFiles(*templatePaths...)
+	templatePaths, _ := getAllFilenames(templateFiles)
+
+	result.Funcs(funcMap).ParseFS(templateFiles, templatePaths...)
 	return result
+}
+
+func getAllFilenames(efs embed.FS) (files []string, err error) {
+	if err := fs.WalkDir(efs, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		files = append(files, path)
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }
