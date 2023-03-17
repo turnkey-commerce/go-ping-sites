@@ -26,10 +26,10 @@ var (
 	version = "No Version provided"
 )
 
-//go:embed public
+//go:embed public/*
 var publicFiles embed.FS
 
-//go:embed templates
+//go:embed templates/*
 var templateFiles embed.FS
 
 func main() {
