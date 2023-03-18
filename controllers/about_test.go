@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"html/template"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -14,7 +16,7 @@ func TestAboutController(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/about", nil)
 
-	templates := PopulateTemplates("../templates")
+	templates := populateFileTemplates("../templates")
 
 	ac := new(aboutController)
 	ac.template = templates.Lookup("about.gohtml")
@@ -40,4 +42,31 @@ func TestAboutController(t *testing.T) {
 	if !strings.Contains(body, `<title>Go Ping Sites - About</title>`) {
 		t.Error("Flash message not rendered as expected.")
 	}
+}
+
+// populateTemplates loads and parses all of the file templates in the templates directory
+// This is for test only and is separate from the embedded templates in the main program.
+func populateFileTemplates(templatePath string) *template.Template {
+	result := template.New("templates")
+
+	basePath := templatePath
+	templateFolder, _ := os.Open(basePath)
+	defer templateFolder.Close()
+
+	templatePathsRaw, _ := templateFolder.Readdir(-1)
+	templatePaths := new([]string)
+	for _, pathInfo := range templatePathsRaw {
+		if !pathInfo.IsDir() {
+			*templatePaths = append(*templatePaths,
+				basePath+"/"+pathInfo.Name())
+		}
+	}
+
+	var funcMap = template.FuncMap{
+		"displayBool":        displayBool,
+		"displayActiveClass": displayActiveClass,
+	}
+
+	result.Funcs(funcMap).ParseFiles(*templatePaths...)
+	return result
 }

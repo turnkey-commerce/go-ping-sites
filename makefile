@@ -13,11 +13,9 @@ SRC_PATH=.
 
 default:
 	$(eval export GO15VENDOREXPERIMENT = 1)
-	go install -ldflags "-X main.version=1.3.3" -v
+	go install -ldflags "-X main.version=1.3.4" -v
 	-mkdir -p $(DIST_PATH)
 	cp $(GOPATH)$(PATHSEP)bin$(PATHSEP)$(EXE_NAME) $(DIST_PATH)$(PATHSEP)$(EXE_NAME)
-	cp -r $(SRC_PATH)$(PATHSEP)templates $(DIST_PATH)
-	cp -r $(SRC_PATH)$(PATHSEP)public $(DIST_PATH)
 
 clean:
 	-rm -rf $(DIST_PATH)
