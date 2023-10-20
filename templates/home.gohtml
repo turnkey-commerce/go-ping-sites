@@ -43,7 +43,7 @@
     {{template "_footer.gohtml"}}
     <script src="js/moment.min.js"></script>
     <script language="JavaScript">
-      $(window).load(function() {
+      $(window).on('load', function() {
         var divLocal = $('#divLocal');
         var utcTime = moment.utc().format('YYYY-MM-DD HH:mm:ss');
         var localTimeJS  = moment.utc(utcTime).toDate();
