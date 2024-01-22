@@ -74,11 +74,18 @@ func send(c database.Contact, message string, subject string, sendEmail EmailSen
 // SendEmail provides the implementation of the EmailSender type for runtime usage.
 func SendEmail(recipient string, message string, subject string) error {
 	// Set up authentication information.
-	auth := smtp.PlainAuth("", config.Settings.SMTP.EmailAddress, config.Settings.SMTP.Password,
+
+	// If the Username is not set up then use EmailAddress as the user
+	user := config.Settings.SMTP.EmailAddress
+	if config.Settings.SMTP.UserName != "" {
+		user = config.Settings.SMTP.UserName
+	}
+
+	auth := smtp.PlainAuth("", user, config.Settings.SMTP.Password,
 		config.Settings.SMTP.Server)
 	server := config.Settings.SMTP.Server + ":" + config.Settings.SMTP.Port
 	to := []string{recipient}
-	from := "sender@example.org"
+	from := config.Settings.SMTP.EmailAddress
 	msg := []byte("Subject: " + subject + "\r\n\r\n" +
 		message + "\r\n")
 	err := smtp.SendMail(server, auth, from, to, msg)

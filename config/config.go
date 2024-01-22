@@ -12,6 +12,7 @@ var configFile = "config.toml"
 var Settings struct {
 	SMTP struct {
 		EmailAddress string `valid:"-"`
+		UserName     string `valid:"-"`
 		Password     string `valid:"-"`
 		Server       string `valid:"-"`
 		Port         string `valid:"int,required"`

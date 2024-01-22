@@ -13,6 +13,10 @@ func TestSmtpConfiguration(t *testing.T) {
 		t.Error("Config Email Address mismatch:\n", smtpSettings.EmailAddress)
 	}
 
+	if smtpSettings.UserName != "" {
+		t.Error("Config Username mismatch:\n", smtpSettings.UserName)
+	}
+
 	if smtpSettings.Password != "yourpassword" {
 		t.Error("Config Email Password mismatch:\n", smtpSettings.Password)
 	}
