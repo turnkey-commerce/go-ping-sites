@@ -1,6 +1,8 @@
 # SMTP credentials for sending email notifications
 [SMTP]
 	EmailAddress = "yourusername@example.com"
+	# UserName can be left as a blank string if it's the same as the EmailAddress.
+	UserName     = ""    
 	Password     = "yourpassword"
 	Server       = "smtp.gmail.com"
 	Port         = "587"

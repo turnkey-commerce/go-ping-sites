@@ -2,6 +2,7 @@
 [SMTP]
   EmailAddress = "yourusername@example.com"
   Password 	   = "yourpassword"
+  UserName     = ""
   Server 		   = "smtp.gmail.com"
   Port 		     = "587"
 
