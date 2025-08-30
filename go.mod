@@ -1,6 +1,6 @@
 module github.com/turnkey-commerce/go-ping-sites
 
-go 1.20
+go 1.23.0
 
 require (
 	github.com/BurntSushi/toml v0.3.1
@@ -29,7 +29,7 @@ require (
 	github.com/onsi/gomega v1.10.3 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/syndtr/goleveldb v1.0.0 // indirect
-	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22 // indirect
 	gopkg.in/yaml.v2 v2.3.0 // indirect
